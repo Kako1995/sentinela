@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-validacao",
+  "nota": "innerHTML recebe HTML com um valor do usuário concatenado.",
+  "codigo": "lista.innerHTML = \"<li>\" + termoBuscado + \"</li>\";"
+}

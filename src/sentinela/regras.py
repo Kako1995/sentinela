@@ -21,11 +21,24 @@ class Regra:
     explicacao: str
     correcao: str
     excecao: re.Pattern[str] | None = None  # se casar, a linha é considerada segura
+    # Regras que precisam ver várias linhas (ex.: JSX em que `__html:` fica na linha seguinte).
+    # O scanner junta até `janela` linhas seguidas, e só processa a regra se `gatilho` estiver na primeira.
+    janela: int = 1
+    gatilho: str | None = None
 
-    def casa(self, linha: str) -> bool:
-        if not self.padrao.search(linha):
-            return False
-        return not (self.excecao and self.excecao.search(linha))
+    def casa(self, texto: str, limite_inicio: int | None = None) -> bool:
+        """`texto` é uma linha ou, em regras com janela, várias linhas juntas.
+
+        Com janela, só vale um casamento que COMEÇA na primeira linha (`limite_inicio` é o
+        tamanho dela); senão a mesma ocorrência seria reportada também pelas linhas anteriores.
+        """
+        for m in self.padrao.finditer(texto):
+            if limite_inicio is not None and m.start() > limite_inicio:
+                break
+            alvo = m.group(0) if self.janela > 1 else texto
+            if not (self.excecao and self.excecao.search(alvo)):
+                return True
+        return False
 
 
 def _re(padrao: str) -> re.Pattern[str]:
@@ -37,9 +50,10 @@ def _rei(padrao: str) -> re.Pattern[str]:
 
 
 # Sinais de que uma string está sendo montada com valores de fora.
+# Constantes em MAIÚSCULAS (CAMPOS, TEMPO_LIMITE) não contam: são do próprio código, não do usuário.
 _INTERPOLACAO = (
-    r"""["']\s*\+\s*[\w(\[]"""  # "...' + x
-    r"""|[\w)\]]\s*\+\s*["']"""  # x + "..."
+    r"""["']\s*\+\s*(?![A-Z][A-Z0-9_]*\b)[\w(\[]"""  # "...' + x
+    r"""|(?<![A-Z0-9_])[\w)\]]\s*\+\s*["']"""  # x + "..."
     r"""|\bf["'].*\{"""  # f"...{x}..."
     r"""|["']\s*%\s*[\w(\[]"""  # "..." % x
     r"""|\.format\("""  # "...".format(x)
@@ -60,7 +74,10 @@ REGRAS: list[Regra] = [
             r"""\w*["']?\s*[:=]\s*["'][^"'\s]{8,}["']"""
         ),
         excecao=_rei(
-            r"changeme|example|your[_-]|<.+>|\$\{|x{4,}|\*{4,}|placeholder|os\.environ|getenv|process\.env"
+            # placeholders ("changeme", "sua-chave-aqui", "troque...") e referências a variável de
+            # ambiente (os.environ, process.env, env(NOME), ${NOME}), que não são o segredo em si
+            r"changeme|example|exemplo|your[_-]|sua[-_ ]|seu[-_ ]|[-_]aqui|troque|insira|coloque|dummy|fake"
+            r"|redacted|<.+>|\$\{|x{4,}|\*{4,}|placeholder|os\.environ|getenv|process\.env|\benv\("
         ),
         explicacao="Um valor que parece segredo (chave, token ou senha) está escrito direto no código.",
         correcao="Leia o valor de uma variável de ambiente ou de um gerenciador de segredos e revogue a chave exposta.",
@@ -83,7 +100,8 @@ REGRAS: list[Regra] = [
         cwe="CWE-89",
         severidade=Severity.alta,
         padrao=_re(
-            r"(?i)(?=.*\b(select\b.+?\bfrom|insert\s+into|update\b.+?\bset|delete\s+from)\b)"
+            # (?i:...) só nas palavras SQL: o resto precisa distinguir MAIÚSCULAS (constantes) de minúsculas
+            r"(?=.*\b(?i:select\b.+?\bfrom|insert\s+into|update\b.+?\bset|delete\s+from)\b)"
             rf"(?=.*({_INTERPOLACAO}))"
         ),
         explicacao="A consulta SQL é montada juntando texto com valores variáveis, então uma entrada maliciosa muda a consulta.",
@@ -95,12 +113,33 @@ REGRAS: list[Regra] = [
         cwe="CWE-79",
         severidade=Severity.media,
         padrao=_rei(
-            r"""\.innerHTML\s*\+?=|\bdocument\.write\(|dangerouslySetInnerHTML|\|\s*safe\b|\bmark_safe\(|\bMarkup\("""
+            r"""\.innerHTML\s*\+?=|\bdocument\.write\(|\|\s*safe\b|\bmark_safe\(|\bMarkup\("""
             r"""|["']\s*</?[a-z][^"']*["']\s*\+|\+\s*["']\s*</?[a-z]|\bf["'][^"']*<[a-z][^"']*\{"""
         ),
-        excecao=_rei(r"""\b(escape|sanitize|bleach|DOMPurify)\b|innerHTML\s*=\s*["']\s*["']"""),
+        excecao=_rei(
+            r"""\b(escape|sanitize|bleach|DOMPurify)\b"""
+            # innerHTML recebendo só um texto fixo (sem +, ${ ou {): não há dado variável
+            r"""|\.innerHTML\s*\+?=\s*(?:"[^"$+{]*"|'[^'$+{]*'|`[^`$]*`)\s*;?\s*$"""
+        ),
         explicacao="HTML é montado ou inserido com valor variável sem escapar, abrindo espaço para script injetado.",
         correcao="Escape a saída (ou use textContent / template com autoescape) em vez de concatenar HTML.",
+    ),
+    Regra(
+        id="xss-react-html-perigoso",
+        categoria="XSS",
+        cwe="CWE-79",
+        severidade=Severity.media,
+        janela=60,
+        gatilho="dangerouslySetInnerHTML",
+        # Alerta só quando o conteúdo NÃO é um texto fixo: uma expressão (variável, chamada), um
+        # template com ${...} ou uma concatenação. Um bloco fixo de CSS/script não casa.
+        padrao=_re(
+            r"""dangerouslySetInnerHTML\s*=\s*\{\s*(?:(?!\{)[A-Za-z_(]"""
+            r"""|\{\s*__html\s*:\s*(?:(?![\s"'`])[^\n]*|`[^`]*\$\{|["'][^"'\n]*["']\s*\+))"""
+        ),
+        excecao=_re(r"\b(DOMPurify|sanitize|sanitizeHtml|escape)\b"),
+        explicacao="dangerouslySetInnerHTML recebe conteúdo variável sem sanitizar, abrindo espaço para script injetado.",
+        correcao="Sanitize com uma biblioteca (DOMPurify) ou renderize como texto/JSX em vez de HTML bruto.",
     ),
     Regra(
         id="path-traversal-entrada",
@@ -145,7 +184,9 @@ REGRAS: list[Regra] = [
         cwe="CWE-78",
         severidade=Severity.critica,
         padrao=_re(
-            r"\bos\.(system|popen)\(|\bsubprocess\.\w+\(.*shell\s*=\s*True|\bchild_process\.exec\("
+            # shell=True só é problema se o comando não for um texto fixo ("make build")
+            r"""\bos\.(system|popen)\(|\bsubprocess\.\w+\((?!\s*["'][^"'{%+]*["']\s*[,)]).*shell\s*=\s*True"""
+            r"|\bchild_process\.exec\("
             r"""|\beval\((?!\s*["'])"""
         ),
         explicacao="Um comando de shell ou código é executado a partir de texto que pode conter entrada do usuário.",
@@ -157,6 +198,7 @@ REGRAS: list[Regra] = [
         cwe="CWE-327",
         severidade=Severity.media,
         padrao=_re(r"""\bhashlib\.(md5|sha1)\(|\bcreateHash\(\s*["'](md5|sha1)["']"""),
+        excecao=_re(r"usedforsecurity\s*=\s*False"),  # uso declarado como não-segurança (cache, checksum)
         explicacao="MD5 e SHA-1 são quebrados e não servem para senhas nem para garantir integridade.",
         correcao="Use SHA-256 ou superior; para senhas, use bcrypt, scrypt ou argon2.",
     ),

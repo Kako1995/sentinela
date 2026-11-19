@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-validacao",
+  "nota": "innerHTML recebe um texto fixo, sem dado do usuário.",
+  "codigo": "lista.innerHTML = \"<li>Nenhum resultado</li>\";"
+}

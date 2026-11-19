@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-validacao",
+  "nota": "Concatena uma constante do código, não um valor do usuário.",
+  "codigo": "cur.execute(\"DELETE FROM sessoes WHERE expira_em < \" + TEMPO_LIMITE)"
+}

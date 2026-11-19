@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "O __html começa na linha seguinte, mas é um script fixo escrito no código.",
+  "codigo": "<script\n  dangerouslySetInnerHTML={{\n    __html: `window.dataLayer = window.dataLayer || [];`,\n  }}\n/>"
+}

@@ -28,7 +28,7 @@ No terminal a severidade vem colorida. Em pull requests, o mesmo relatório vira
 
 ## O que ele detecta
 
-10 regras, cada uma com CWE, severidade, explicação e correção em português:
+11 regras, cada uma com CWE, severidade, explicação e correção em português:
 
 | Categoria | CWE | Severidade |
 |---|---|---|
@@ -39,7 +39,7 @@ No terminal a severidade vem colorida. Em pull requests, o mesmo relatório vira
 | Path traversal | CWE-22 | alta |
 | SSRF | CWE-918 | alta |
 | Segredo no código (atribuição) | CWE-798 | alta |
-| XSS | CWE-79 | média |
+| XSS (inclui `dangerouslySetInnerHTML` do React) | CWE-79 | média |
 | Criptografia fraca (MD5/SHA-1) | CWE-327 | média |
 | Verificação TLS desativada | CWE-295 | média |
 
@@ -121,17 +121,27 @@ Rodar o scanner em casos de código rotulados à mão (vulnerável ou seguro) e 
 - **Precisão:** dos alertas que ele deu, quantos eram reais. Baixa precisão = falso positivo, e falso positivo faz as pessoas ignorarem a ferramenta.
 - **Recall:** das vulnerabilidades que existem, quantas ele achou.
 
-Medição atual (`v1-com-dificeis`, 40 casos):
+Medições, da `v1` (regras originais) para a `v2` (exceções gerais para falsos positivos), nos mesmos casos:
 
-| Conjunto | Casos | Precisão | Recall |
+| Conjunto | Casos | Precisão v1 → v2 | Recall v1 → v2 |
 |---|---|---|---|
-| Casos iniciais (20 vulneráveis, 10 seguros parecidos) | 30 | 86% | 60% |
-| Casos difíceis (5 vulneráveis que parecem inofensivos, 5 seguros que parecem perigosos) | 10 | 43% | 60% |
-| **Todos** | **40** | **71%** | **60%** |
+| Iniciais (20 vulneráveis, 10 seguros parecidos) | 30 | 86% → 92% | 60% → 60% |
+| Difíceis (vulneráveis que parecem inofensivos e seguros que parecem perigosos) | 10 | 43% → 100% | 60% → 60% |
+| Padrões vistos numa varredura de projeto real (só casos seguros) | 3 | 0% → sem alertas | n/a |
+| Validação: variações que **não** foram usadas para desenhar as correções | 10 | 50% → 100% | 100% → 100% |
+| **Todos** | **53** | **59% → 95%** | **67% → 67%** |
 
-Recall por categoria: injeção de comando 100%, SQL injection 80%, XSS 75%, desserialização 67%, SSRF 50%, segredo no código 50%, path traversal 33%, falta de autorização 0%.
+A v2 melhorou a precisão **sem perder recall**: nenhum acerto da v1 deixou de ser detectado. O recall em si **não melhorou**: o que falta (autorização, path traversal, SSRF, segredo em URL) exige entender de onde vem o dado, e não só o texto de uma linha.
 
-Com 40 casos, cada caso vale 2,5 pontos percentuais: os números mostram a tendência, não um valor exato. Os casos e o método estão em [`evals/`](evals/README.md), e cada rodada fica salva em `evals/resultados/`.
+Recall por categoria (v2): injeção de comando 100%, XSS 86%, SQL injection 83%, desserialização 67%, SSRF 50%, segredo no código 50%, path traversal 33%, falta de autorização 0%.
+
+**Como ler esses números com cuidado**
+- Os casos difíceis e os "do projeto real" motivaram as correções, então o ganho neles é otimista. O conjunto de validação mede se a melhora generaliza, mas também foi escrito por mim e fica perto dos mesmos padrões.
+- A evidência mais independente é uma varredura de um projeto real de terceiros (Next.js + Supabase, cerca de 500 arquivos): os alertas caíram de **15 para 2**, e os 13 que sumiram eram todos falsos positivos. Os 2 restantes são pontos para um humano conferir. Não há como medir o recall nesse projeto, porque não existe uma lista do que realmente está vulnerável lá.
+- Com 53 casos, cada caso vale cerca de 2 pontos percentuais: os números mostram a tendência, não um valor exato.
+- Os evals pegaram um erro meu durante a v2: a primeira versão da correção de SQL derrubou o recall de SQL injection de 83% para 33% (um `(?i)` fazia `nome` parecer uma constante). Sem a medição, isso teria passado.
+
+Os casos e o método estão em [`evals/`](evals/README.md), e cada rodada fica salva em `evals/resultados/`.
 
 ## Limitações
 
@@ -142,7 +152,9 @@ O que o Sentinela **não** pega, e por quê:
 - **Código em várias linhas.** Uma consulta SQL quebrada em duas linhas, com a interpolação na segunda, passa batido.
 - **APIs que a regra não conhece.** `pd.read_pickle`, `.html()` do jQuery, nomes de variável como `chavePagamento`: o que não está na lista não é detectado.
 - **Segredo dentro de uma URL** (`postgresql://usuario:senha@host`).
-- **Validação correta que a regra não entende** (falso positivo). Concatenar uma coluna já validada contra uma lista de permitidas, usar `shell=True` com um comando fixo, `md5(..., usedforsecurity=False)` ou `innerHTML` com HTML fixo disparam alerta mesmo sendo seguros.
+- **Validação que a regra não entende** (falso positivo). Concatenar uma coluna já validada contra uma lista de permitidas continua disparando alerta, mesmo sendo seguro. (Comandos fixos com `shell=True`, `usedforsecurity=False`, `innerHTML` com texto fixo e referências a variáveis de ambiente já são tratados.)
+- **As exceções podem esconder um achado real.** Valores com palavras como `fake`, `exemplo` ou `sua-` são tratados como placeholder, e uma constante em MAIÚSCULAS concatenada ao SQL é tratada como constante do código.
+- **Janela de 60 linhas** na regra de `dangerouslySetInnerHTML`: um template literal maior que isso, com `${...}` perto do fim, não é visto.
 - **Acertar pelo motivo errado.** Os evals medem se o alerta saiu, não se foi pelo motivo certo.
 - Só analisa as **linhas adicionadas**: não vê vulnerabilidades que já estavam no arquivo, nem como uma mudança afeta código existente.
 

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-validacao",
+  "nota": "Valor de exemplo em português, para o desenvolvedor trocar.",
+  "codigo": "SENHA_ADMIN = \"troque-esta-senha\""
+}

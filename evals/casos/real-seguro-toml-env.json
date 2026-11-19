@@ -1,0 +1,8 @@
+{
+  "linguagem": "toml",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "Configuração que aponta para uma variável de ambiente: o valor não está no arquivo.",
+  "codigo": "openai_api_key = \"env(OPENAI_API_KEY)\""
+}

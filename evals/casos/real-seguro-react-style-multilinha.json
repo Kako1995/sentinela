@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "dangerouslySetInnerHTML com um bloco de CSS fixo, em várias linhas, sem dado variável.",
+  "codigo": "<style dangerouslySetInnerHTML={{ __html: `\n  .cartao { color: #333; padding: 8px; }\n  .cartao:hover { color: #000; }\n` }} />"
+}

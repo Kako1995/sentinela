@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-validacao",
+  "nota": "Template literal com um comentário do usuário interpolado.",
+  "codigo": "<div dangerouslySetInnerHTML={{ __html: `<p>${comentario}</p>` }} />"
+}

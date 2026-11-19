@@ -39,7 +39,7 @@ CLI com Typer, comando `revisar`, `diff.py` que quebra o diff por arquivo guarda
 
 **Carlos precisa saber explicar:** exit code e por que ele importa pro CI.
 
-## Fase 4: evals, a parte mais importante (40 casos e baseline feitos; falta a iteração nas regras)
+## Fase 4: evals, a parte mais importante (53 casos; v1 e v2 medidas)
 
 - `evals/casos/` com 30 casos rotulados em JSON: 20 vulneráveis (uma ou mais por categoria) e 10 seguros parecidos com os vulneráveis. Cada caso: `codigo`, `linguagem`, `vulneravel` (bool), `categoria_esperada`.
 - `run_evals.py` roda o scanner em todos e mostra precisão, recall e uma tabela dos erros. Salva o resultado em `evals/resultados/` com data.
@@ -71,9 +71,9 @@ Voltar às fases anteriores com os números dos evals na mão. Ordem combinada:
 
 1. **Medir os casos do Carlos** (`"origem": "carlos"`) na `v1`, antes de mudar qualquer regra.
 2. **(feito) Comando `sentinela varrer <pasta>`:** lê os arquivos direto, sem depender do git, com opção de ignorar caminhos. Serve para analisar um software já pronto (hoje só dá para contornar com `git diff <árvore vazia> HEAD | sentinela revisar -`). Atenção: em projeto inteiro os falsos positivos se acumulam, então vale tratar o resultado como lista para conferir.
-3. **Precisão das regras que bloqueiam (alta e crítica):** 4 dos 6 falsos positivos da v1 derrubariam o CI. Correções gerais: entender comando fixo com `shell=True`, constantes concatenadas no SQL, `usedforsecurity=False`, `innerHTML` com HTML literal.
+3. **(feito na v2) Precisão das regras que bloqueiam (alta e crítica):** 4 dos 6 falsos positivos da v1 derrubariam o CI. Correções gerais: entender comando fixo com `shell=True`, constantes concatenadas no SQL, `usedforsecurity=False`, `innerHTML` com HTML literal.
 4. **Recall:** análise por AST do Python (enxerga o arquivo inteiro e liga a origem do dado ao uso), cobrindo path traversal, SSRF e segredo em URL.
-5. **Meta definida antes de mexer:** precisão acima de 85% nos alertas altos e críticos, sem cair o recall. Comparar `v1` com `v2` e guardar casos novos, não vistos, só para conferir se a melhora vale fora dos casos que a motivaram.
+5. **(feito) Meta definida antes de mexer:** precisão acima de 85% nos alertas altos e críticos, sem cair o recall. Comparar `v1` com `v2` e guardar casos novos, não vistos, só para conferir se a melhora vale fora dos casos que a motivaram.
 6. **Atualizar o README** com os números novos.
 
 ## Extras se sobrar fôlego

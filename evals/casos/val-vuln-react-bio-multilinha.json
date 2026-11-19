@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-validacao",
+  "nota": "O HTML vem de um dado do usuário (bio), com o __html na linha seguinte.",
+  "codigo": "<div dangerouslySetInnerHTML={{\n  __html: perfil.bio,\n}} />"
+}

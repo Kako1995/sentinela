@@ -91,3 +91,87 @@ def test_mesma_linha_pode_disparar_regras_diferentes():
     achados = analisar([trecho('os.system("curl " + url); requests.get(url, verify=False)')])
 
     assert {a.regra for a in achados} == {"injecao-de-comando", "tls-sem-verificacao"}
+
+
+# ---------- v2: exceções gerais (precisão) sem perder detecções (recall) ----------
+
+
+@pytest.mark.parametrize(
+    "linha, regra",
+    [
+        ('subprocess.run("convert " + arquivo + " saida.png", shell=True)', "injecao-de-comando"),
+        ('subprocess.run(f"convert {arquivo} saida.png", shell=True)', "injecao-de-comando"),
+        ('cur.execute("SELECT * FROM pedidos WHERE id = " + str(pedido_id))', "sql-concatenacao"),
+        ('lista.innerHTML = "<li>" + termo + "</li>";', "xss-saida-sem-escape"),
+        ("<div dangerouslySetInnerHTML={{ __html: perfil.bio }} />", "xss-react-html-perigoso"),
+        ("<div dangerouslySetInnerHTML={{ __html: `<p>${comentario}</p>` }} />", "xss-react-html-perigoso"),
+        ("<div dangerouslySetInnerHTML={markup} />", "xss-react-html-perigoso"),
+    ],
+)
+def test_v2_continua_pegando_o_vulneravel(linha, regra):
+    assert regra in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        'subprocess.run("make build", shell=True, check=True)',
+        'cur.execute("SELECT " + CAMPOS + " FROM t WHERE id = %s", (i,))',
+        'cur.execute("DELETE FROM sessoes WHERE expira_em < " + TEMPO_LIMITE)',
+        "h = hashlib.md5(url.encode(), usedforsecurity=False)",
+        'lista.innerHTML = "<li>Nenhum resultado</li>";',
+        "el.innerHTML = `<span class='x'></span>`;",
+        'openai_api_key = "env(OPENAI_API_KEY)"',
+        'SENHA_ADMIN = "troque-esta-senha"',
+        'API_KEY = "sua-chave-aqui"',
+        "<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />",
+        "<div dangerouslySetInnerHTML={{ __html: `texto fixo` }} />",
+    ],
+)
+def test_v2_nao_dispara_em_codigo_seguro(linha):
+    assert regras_que_casam(linha) == set()
+
+
+def trecho_numerado(*pares: tuple[int, str]) -> TrechoArquivo:
+    return TrechoArquivo(arquivo="a.tsx", linhas_adicionadas=[LinhaAdicionada(n, t) for n, t in pares])
+
+
+def test_janela_html_fixo_em_varias_linhas_nao_dispara():
+    achados = analisar([trecho_numerado(
+        (1, "<style dangerouslySetInnerHTML={{ __html: `"),
+        (2, "  .cartao { color: #333; }"),
+        (3, "  .cartao:hover { color: #000; }"),
+        (4, "` }} />"),
+    )])
+
+    assert achados == []
+
+
+def test_janela_valor_na_linha_seguinte_e_reportado_na_linha_do_gatilho_uma_vez():
+    achados = analisar([trecho_numerado(
+        (1, "<div dangerouslySetInnerHTML={{"),
+        (2, "  __html: perfil.bio,"),
+        (3, "}} />"),
+    )])
+
+    assert [(a.regra, a.linha) for a in achados] == [("xss-react-html-perigoso", 1)]
+
+
+def test_janela_template_com_interpolacao_em_linha_posterior():
+    achados = analisar([trecho_numerado(
+        (1, "<div dangerouslySetInnerHTML={{ __html: `"),
+        (2, "  <p>${comentario}</p>"),
+        (3, "` }} />"),
+    )])
+
+    assert [a.regra for a in achados] == ["xss-react-html-perigoso"]
+
+
+def test_janela_nao_junta_linhas_que_nao_sao_vizinhas():
+    # Num diff, a linha 2 foi removida: a 1 e a 9 não são vizinhas e não podem ser tratadas como um bloco.
+    achados = analisar([trecho_numerado(
+        (1, "<div dangerouslySetInnerHTML={{"),
+        (9, "  __html: perfil.bio,"),
+    )])
+
+    assert achados == []

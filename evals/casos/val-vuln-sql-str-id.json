@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude-validacao",
+  "nota": "Concatena o id convertido para texto: converter não escapa nada.",
+  "codigo": "cur.execute(\"SELECT * FROM pedidos WHERE id = \" + str(pedido_id))"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "injeção de comando",
+  "origem": "claude-validacao",
+  "nota": "shell=True com o nome do arquivo concatenado ao comando.",
+  "codigo": "subprocess.run(\"convert \" + arquivo + \" saida.png\", shell=True)"
+}

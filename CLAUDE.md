@@ -54,7 +54,8 @@ class Finding(BaseModel):
 - Mensagens para o usuário, explicações dos achados e docs em **português**.
 - Funções pequenas e tipadas. Sem abstrações que ainda não são necessárias.
 - Cada regra em `regras.py` olha uma linha adicionada. Toda regra nova vem com testes: pelo menos um caso vulnerável que dispara e um seguro parecido que não dispara.
-- Regras novas ou alteradas devem ser medidas nos evals; guardar os resultados antes e depois.
+- Regras novas ou alteradas devem ser medidas nos evals; guardar os resultados antes e depois, e conferir que nenhum acerto (TP) da versão anterior foi perdido.
+- Uma regra que precisa ver várias linhas usa `janela` e `gatilho` (ver `regras.py`); o scanner só junta linhas vizinhas no arquivo.
 - O comando `revisar` sai com código 1 se houver achado de severidade alta ou crítica, 0 caso contrário (Fase 3).
 - Nunca commitar segredos.
 
