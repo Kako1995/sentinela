@@ -59,6 +59,17 @@ git diff main | sentinela revisar - --formato markdown
 | `--formato markdown` | Texto pronto para comentário de PR |
 | `--formato json` | Só JSON, para usar em pipe |
 
+### Analisar um projeto inteiro
+
+Para um software que já existe, em vez de um diff:
+
+```bash
+sentinela varrer caminho/do/projeto
+sentinela varrer . -x tests -x docs -f markdown   # -x ignora caminhos (pode repetir)
+```
+
+Ele lê todos os arquivos de texto, pulando dependências (`node_modules`, `.venv`, `vendor`...), caches, binários, links simbólicos e arquivos com mais de 1 MB. Os mesmos formatos e códigos de saída do `revisar` valem aqui. Em projeto inteiro os falsos positivos se acumulam, então trate o resultado como uma **lista para conferir**, não como veredito. Só analise código seu ou que você tem permissão de analisar.
+
 **Código de saída:** `1` se houver achado de severidade **alta ou crítica**, `0` caso contrário, `2` se o arquivo não existir. É isso que faz o CI falhar.
 
 ## Instalar a Action em outro repositório
@@ -155,4 +166,4 @@ pytest
 python evals/run_evals.py --rotulo minha-rodada   # mede precisão e recall (veja evals/README.md)
 ```
 
-Estrutura: `src/sentinela/` (`diff.py` lê o diff, `regras.py` define as regras, `scanner.py` as aplica, `report.py` formata a saída, `avaliacao.py` calcula as métricas), `tests/`, `evals/` e `action.yml`.
+Estrutura: `src/sentinela/` (`diff.py` lê o diff, `varredura.py` percorre pastas, `regras.py` define as regras, `scanner.py` as aplica, `report.py` formata a saída, `avaliacao.py` calcula as métricas), `tests/`, `evals/` e `action.yml`.

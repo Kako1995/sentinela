@@ -19,8 +19,9 @@ O objetivo do projeto é aprendizado e portfólio: o Carlos precisa entender e c
 
 ```
 src/sentinela/
-  cli.py        # comandos Typer (revisar)
+  cli.py        # comandos Typer (revisar, varrer)
   diff.py       # quebra diff unificado em trechos por arquivo
+  varredura.py  # percorre uma pasta e trata cada arquivo como trecho (comando varrer)
   models.py     # Finding, Severity (Pydantic)
   regras.py     # lista de regras: regex por categoria de vulnerabilidade
   scanner.py    # aplica as regras às linhas adicionadas
@@ -64,6 +65,7 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 pytest
 sentinela revisar caminho/do.diff
+sentinela varrer caminho/do/projeto -x tests
 git diff main | sentinela revisar -
 python evals/run_evals.py
 ```

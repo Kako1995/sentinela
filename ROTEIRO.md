@@ -70,7 +70,7 @@ O recall vai expor as limitações das regras (ex.: `open(os.path.join("/uploads
 Voltar às fases anteriores com os números dos evals na mão. Ordem combinada:
 
 1. **Medir os casos do Carlos** (`"origem": "carlos"`) na `v1`, antes de mudar qualquer regra.
-2. **Comando `sentinela varrer <pasta>`:** lê os arquivos direto, sem depender do git, com opção de ignorar caminhos. Serve para analisar um software já pronto (hoje só dá para contornar com `git diff <árvore vazia> HEAD | sentinela revisar -`). Atenção: em projeto inteiro os falsos positivos se acumulam, então vale tratar o resultado como lista para conferir.
+2. **(feito) Comando `sentinela varrer <pasta>`:** lê os arquivos direto, sem depender do git, com opção de ignorar caminhos. Serve para analisar um software já pronto (hoje só dá para contornar com `git diff <árvore vazia> HEAD | sentinela revisar -`). Atenção: em projeto inteiro os falsos positivos se acumulam, então vale tratar o resultado como lista para conferir.
 3. **Precisão das regras que bloqueiam (alta e crítica):** 4 dos 6 falsos positivos da v1 derrubariam o CI. Correções gerais: entender comando fixo com `shell=True`, constantes concatenadas no SQL, `usedforsecurity=False`, `innerHTML` com HTML literal.
 4. **Recall:** análise por AST do Python (enxerga o arquivo inteiro e liga a origem do dado ao uso), cobrindo path traversal, SSRF e segredo em URL.
 5. **Meta definida antes de mexer:** precisão acima de 85% nos alertas altos e críticos, sem cair o recall. Comparar `v1` com `v2` e guardar casos novos, não vistos, só para conferir se a melhora vale fora dos casos que a motivaram.
