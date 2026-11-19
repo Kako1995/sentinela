@@ -1,0 +1,32 @@
+diff --git a/web/views.py b/web/views.py
+index 1111111..2222222 100644
+--- a/web/views.py
++++ b/web/views.py
+@@ -1,4 +1,5 @@
+ from flask import request
++import os
+
+ def home():
+     return "ok"
+@@ -20,3 +21,5 @@ def perfil():
+     nome = request.args.get("nome")
+-    return "<h1>" + nome + "</h1>"
++    html = "<h1>" + nome + "</h1>"
++    return html
+
+diff --git a/config.py b/config.py
+index 3333333..4444444 100644
+--- a/config.py
++++ b/config.py
+@@ -1,2 +1,3 @@
+ DEBUG = False
++API_KEY = "sk-live-123456"
+ PORT = 8000
+diff --git a/velho.py b/velho.py
+deleted file mode 100644
+index 5555555..0000000
+--- a/velho.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-print("adeus")
+-x = 1

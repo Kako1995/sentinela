@@ -1,0 +1,11 @@
+diff --git a/upload.py b/upload.py
+new file mode 100644
+index 0000000..6666666
+--- /dev/null
++++ b/upload.py
+@@ -0,0 +1,4 @@
++import os
++
++def salvar(nome, dados):
++    open(os.path.join("/uploads", nome), "wb").write(dados)
+\ No newline at end of file
