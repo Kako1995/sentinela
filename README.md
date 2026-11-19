@@ -1,3 +1,3 @@
 # Sentinela
 
-Revisor de segurança para diffs de código, com IA. Em construção: veja o `ROTEIRO.md`.
+Revisor de segurança para diffs de código, baseado em regras (sem IA). Em construção: veja o `ROTEIRO.md`.

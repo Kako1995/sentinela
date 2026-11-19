@@ -16,11 +16,6 @@ class Finding(BaseModel):
     severidade: Severity
     categoria: str  # ex.: "SQL injection", "XSS", "segredo no código"
     cwe: str | None = None  # ex.: "CWE-89"
+    regra: str  # id da regra que disparou, ex.: "sql-concatenacao"
     explicacao: str  # em português, curta e específica
     correcao: str  # sugestão concreta
-
-
-class RespostaIA(BaseModel):
-    """Formato exato que a IA deve devolver: um objeto com a lista de achados."""
-
-    achados: list[Finding]

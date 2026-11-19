@@ -1,102 +1,58 @@
 # Sentinela: roteiro de construção
 
+> Versão adaptada: o Sentinela **não usa IA**. A detecção é feita por regras (regex) escritas e entendidas pelo Carlos. Os evals continuam, agora medindo as regras.
+
 ## Por que esse projeto
 
-Ele nasce da conversa de hoje: a IA gera código rápido, mas alguém precisa saber se esse código é seguro. O Sentinela é uma ferramenta que faz essa revisão, e o Carlos é quem entende, mede e melhora ela.
+Código novo entra rápido (escrito à mão ou gerado por IA), mas alguém precisa saber se ele é seguro. O Sentinela revisa o diff de cada pull request em busca de vulnerabilidades conhecidas, de forma determinística, gratuita e offline. O Carlos é quem entende, mede e melhora as regras.
 
 Numa entrevista, ele mostra de uma vez:
 
-- **IA aplicada:** prompt, saída estruturada, validação, custo
 - **Segurança:** OWASP Top 10, CWE, vulnerabilidades reais
 - **Backend/CLI:** Python, testes, empacotamento
-- **Engenharia de verdade:** evals (medir se a IA acerta), CI/CD
+- **Engenharia de verdade:** evals (medir se as regras acertam), CI/CD
 - **Produto:** usuários reais (devs open source usando a Action)
 
-O diferencial são os **evals**. Quase ninguém em nível de estágio mostra que sabe medir se a IA está certa. É exatamente o que empresas de IA procuram.
+O diferencial são os **evals**. Quase ninguém em nível de estágio mostra que sabe medir a qualidade de uma ferramenta de segurança (precisão e recall).
 
-## Preparação (30 min)
+## Preparação (feita)
 
-```bash
-mkdir sentinela && cd sentinela
-git init
-# copiar o CLAUDE.md para a raiz
-python -m venv .venv && source .venv/bin/activate
-claude
-```
-
-Pegar uma chave em console.anthropic.com e colocar no `.env`:
-
-```bash
-echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
-echo ".env" >> .gitignore
-```
+Repositório, venv com Python 3.12, `.gitignore`, `CLAUDE.md`, `gh` autenticado. Não precisa de chave de API.
 
 ---
 
-## Fase 1: esqueleto e leitura de diff (1 a 2 dias)
+## Fase 1: esqueleto e leitura de diff (feita)
 
-**Prompt no Claude Code:**
-```
-Leia o CLAUDE.md. Crie o esqueleto do projeto: pyproject.toml, pacote sentinela,
-CLI com Typer e um comando "revisar" que lê um diff de arquivo ou stdin.
-Implemente diff.py que quebra um diff unificado em trechos por arquivo,
-guardando nome do arquivo, linhas adicionadas e número da linha.
-Escreva testes com 3 diffs de exemplo. Ainda sem IA.
-```
+CLI com Typer, comando `revisar`, `diff.py` que quebra o diff por arquivo guardando nome, linhas adicionadas e número da linha. Testes com 3 diffs de exemplo.
 
 **Carlos precisa saber explicar:** o que é um diff unificado, por que separar por arquivo, como o Typer transforma função em comando.
 
-## Fase 2: chamada à IA com saída estruturada (2 a 3 dias)
+## Fase 2: regras de detecção (feita, falta o Carlos revisar)
 
-**Prompt:**
-```
-Implemente models.py com Finding e Severity em Pydantic, seguindo o formato do CLAUDE.md.
-Implemente reviewer.py: envia cada trecho do diff para a API da Anthropic com o prompt
-de sistema de prompts.py e exige resposta em JSON validado pelo Pydantic.
-Se a resposta vier inválida, tenta de novo uma vez e depois registra o erro.
-Nos testes, use mock da API, sem chamada real.
-```
+`models.py` (Finding, Severity), `regras.py` (10 regras: SQL injection, XSS, segredo no código, path traversal, desserialização insegura, SSRF, injeção de comando, cripto fraca, TLS desativado) e `scanner.py`, que aplica cada regra às linhas adicionadas.
 
-**Carlos precisa saber explicar:** por que validar a saída da IA, o que é mock e por que testes não chamam a API real, quanto custa cada revisão (tokens).
+**Carlos precisa saber explicar:** como cada regex funciona, por que regras têm `excecao`, por que comentários são ignorados, o que uma regra por linha **não** consegue ver (de onde vem uma variável, código em várias linhas, falta de autorização).
 
 ## Fase 3: relatório (1 dia)
 
-**Prompt:**
-```
-Implemente report.py com três formatos: terminal (Rich, colorido por severidade),
-markdown (para comentário de PR) e JSON. Adicione a flag --formato.
-O comando deve sair com código 1 se houver achado de severidade alta ou crítica.
-```
+`report.py` com três formatos: terminal (Rich, colorido por severidade), markdown (para comentário de PR) e JSON. Flag `--formato`. O comando sai com código 1 se houver achado de severidade alta ou crítica.
 
 **Carlos precisa saber explicar:** exit code e por que ele importa pro CI.
 
 ## Fase 4: evals, a parte mais importante (3 a 4 dias)
 
-**Prompt:**
-```
-Crie evals/casos/ com 30 casos rotulados em JSON: 20 trechos vulneráveis
-(SQL injection, XSS, segredo no código, path traversal, desserialização insegura,
-SSRF, falta de autorização) e 10 trechos seguros parecidos com os vulneráveis.
-Cada caso tem: codigo, linguagem, vulneravel (bool), categoria_esperada.
-Implemente run_evals.py que roda o revisor em todos e mostra precisão, recall
-e uma tabela dos erros. Salve o resultado em evals/resultados/ com data.
-```
+- `evals/casos/` com 30 casos rotulados em JSON: 20 vulneráveis (uma ou mais por categoria) e 10 seguros parecidos com os vulneráveis. Cada caso: `codigo`, `linguagem`, `vulneravel` (bool), `categoria_esperada`.
+- `run_evals.py` roda o scanner em todos e mostra precisão, recall e uma tabela dos erros. Salva o resultado em `evals/resultados/` com data.
+- **Sem ajuda de IA**, o Carlos escreve à mão mais 10 casos difíceis (código seguro que parece perigoso e vice-versa). Isso mostra critério próprio.
+- Iterar nas regras, comparando os números antes e depois de cada mudança. Guardar cada versão dos resultados.
 
-Depois, **sem IA**: o Carlos escreve à mão mais 10 casos difíceis (código seguro que parece perigoso e vice-versa). Isso mostra critério próprio.
+O recall vai expor as limitações das regras (ex.: `open(os.path.join("/uploads", nome))` com `nome` vindo de fora passa batido). Documentar isso é parte do valor.
 
-Em seguida, iterar no prompt de `prompts.py` e comparar os números antes e depois. Guardar cada versão.
-
-**Carlos precisa saber explicar:** diferença entre precisão e recall, por que falso positivo irrita o usuário, como ele melhorou o prompt e quanto melhorou.
+**Carlos precisa saber explicar:** diferença entre precisão e recall, por que falso positivo irrita o usuário, o que ele mudou nas regras e quanto melhorou.
 
 ## Fase 5: GitHub Action (1 a 2 dias)
 
-**Prompt:**
-```
-Crie .github/workflows/sentinela.yml que roda o Sentinela em todo pull request,
-pega o diff contra a branch base e posta o relatório markdown como comentário no PR.
-A chave vem de secrets.ANTHROPIC_API_KEY. Documente no README como outra pessoa
-instala a Action no repositório dela.
-```
+`.github/workflows/sentinela.yml` roda o Sentinela em todo pull request, pega o diff contra a branch base e posta o relatório markdown como comentário. Documentar no README como outra pessoa instala a Action. Sem secrets de IA: só o `GITHUB_TOKEN` com permissão de comentar em PR.
 
 **Carlos precisa saber explicar:** como o GitHub Actions funciona, o que são secrets, permissões do token.
 
@@ -111,18 +67,19 @@ instala a Action no repositório dela.
 
 ## Extras se sobrar fôlego
 
-- Cache de resultados para não pagar duas vezes pelo mesmo trecho
-- Contexto extra: mandar o arquivo inteiro além do diff para reduzir falso positivo
-- Modo `--corrigir` que aplica a correção sugerida e roda os testes
-- Comparar dois modelos nos evals (custo x acerto)
+- Análise de AST (módulo `ast`) para Python: enxerga o arquivo inteiro e rastreia variáveis, reduzindo falso positivo e pegando mais casos
+- Arquivo de configuração (`.sentinela.toml`) para ligar/desligar regras e ignorar caminhos
+- Comentário `# sentinela: ignore` para marcar falso positivo numa linha
+- Mais linguagens (JavaScript/TypeScript) com regras próprias
+- Formato SARIF, para aparecer na aba Security do GitHub
 
 ## Como apresentar na entrevista (2 minutos)
 
-1. **Problema:** IA gera código rápido, mas ninguém revisa a segurança com o mesmo ritmo.
-2. **Solução:** revisor que roda em todo PR e explica o problema em português.
-3. **Como sei que funciona:** 40 casos rotulados, precisão X%, recall Y%, melhorei Z pontos ajustando o prompt.
-4. **O que aprendi:** onde a IA erra, por que validação e evals importam.
-5. **Limitações:** o que ele não pega e o que eu faria a seguir.
+1. **Problema:** código novo entra rápido, mas ninguém revisa a segurança com o mesmo ritmo.
+2. **Solução:** ferramenta que roda em todo PR, aponta a vulnerabilidade, a linha, o CWE e como corrigir, sem depender de serviço externo.
+3. **Como sei que funciona:** 40 casos rotulados, precisão X%, recall Y%, melhorei Z pontos ajustando as regras.
+4. **O que aprendi:** onde regex erra e por que medir importa.
+5. **Limitações:** o que ele não pega e o que eu faria a seguir (AST).
 
 ## Regra de ouro
 

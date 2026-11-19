@@ -5,6 +5,7 @@ from typing import Optional
 import typer
 
 from sentinela.diff import parse_diff
+from sentinela.scanner import analisar
 
 app = typer.Typer(help="Sentinela: revisor de segurança para diffs de código.")
 
@@ -20,7 +21,7 @@ def revisar(
         None, help="Arquivo .diff a revisar. Omita ou use '-' para ler da entrada padrão."
     ),
 ) -> None:
-    """Lê um diff unificado e lista o que há de código novo para revisar."""
+    """Lê um diff unificado e aponta vulnerabilidades nas linhas adicionadas."""
     if arquivo is None or str(arquivo) == "-":
         texto = sys.stdin.read()
     elif arquivo.is_file():
@@ -34,6 +35,15 @@ def revisar(
         typer.echo("Nenhuma linha adicionada no diff.")
         return
 
-    # Fase 1: ainda sem IA, só mostra o que seria enviado para revisão.
-    for trecho in trechos:
-        typer.echo(f"{trecho.arquivo}: {len(trecho.linhas_adicionadas)} linha(s) adicionada(s)")
+    achados = analisar(trechos)
+    if not achados:
+        typer.echo("Nenhum problema encontrado.")
+        return
+
+    # Formato simples por enquanto; relatório colorido, markdown/JSON e exit code vêm na Fase 3.
+    for a in achados:
+        cwe = f", {a.cwe}" if a.cwe else ""
+        typer.echo(f"{a.arquivo}:{a.linha} [{a.severidade.value}] {a.categoria} ({a.regra}{cwe})")
+        typer.echo(f"  {a.explicacao}")
+        typer.echo(f"  Correção: {a.correcao}")
+    typer.echo(f"\n{len(achados)} achado(s).")

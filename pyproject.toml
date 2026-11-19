@@ -12,7 +12,6 @@ dependencies = [
     "typer>=0.12",
     "rich>=13",
     "pydantic>=2",
-    "anthropic>=0.40",
 ]
 
 [project.optional-dependencies]
