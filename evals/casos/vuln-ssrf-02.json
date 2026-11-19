@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude",
+  "codigo": "@app.post(\"/webhook/teste\")\ndef testar_webhook():\n    url = request.json[\"destino\"]\n    resposta = requests.post(url, json={\"evento\": \"teste\"})\n    return {\"status\": resposta.status_code}"
+}

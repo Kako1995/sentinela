@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude",
+  "codigo": "# copie para config.py e preencha\nAPI_KEY = \"sua-chave-aqui\""
+}

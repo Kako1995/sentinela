@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude",
+  "codigo": "import os\nimport psycopg2\n\nSENHA_DB = os.environ[\"SENHA_DB\"]\nconn = psycopg2.connect(host=\"db.interno\", user=\"app\", password=SENHA_DB)"
+}

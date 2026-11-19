@@ -1,0 +1,7 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude",
+  "codigo": "function mostrarComentario(comentario) {\n  document.getElementById(\"saida\").textContent = comentario;\n}"
+}

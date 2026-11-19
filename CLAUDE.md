@@ -24,12 +24,13 @@ src/sentinela/
   models.py     # Finding, Severity (Pydantic)
   regras.py     # lista de regras: regex por categoria de vulnerabilidade
   scanner.py    # aplica as regras às linhas adicionadas
+  avaliacao.py  # lógica dos evals: casos, veredito, precisão e recall
   report.py     # (Fase 3) formatos terminal, markdown, json
 tests/
 evals/
-  casos/        # casos rotulados em JSON
+  casos/        # um JSON por caso rotulado (ver evals/README.md)
   resultados/   # saídas de cada rodada, com data
-  run_evals.py
+  run_evals.py  # roda os casos e salva o resultado
 .github/workflows/sentinela.yml
 ```
 

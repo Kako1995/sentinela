@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "injeção de comando",
+  "origem": "claude",
+  "codigo": "def ping(host):\n    return os.system(\"ping -c 1 \" + host)"
+}

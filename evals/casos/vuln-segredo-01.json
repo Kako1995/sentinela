@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude",
+  "codigo": "import psycopg2\n\nSENHA_DB = \"p4ssw0rd-producao-2024\"\nconn = psycopg2.connect(host=\"db.interno\", user=\"app\", password=SENHA_DB)"
+}

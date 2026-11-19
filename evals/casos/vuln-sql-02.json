@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude",
+  "codigo": "@app.get(\"/pedidos/{pedido_id}\")\ndef obter_pedido(pedido_id: str):\n    cur.execute(f\"SELECT * FROM pedidos WHERE id = {pedido_id}\")\n    return cur.fetchone()"
+}

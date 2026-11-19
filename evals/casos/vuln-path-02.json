@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude",
+  "codigo": "@app.post(\"/upload\")\ndef upload():\n    arquivo = request.files[\"documento\"]\n    arquivo.save(os.path.join(PASTA_UPLOADS, arquivo.filename))\n    return \"ok\""
+}

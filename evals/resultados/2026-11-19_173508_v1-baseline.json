@@ -1,0 +1,253 @@
+{
+  "rotulo": "v1-baseline",
+  "data": "2026-11-19T17:35:08",
+  "commit": "73e93e3",
+  "metricas": {
+    "tp": 12,
+    "fp": 2,
+    "fn": 8,
+    "tn": 8,
+    "precisao": 0.8571428571428571,
+    "recall": 0.6
+  },
+  "casos": [
+    {
+      "id": "seguro-01",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-02",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-03",
+      "origem": "claude",
+      "veredito": "FP",
+      "esperado": null,
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "seguro-04",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-05",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-06",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-07",
+      "origem": "claude",
+      "veredito": "FP",
+      "esperado": null,
+      "achadas": [
+        "segredo no código"
+      ]
+    },
+    {
+      "id": "seguro-08",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-09",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-10",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "vuln-authz-01",
+      "origem": "claude",
+      "veredito": "FN",
+      "esperado": "falta de autorização",
+      "achadas": []
+    },
+    {
+      "id": "vuln-authz-02",
+      "origem": "claude",
+      "veredito": "FN",
+      "esperado": "falta de autorização",
+      "achadas": []
+    },
+    {
+      "id": "vuln-cmd-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "injeção de comando",
+      "achadas": [
+        "injeção de comando"
+      ]
+    },
+    {
+      "id": "vuln-cmd-02",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "injeção de comando",
+      "achadas": [
+        "injeção de comando"
+      ]
+    },
+    {
+      "id": "vuln-deser-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "desserialização insegura",
+      "achadas": [
+        "desserialização insegura"
+      ]
+    },
+    {
+      "id": "vuln-deser-02",
+      "origem": "claude",
+      "veredito": "FN",
+      "esperado": "desserialização insegura",
+      "achadas": []
+    },
+    {
+      "id": "vuln-path-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "vuln-path-02",
+      "origem": "claude",
+      "veredito": "FN",
+      "esperado": "path traversal",
+      "achadas": []
+    },
+    {
+      "id": "vuln-segredo-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "segredo no código",
+      "achadas": [
+        "segredo no código"
+      ]
+    },
+    {
+      "id": "vuln-segredo-02",
+      "origem": "claude",
+      "veredito": "FN",
+      "esperado": "segredo no código",
+      "achadas": []
+    },
+    {
+      "id": "vuln-segredo-03",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "segredo no código",
+      "achadas": [
+        "segredo no código"
+      ]
+    },
+    {
+      "id": "vuln-sql-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "vuln-sql-02",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "vuln-sql-03",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "vuln-sql-04",
+      "origem": "claude",
+      "veredito": "FN",
+      "esperado": "SQL injection",
+      "achadas": []
+    },
+    {
+      "id": "vuln-ssrf-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "SSRF",
+      "achadas": [
+        "SSRF"
+      ]
+    },
+    {
+      "id": "vuln-ssrf-02",
+      "origem": "claude",
+      "veredito": "FN",
+      "esperado": "SSRF",
+      "achadas": []
+    },
+    {
+      "id": "vuln-xss-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "vuln-xss-02",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "vuln-xss-03",
+      "origem": "claude",
+      "veredito": "FN",
+      "esperado": "XSS",
+      "achadas": []
+    }
+  ]
+}

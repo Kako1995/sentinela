@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "desserialização insegura",
+  "origem": "claude",
+  "codigo": "@app.post(\"/importar\")\ndef importar():\n    dados = pickle.loads(request.data)\n    return jsonify(dados)"
+}

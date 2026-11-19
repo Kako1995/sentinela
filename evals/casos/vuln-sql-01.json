@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude",
+  "codigo": "def buscar_usuario(conn, nome):\n    consulta = \"SELECT * FROM usuarios WHERE nome = '\" + nome + \"'\"\n    return conn.execute(consulta).fetchall()"
+}

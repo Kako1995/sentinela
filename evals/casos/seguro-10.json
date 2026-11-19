@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude",
+  "codigo": "def ping(host):\n    return subprocess.run([\"ping\", \"-c\", \"1\", host], check=True)"
+}

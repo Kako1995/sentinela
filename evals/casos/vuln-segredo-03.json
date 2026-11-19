@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude",
+  "codigo": "TOKEN_API = \"9f8a7d6c5b4e3f2a1b0c9d8e7f6a5b4c\"\nheaders = {\"Authorization\": \"Bearer \" + TOKEN_API}"
+}

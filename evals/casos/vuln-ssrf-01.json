@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude",
+  "codigo": "@app.get(\"/preview\")\ndef preview():\n    resposta = requests.get(request.args[\"url\"], timeout=5)\n    return resposta.text"
+}

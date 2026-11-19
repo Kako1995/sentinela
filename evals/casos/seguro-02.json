@@ -1,0 +1,7 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude",
+  "codigo": "app.get('/usuario', (req, res) => {\n  db.query(\"SELECT * FROM usuarios WHERE id = ?\", [req.query.id], (erro, linhas) => res.json(linhas));\n});"
+}

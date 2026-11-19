@@ -1,0 +1,7 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude",
+  "codigo": "app.get('/pedidos/:id', async (req, res) => {\n  const pedido = await Pedido.findById(req.params.id);\n  res.json(pedido);\n});"
+}

@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude",
+  "codigo": "def clientes_da_cidade(cur, cidade):\n    sql = (\"SELECT id, nome FROM clientes \"\n           \"WHERE cidade = '%s'\" % cidade)\n    cur.execute(sql)\n    return cur.fetchall()"
+}

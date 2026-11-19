@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude",
+  "codigo": "@app.route(\"/ola\")\ndef ola():\n    return \"<h1>Olá, \" + request.args.get(\"nome\", \"\") + \"</h1>\""
+}

@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude",
+  "codigo": "@app.route(\"/admin/usuarios/<int:id>\", methods=[\"DELETE\"])\ndef apagar_usuario(id):\n    db.execute(\"DELETE FROM usuarios WHERE id = ?\", (id,))\n    return \"\", 204"
+}

@@ -1,0 +1,7 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude",
+  "codigo": "app.get('/usuario', (req, res) => {\n  const sql = \"SELECT * FROM usuarios WHERE id = \" + req.query.id;\n  db.query(sql, (erro, linhas) => res.json(linhas));\n});"
+}

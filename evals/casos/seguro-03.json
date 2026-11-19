@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude",
+  "codigo": "COLUNAS_ORDENAVEIS = {\"nome\", \"criado_em\"}\n\ndef listar(cur, ordem):\n    if ordem not in COLUNAS_ORDENAVEIS:\n        raise ValueError(\"coluna inválida\")\n    cur.execute(\"SELECT * FROM clientes ORDER BY \" + ordem)\n    return cur.fetchall()"
+}

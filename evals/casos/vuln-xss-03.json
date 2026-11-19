@@ -1,0 +1,7 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude",
+  "codigo": "function mostrarAviso(mensagem) {\n  $(\"#aviso\").html(mensagem);\n}"
+}

@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude",
+  "codigo": "@app.get(\"/baixar\")\ndef baixar():\n    return send_file(\"/var/relatorios/\" + request.args[\"arquivo\"])"
+}

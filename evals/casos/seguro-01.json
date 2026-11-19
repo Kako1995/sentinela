@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude",
+  "codigo": "def buscar_usuario(conn, nome):\n    return conn.execute(\"SELECT * FROM usuarios WHERE nome = ?\", (nome,)).fetchall()"
+}

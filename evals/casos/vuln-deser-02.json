@@ -1,0 +1,7 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "desserialização insegura",
+  "origem": "claude",
+  "codigo": "def carregar_planilha(arquivo_enviado):\n    df = pd.read_pickle(arquivo_enviado)\n    return df.to_dict()"
+}
