@@ -56,7 +56,7 @@ O recall vai expor as limitações das regras (ex.: `open(os.path.join("/uploads
 
 **Carlos precisa saber explicar:** como o GitHub Actions funciona, o que são secrets, permissões do token.
 
-## Fase 6: README e usuários reais (contínuo)
+## Fase 6: README e usuários reais (README, limitações e decisões feitos; faltam GIF, publicar e usuários reais)
 
 - README com GIF do terminal, tabela de resultados dos evals e decisões técnicas
 - Seção "Limitações": o que o Sentinela não pega (isso conta pontos, mostra maturidade)
