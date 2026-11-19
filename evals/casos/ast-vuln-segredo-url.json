@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-ast",
+  "nota": "A senha está dentro da URL de conexão.",
+  "codigo": "REDIS_URL = \"redis://default:s3cr3tP4ss@cache.interno:6379/0\""
+}

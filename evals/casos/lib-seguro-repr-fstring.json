@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "f-string no formato __repr__ (<Nome ...>): não é HTML.",
+  "codigo": "def __repr__(self):\n    return f\"<Sessao {self.nome!r} aberta={self.aberta}>\""
+}

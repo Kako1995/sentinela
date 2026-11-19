@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast",
+  "nota": "O nome é limpo com secure_filename antes de montar o caminho.",
+  "codigo": "@app.get(\"/baixar\")\ndef baixar():\n    nome = secure_filename(request.args.get(\"arquivo\"))\n    return send_file(os.path.join(PASTA_RELATORIOS, nome))"
+}

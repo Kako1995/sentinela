@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast",
+  "nota": "Consulta em duas linhas, mas totalmente fixa; o valor vai como parâmetro.",
+  "codigo": "def por_nome(cur, nome):\n    sql = (\"SELECT id, email FROM usuarios \"\n           \"WHERE nome = %s\")\n    cur.execute(sql, (nome,))"
+}

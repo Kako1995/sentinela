@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "A palavra eval() aparece só no texto de uma docstring.",
+  "codigo": "def avaliar(texto):\n    \"\"\"Interpreta o texto. Não usa eval() nem exec() por segurança.\"\"\"\n    return json.loads(texto)"
+}

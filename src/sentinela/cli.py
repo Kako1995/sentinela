@@ -15,6 +15,7 @@ from sentinela.report import (
     tem_bloqueante,
 )
 from sentinela.scanner import analisar
+from sentinela.varredura import anexar_fontes
 from sentinela.varredura import varrer as varrer_pasta
 
 app = typer.Typer(help="Sentinela: revisor de segurança para diffs de código.")
@@ -46,6 +47,11 @@ def revisar(
         None, help="Arquivo .diff a revisar. Omita ou use '-' para ler da entrada padrão."
     ),
     formato: Formato = OPCAO_FORMATO,
+    raiz: Optional[Path] = typer.Option(
+        None, "--raiz",
+        help="Pasta do repositório. Com ela, os arquivos .py do diff são lidos por inteiro e passam "
+        "pela análise por AST (acha mais, com menos falsos positivos).",
+    ),
 ) -> None:
     """Lê um diff unificado e aponta vulnerabilidades nas linhas adicionadas.
 
@@ -60,8 +66,16 @@ def revisar(
         typer.echo(f"Arquivo não encontrado: {arquivo}", err=True)
         raise typer.Exit(2)
 
+    trechos = parse_diff(texto)
+    if raiz is not None:
+        if not raiz.is_dir():
+            typer.echo(f"Pasta não encontrada: {raiz}", err=True)
+            raise typer.Exit(2)
+        sem_ast = anexar_fontes(trechos, raiz)
+        if sem_ast:
+            typer.echo(f"{sem_ast} arquivo(s) .py sem análise por AST (não encontrado em --raiz ou diferente do diff).", err=True)
     # Diff vazio ou sem linhas adicionadas é um relatório sem achados, no formato pedido.
-    _emitir(analisar(parse_diff(texto)), formato)
+    _emitir(analisar(trechos), formato)
 
 
 @app.command()

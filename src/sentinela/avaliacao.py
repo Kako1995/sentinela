@@ -83,7 +83,8 @@ def _como_trecho(caso: Caso) -> TrechoArquivo:
     """Trata o código inteiro do caso como linhas adicionadas de um arquivo novo."""
     extensao = EXTENSOES.get(caso.linguagem, "txt")
     linhas = [LinhaAdicionada(i, t) for i, t in enumerate(caso.codigo.splitlines(), start=1)]
-    return TrechoArquivo(arquivo=f"{caso.id}.{extensao}", linhas_adicionadas=linhas)
+    fonte = caso.codigo if caso.linguagem == "python" else None  # habilita a análise por AST
+    return TrechoArquivo(arquivo=f"{caso.id}.{extensao}", linhas_adicionadas=linhas, fonte=fonte)
 
 
 def avaliar_caso(caso: Caso, regras: list[Regra] = REGRAS) -> ResultadoCaso:

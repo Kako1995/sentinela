@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude-ast",
+  "nota": "Rota que altera uma conta por id, sem nenhuma verificação de quem está chamando.",
+  "codigo": "@app.route(\"/contas/<int:conta_id>\", methods=[\"PUT\"])\ndef editar_conta(conta_id):\n    dados = request.get_json()\n    db.contas.update(conta_id, dados)\n    return \"\", 204"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast2",
+  "nota": "Aqui 'request' é um objeto de uma biblioteca HTTP (sem framework web, sem rotas): não é dado de usuário.",
+  "codigo": "def preparar(request):\n    destino = request.url\n    return requests.get(destino, timeout=5)"
+}

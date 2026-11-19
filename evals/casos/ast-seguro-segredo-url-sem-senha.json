@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast",
+  "nota": "URLs sem senha, ou com a senha vindo de variável de ambiente.",
+  "codigo": "API_URL = \"https://api.exemplo.com.br/v1/clientes\"\nDB_URL = \"postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/app\""
+}

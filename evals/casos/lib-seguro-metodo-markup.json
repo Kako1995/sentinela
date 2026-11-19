@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "`.markup(...)` é um método de outra biblioteca, não a classe Markup do markupsafe.",
+  "codigo": "texto = escritor.markup(linha, bold=True)"
+}

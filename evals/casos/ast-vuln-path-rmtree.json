@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-ast",
+  "nota": "Apaga uma pasta cujo nome vem do JSON da requisição.",
+  "codigo": "@app.post(\"/limpar\")\ndef limpar():\n    pasta = request.json[\"pasta\"]\n    shutil.rmtree(os.path.join(RAIZ, pasta))"
+}

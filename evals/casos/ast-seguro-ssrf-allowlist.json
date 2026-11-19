@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast",
+  "nota": "A URL do usuário só é usada depois de conferir o host contra uma lista de permitidos.",
+  "codigo": "@app.get(\"/proxy\")\ndef proxy():\n    alvo = request.args[\"site\"]\n    if urlparse(alvo).hostname not in HOSTS_PERMITIDOS:\n        abort(400)\n    return requests.get(alvo, timeout=3).text"
+}

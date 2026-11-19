@@ -65,9 +65,42 @@ def ler_como_trecho(caminho: Path, raiz: Path) -> TrechoArquivo | None:
 
     nome = caminho.name if raiz.is_file() else caminho.relative_to(raiz).as_posix()
     linhas = [LinhaAdicionada(i, t) for i, t in enumerate(texto.splitlines(), start=1)]
-    return TrechoArquivo(arquivo=nome, linhas_adicionadas=linhas)
+    fonte = texto if nome.endswith(".py") else None  # a análise por AST precisa do arquivo inteiro
+    return TrechoArquivo(arquivo=nome, linhas_adicionadas=linhas, fonte=fonte)
 
 
 def varrer(raiz: Path, excluir: list[str] | None = None) -> list[TrechoArquivo]:
     trechos = (ler_como_trecho(c, raiz) for c in listar_arquivos(raiz, excluir))
     return [t for t in trechos if t is not None]
+
+
+def anexar_fontes(trechos: list[TrechoArquivo], raiz: Path) -> int:
+    """Lê do disco o arquivo completo de cada .py de um diff, para a análise por AST.
+
+    O nome do arquivo vem do diff, que pode ser de um PR malicioso (`+++ b/../../etc/x.py`), então:
+    só lê arquivos que, depois de resolvidos, ficam DENTRO de `raiz`, que não são links simbólicos
+    e que não passam do tamanho máximo. E só usa o arquivo se ele bate com o diff: as linhas
+    adicionadas precisam ser idênticas às do disco (senão é outro checkout e os números de linha
+    dos achados sairiam errados). Devolve quantos arquivos .py ficaram sem análise por AST.
+    """
+    base = raiz.resolve()
+    ignorados = 0
+    for trecho in trechos:
+        if not trecho.arquivo.endswith(".py"):
+            continue
+        alvo = base / trecho.arquivo
+        try:
+            if alvo.is_symlink() or not alvo.resolve().is_relative_to(base) or not alvo.is_file():
+                raise OSError("fora da raiz, link simbólico ou inexistente")
+            if alvo.stat().st_size > TAMANHO_MAXIMO:
+                raise OSError("arquivo grande demais")
+            texto = alvo.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError, ValueError):
+            ignorados += 1
+            continue
+        linhas = texto.splitlines()
+        if all(l.numero <= len(linhas) and linhas[l.numero - 1] == l.texto for l in trecho.linhas_adicionadas):
+            trecho.fonte = texto
+        else:
+            ignorados += 1
+    return ignorados

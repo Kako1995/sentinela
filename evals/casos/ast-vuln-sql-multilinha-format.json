@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude-ast",
+  "nota": "String de três aspas com .format no final, em linha separada do SELECT.",
+  "codigo": "def por_cidade(cur, cidade):\n    consulta = \"\"\"\n        SELECT id FROM clientes\n        WHERE cidade = '{}'\n    \"\"\".format(cidade)\n    cur.execute(consulta)"
+}

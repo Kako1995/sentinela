@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "injeção de comando",
+  "origem": "claude-real",
+  "nota": "os.system com concatenação continua perigoso.",
+  "codigo": "os.system(\"ping -c 1 \" + host)"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "injeção de comando",
+  "origem": "claude-real",
+  "nota": "eval de uma variável continua perigoso.",
+  "codigo": "resultado = eval(expressao_do_usuario)"
+}

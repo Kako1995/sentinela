@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-real",
+  "nota": "f-string com tag HTML real e valor do usuário continua sendo XSS.",
+  "codigo": "return f\"<div class='aviso'>{mensagem}</div>\""
+}

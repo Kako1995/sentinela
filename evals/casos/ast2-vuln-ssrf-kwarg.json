@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ast2",
+  "nota": "A URL vai como argumento nomeado (url=...).",
+  "codigo": "@app.post(\"/testar\")\ndef testar():\n    destino = request.json[\"url\"]\n    return requests.post(url=destino, json={\"ping\": 1}).text"
+}

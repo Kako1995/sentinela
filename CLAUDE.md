@@ -2,7 +2,7 @@
 
 Ferramenta de linha de comando que revisa diffs de código em busca de vulnerabilidades de segurança **usando regras (regex)**, e roda como GitHub Action em pull requests.
 
-**Sem IA e sem chamadas de rede.** Decisão do Carlos: a detecção é determinística, gratuita e offline. Não adicionar dependência de LLM nem chave de API.
+**Sem IA e sem chamadas de rede.** Detecção por regras por linha e por análise de AST (biblioteca padrão `ast`). Decisão do Carlos: a detecção é determinística, gratuita e offline. Não adicionar dependência de LLM nem chave de API.
 
 O objetivo do projeto é aprendizado e portfólio: o Carlos precisa entender e conseguir explicar cada parte. O diferencial são os **evals** (medir precisão e recall das regras).
 
@@ -23,7 +23,8 @@ src/sentinela/
   diff.py       # quebra diff unificado em trechos por arquivo
   varredura.py  # percorre uma pasta e trata cada arquivo como trecho (comando varrer)
   models.py     # Finding, Severity (Pydantic)
-  regras.py     # lista de regras: regex por categoria de vulnerabilidade
+  regras.py     # regras por linha: regex por categoria de vulnerabilidade
+  ast_python.py # análise por AST (só Python): origem->uso do dado, SQL multilinha, autorização
   scanner.py    # aplica as regras às linhas adicionadas
   avaliacao.py  # lógica dos evals: casos, veredito, precisão e recall
   report.py     # (Fase 3) formatos terminal, markdown, json
@@ -55,6 +56,8 @@ class Finding(BaseModel):
 - Funções pequenas e tipadas. Sem abstrações que ainda não são necessárias.
 - Cada regra em `regras.py` olha uma linha adicionada. Toda regra nova vem com testes: pelo menos um caso vulnerável que dispara e um seguro parecido que não dispara.
 - Regras novas ou alteradas devem ser medidas nos evals; guardar os resultados antes e depois, e conferir que nenhum acerto (TP) da versão anterior foi perdido.
+- A AST só lê arquivos dentro de `--raiz`, sem links simbólicos e só se baterem com o diff (o nome vem de um diff possivelmente malicioso).
+- Nos casos de eval, escreva o conjunto novo ANTES de implementar o que ele mede, e confira que nenhum TP anterior foi perdido.
 - Uma regra que precisa ver várias linhas usa `janela` e `gatilho` (ver `regras.py`); o scanner só junta linhas vizinhas no arquivo.
 - O comando `revisar` sai com código 1 se houver achado de severidade alta ou crítica, 0 caso contrário (Fase 3).
 - Nunca commitar segredos.
@@ -67,6 +70,7 @@ pip install -e ".[dev]"
 pytest
 sentinela revisar caminho/do.diff
 sentinela varrer caminho/do/projeto -x tests
+git diff main | sentinela revisar - --raiz .   # com AST nos .py do diff
 git diff main | sentinela revisar -
 python evals/run_evals.py
 ```

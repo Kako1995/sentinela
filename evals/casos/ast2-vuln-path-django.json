@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-ast2",
+  "nota": "View do Django: o request é o parâmetro da função, e o import mostra que é um app web.",
+  "codigo": "from django.http import FileResponse\n\ndef baixar(request):\n    nome = request.GET[\"f\"]\n    return FileResponse(open(\"/media/\" + nome, \"rb\"))"
+}

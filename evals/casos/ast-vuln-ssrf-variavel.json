@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ast",
+  "nota": "A URL vem da requisição, passa por uma variável e é usada duas linhas depois.",
+  "codigo": "@app.get(\"/proxy\")\ndef proxy():\n    alvo = request.args[\"site\"]\n    resposta = requests.get(alvo, timeout=3)\n    return resposta.text"
+}

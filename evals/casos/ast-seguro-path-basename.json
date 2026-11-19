@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast",
+  "nota": "os.path.basename descarta qualquer pasta que o usuário tenha enviado.",
+  "codigo": "@app.post(\"/salvar\")\ndef salvar():\n    nome = os.path.basename(request.form[\"nome\"])\n    open(os.path.join(PASTA, nome), \"w\").write(\"ok\")"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude-ast2",
+  "nota": "Rota PATCH que muda o status de qualquer pedido, sem checar quem chama.",
+  "codigo": "@bp.route(\"/pedidos/<int:pedido_id>\", methods=[\"PATCH\"])\ndef atualizar_pedido(pedido_id):\n    pedido = Pedido.query.get_or_404(pedido_id)\n    pedido.status = request.json[\"status\"]\n    db.session.commit()"
+}

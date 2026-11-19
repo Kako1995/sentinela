@@ -1,12 +1,17 @@
-"""Aplica as regras às linhas adicionadas de um diff."""
+"""Aplica as regras (por linha) e a análise por AST às linhas adicionadas de um diff."""
 
 import re
 
+from sentinela.ast_python import ResultadoAst, analisar_ast
 from sentinela.diff import LinhaAdicionada, TrechoArquivo
 from sentinela.models import Finding
 from sentinela.regras import REGRAS, Regra
 
 COMENTARIO = re.compile(r"^\s*(#|//|/\*|\*)")
+
+# Em arquivos Python que a AST conseguiu analisar, estas regras por linha são dispensadas:
+# a AST cobre os mesmos casos com menos falsos positivos (sabe de onde vem o dado).
+COBERTAS_PELA_AST = {"path-traversal-entrada", "ssrf-url-da-entrada"}
 
 
 def _janela(linhas: list[LinhaAdicionada], inicio: int, tamanho: int) -> str:
@@ -23,15 +28,28 @@ def _janela(linhas: list[LinhaAdicionada], inicio: int, tamanho: int) -> str:
     return "\n".join(textos)
 
 
+def _resultado_ast(trecho: TrechoArquivo) -> ResultadoAst | None:
+    """Análise por AST do arquivo, ou None se não foi possível (sem fonte, não é .py, erro de sintaxe)."""
+    if trecho.fonte is None or not trecho.arquivo.endswith(".py"):
+        return None
+    return analisar_ast(trecho.arquivo, trecho.fonte)
+
+
 def analisar(trechos: list[TrechoArquivo], regras: list[Regra] = REGRAS) -> list[Finding]:
-    """Devolve um achado por (linha, regra), na ordem dos arquivos e das linhas."""
+    """Devolve os achados na ordem dos arquivos e das linhas, sem repetir (linha, categoria)."""
     achados: list[Finding] = []
     for trecho in trechos:
+        resultado = _resultado_ast(trecho)
+        ativas = [r for r in regras if resultado is None or r.id not in COBERTAS_PELA_AST]
+        texto_solto = resultado.linhas_de_texto if resultado else set()
+        adicionadas = {l.numero for l in trecho.linhas_adicionadas}
         linhas = trecho.linhas_adicionadas
+        do_trecho: list[Finding] = []
+
         for i, linha in enumerate(linhas):
-            if COMENTARIO.match(linha.texto):
+            if COMENTARIO.match(linha.texto) or linha.numero in texto_solto:
                 continue
-            for regra in regras:
+            for regra in ativas:
                 if regra.janela == 1:
                     casou = regra.casa(linha.texto)
                 elif regra.gatilho and regra.gatilho not in linha.texto:
@@ -39,7 +57,7 @@ def analisar(trechos: list[TrechoArquivo], regras: list[Regra] = REGRAS) -> list
                 else:
                     casou = regra.casa(_janela(linhas, i, regra.janela), limite_inicio=len(linha.texto))
                 if casou:
-                    achados.append(
+                    do_trecho.append(
                         Finding(
                             arquivo=trecho.arquivo,
                             linha=linha.numero,
@@ -51,4 +69,11 @@ def analisar(trechos: list[TrechoArquivo], regras: list[Regra] = REGRAS) -> list
                             correcao=regra.correcao,
                         )
                     )
+
+        do_trecho += [a for a in (resultado.achados if resultado else []) if a.linha in adicionadas]
+        vistos: set[tuple[int, str]] = set()
+        for a in sorted(do_trecho, key=lambda f: f.linha):  # sorted é estável: regras antes da AST
+            if (a.linha, a.categoria) not in vistos:
+                vistos.add((a.linha, a.categoria))
+                achados.append(a)
     return achados

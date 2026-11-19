@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-ast",
+  "nota": "Em FastAPI, o parâmetro da rota vem da URL: é dado do usuário mesmo sem a palavra request.",
+  "codigo": "@app.get(\"/arquivos/{nome}\")\ndef ler(nome: str):\n    with open(\"/dados/\" + nome) as f:\n        return f.read()"
+}

@@ -16,7 +16,10 @@ class LinhaAdicionada:
 class TrechoArquivo:
     arquivo: str
     linhas_adicionadas: list[LinhaAdicionada] = field(default_factory=list)
-    patch: str = ""  # texto bruto do diff desse arquivo, para mandar à IA depois
+    patch: str = ""  # texto bruto do diff desse arquivo
+    # Conteúdo completo do arquivo, quando disponível (varredura de pasta ou `--raiz`).
+    # Permite a análise por AST, que precisa do arquivo inteiro e não só das linhas adicionadas.
+    fonte: str | None = None
 
 
 def _nome_arquivo(linha: str) -> str | None:

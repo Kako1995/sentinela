@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "os.system com um comando fixo, sem dado externo.",
+  "codigo": "os.system(\"clear\")"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast2",
+  "nota": "O nome só é usado depois de conferido contra uma lista de temas válidos.",
+  "codigo": "@app.get(\"/tema\")\ndef tema():\n    nome = request.args[\"nome\"]\n    if nome not in TEMAS_VALIDOS:\n        abort(404)\n    return send_file(os.path.join(PASTA_TEMAS, nome))"
+}

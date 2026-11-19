@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-ast2",
+  "nota": "O dado entra num f-string que vira o caminho, em outra linha do send_file.",
+  "codigo": "@app.post(\"/relatorio\")\ndef relatorio():\n    ano = request.form[\"ano\"]\n    caminho = f\"/dados/{ano}/resumo.txt\"\n    return send_file(caminho)"
+}

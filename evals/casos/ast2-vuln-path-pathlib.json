@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-ast2",
+  "nota": "Path(PASTA) / nome: o operador / junta o caminho sem checar o nome.",
+  "codigo": "@app.get(\"/img\")\ndef img():\n    nome = request.args[\"n\"]\n    return send_file(Path(PASTA) / nome)"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude-ast",
+  "nota": "Rota DELETE sem nenhuma dependência de usuário autenticado.",
+  "codigo": "@router.delete(\"/documentos/{doc_id}\")\ndef apagar_documento(doc_id: int):\n    repo.apagar(doc_id)"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude-ast",
+  "nota": "A consulta é montada em duas linhas; a concatenação fica na segunda, que não tem SELECT.",
+  "codigo": "def por_nome(cur, nome):\n    sql = (\"SELECT id, email FROM usuarios \"\n           \"WHERE nome = '\" + nome + \"'\")\n    cur.execute(sql)"
+}

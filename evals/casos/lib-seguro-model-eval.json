@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "`model.eval()` coloca uma rede neural em modo de avaliação; não executa código.",
+  "codigo": "model.eval()\nwith torch.no_grad():\n    saida = model(entrada)"
+}

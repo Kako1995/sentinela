@@ -45,6 +45,14 @@ def _re(padrao: str) -> re.Pattern[str]:
     return re.compile(padrao)
 
 
+# Só tags HTML de verdade: `<Testdir ...>` e `<function f at 0x..>` (formato de __repr__) não são HTML.
+_TAG_HTML = (
+    r"(?:a|b|i|u|p|br|hr|div|span|h[1-6]|ul|ol|li|table|thead|tbody|tr|td|th|img|input|form|script|style|button"
+    r"|label|strong|em|pre|code|iframe|link|meta|body|html|head|title|section|nav|header|footer|textarea|select"
+    r"|option|svg|small|font|center|object|embed)"
+)
+
+
 def _rei(padrao: str) -> re.Pattern[str]:
     return re.compile(padrao, re.IGNORECASE)
 
@@ -95,6 +103,20 @@ REGRAS: list[Regra] = [
         correcao="Remova do código, revogue a credencial agora (ela já ficou no histórico do git) e use variável de ambiente.",
     ),
     Regra(
+        id="segredo-url-com-senha",
+        categoria="segredo no código",
+        cwe="CWE-798",
+        severidade=Severity.alta,
+        padrao=_rei(r"""\b[a-z][a-z0-9+.\-]*://[^\s/:@"'`]+:[^\s/@"'`]{3,}@"""),
+        # senha que é só um marcador (password, ${VAR}, {{ var }}, <senha>, ****) não é segredo
+        excecao=_rei(
+            r"""://[^\s/:@]+:(password|senha|pass|passwd|secret|changeme|user|usuario|xxx+|\*+)@"""
+            r"""|\$\{|\{\{|<[^>]+>|%\(|\benv\(|os\.environ|getenv|process\.env"""
+        ),
+        explicacao="Há uma URL de conexão com usuário e senha escritos no código.",
+        correcao="Tire a senha da URL: monte-a a partir de variáveis de ambiente e revogue a senha exposta.",
+    ),
+    Regra(
         id="sql-concatenacao",
         categoria="SQL injection",
         cwe="CWE-89",
@@ -112,9 +134,10 @@ REGRAS: list[Regra] = [
         categoria="XSS",
         cwe="CWE-79",
         severidade=Severity.media,
-        padrao=_rei(
+        # Case-sensitive de propósito: Markup( é a classe do markupsafe; .markup( é outra coisa.
+        padrao=_re(
             r"""\.innerHTML\s*\+?=|\bdocument\.write\(|\|\s*safe\b|\bmark_safe\(|\bMarkup\("""
-            r"""|["']\s*</?[a-z][^"']*["']\s*\+|\+\s*["']\s*</?[a-z]|\bf["'][^"']*<[a-z][^"']*\{"""
+            rf"""|["']\s*</?{_TAG_HTML}\b[^"']*["']\s*\+|\+\s*["']\s*</?{_TAG_HTML}\b|\bf(["'])(?:(?!\1).)*<{_TAG_HTML}\b(?:(?!\1).)*\{{"""
         ),
         excecao=_rei(
             r"""\b(escape|sanitize|bleach|DOMPurify)\b"""
@@ -140,6 +163,17 @@ REGRAS: list[Regra] = [
         excecao=_re(r"\b(DOMPurify|sanitize|sanitizeHtml|escape)\b"),
         explicacao="dangerouslySetInnerHTML recebe conteúdo variável sem sanitizar, abrindo espaço para script injetado.",
         correcao="Sanitize com uma biblioteca (DOMPurify) ou renderize como texto/JSX em vez de HTML bruto.",
+    ),
+    Regra(
+        id="xss-jquery-html",
+        categoria="XSS",
+        cwe="CWE-79",
+        severidade=Severity.media,
+        # .html(variavel) interpreta HTML; .html() sem argumento (leitura) e .html("texto fixo") não casam
+        padrao=_re(r"""\.html\(\s*(?!["'`)\s])[A-Za-z_$]"""),
+        excecao=_rei(r"""\b(escape|sanitize|DOMPurify)\b"""),
+        explicacao="O .html() do jQuery insere o valor como HTML, então um dado do usuário vira script injetado.",
+        correcao="Use .text(valor) para texto, ou sanitize o HTML (DOMPurify) antes de inserir.",
     ),
     Regra(
         id="path-traversal-entrada",
@@ -185,9 +219,11 @@ REGRAS: list[Regra] = [
         severidade=Severity.critica,
         padrao=_re(
             # shell=True só é problema se o comando não for um texto fixo ("make build")
-            r"""\bos\.(system|popen)\(|\bsubprocess\.\w+\((?!\s*["'][^"'{%+]*["']\s*[,)]).*shell\s*=\s*True"""
+            r"""\bos\.(system|popen)\((?!\s*["'][^"'{%+]*["']\s*\))"""
+            r"""|\bsubprocess\.\w+\((?!\s*["'][^"'{%+]*["']\s*[,)]).*shell\s*=\s*True"""
             r"|\bchild_process\.exec\("
-            r"""|\beval\((?!\s*["'])"""
+            # eval(x) como função solta: não `.eval()` (método, ex.: PyTorch), não `def eval(`, não `eval()` vazio
+            r"""|(?<![\w.])(?<!def )eval\((?!\s*["')])"""
         ),
         explicacao="Um comando de shell ou código é executado a partir de texto que pode conter entrada do usuário.",
         correcao="Use subprocess com lista de argumentos e sem shell=True; evite eval e valide qualquer entrada.",

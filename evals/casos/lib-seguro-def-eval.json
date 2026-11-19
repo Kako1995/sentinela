@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "Definir um método chamado eval não é chamar eval.",
+  "codigo": "class Avaliador:\n    def eval(self, expressao):\n        return self.interpretador.rodar(expressao)"
+}

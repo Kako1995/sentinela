@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "desserialização insegura",
+  "origem": "claude-ast2",
+  "nota": "joblib.load usa pickle por baixo, e aqui carrega um arquivo enviado pelo usuário.",
+  "codigo": "@app.post(\"/modelo\")\ndef carregar():\n    modelo = joblib.load(request.files[\"modelo\"].stream)\n    return {\"ok\": True}"
+}

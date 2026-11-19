@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast",
+  "nota": "A URL é fixa; o dado do usuário vai só como parâmetro de consulta.",
+  "codigo": "@app.get(\"/clima\")\ndef clima():\n    return requests.get(\"https://api.clima.exemplo/v1\", params={\"cidade\": request.args[\"cidade\"]}).text"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast",
+  "nota": ".text() não interpreta HTML, e .html() com texto fixo não tem dado do usuário.",
+  "codigo": "$(\"#resultado\").text(resposta.mensagem);\n$(\"#status\").html(\"<b>Pronto</b>\");"
+}

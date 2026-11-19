@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-ast",
+  "nota": "O .html() do jQuery interpreta HTML; recebe um dado da resposta sem tratar.",
+  "codigo": "$(\"#resultado\").html(resposta.mensagem);"
+}

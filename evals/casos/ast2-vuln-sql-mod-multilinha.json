@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude-ast2",
+  "nota": "Formatação com % em duas strings coladas, dentro da chamada de execute.",
+  "codigo": "def buscar(cursor, termo):\n    cursor.execute(\n        \"SELECT * FROM produtos \"\n        \"WHERE nome LIKE '%%%s%%'\" % termo\n    )"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast",
+  "nota": "A rota exige login pelo decorador.",
+  "codigo": "@app.route(\"/contas/<int:conta_id>\", methods=[\"PUT\"])\n@login_required\ndef editar_conta(conta_id):\n    db.contas.update(conta_id, request.get_json())\n    return \"\", 204"
+}

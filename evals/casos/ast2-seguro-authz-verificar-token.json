@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast2",
+  "nota": "A dependência verificar_token garante autenticação antes da rota rodar.",
+  "codigo": "@router.put(\"/itens/{item_id}\")\ndef atualizar(item_id: int, quem=Depends(verificar_token)):\n    repo.atualizar(item_id, dono=quem.id)"
+}

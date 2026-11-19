@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast",
+  "nota": "A rota recebe o usuário autenticado como dependência e filtra por ele.",
+  "codigo": "@router.delete(\"/documentos/{doc_id}\")\ndef apagar_documento(doc_id: int, usuario=Depends(usuario_atual)):\n    repo.apagar(doc_id, dono=usuario.id)"
+}

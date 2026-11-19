@@ -1,6 +1,6 @@
 # Sentinela
 
-Revisor de segurança para diffs de código, baseado em regras (sem IA, sem rede). Lê um diff, aponta vulnerabilidades nas **linhas adicionadas** e diz o arquivo, a linha, o CWE e como corrigir. Roda no terminal e como GitHub Action em pull requests.
+Revisor de segurança para diffs de código, baseado em regras e em análise de árvore sintática (sem IA, sem rede). Lê um diff, aponta vulnerabilidades nas **linhas adicionadas** e diz o arquivo, a linha, o CWE e como corrigir. Roda no terminal e como GitHub Action em pull requests.
 
 > Projeto de estudo, em evolução. Os números abaixo são medidos, não estimados, e a seção [Limitações](#limitações) diz com franqueza o que ele **não** pega.
 
@@ -28,20 +28,26 @@ No terminal a severidade vem colorida. Em pull requests, o mesmo relatório vira
 
 ## O que ele detecta
 
-11 regras, cada uma com CWE, severidade, explicação e correção em português:
+Duas camadas, cada achado com CWE, severidade, explicação e correção em português:
 
-| Categoria | CWE | Severidade |
-|---|---|---|
-| Injeção de comando | CWE-78 | crítica |
-| Desserialização insegura | CWE-502 | crítica |
-| Segredo no código (formatos conhecidos) | CWE-798 | crítica |
-| SQL injection | CWE-89 | alta |
-| Path traversal | CWE-22 | alta |
-| SSRF | CWE-918 | alta |
-| Segredo no código (atribuição) | CWE-798 | alta |
-| XSS (inclui `dangerouslySetInnerHTML` do React) | CWE-79 | média |
-| Criptografia fraca (MD5/SHA-1) | CWE-327 | média |
-| Verificação TLS desativada | CWE-295 | média |
+1. **Regras por linha** (13 regras, qualquer linguagem): olham o texto de cada linha adicionada.
+2. **Análise por AST** (5 checagens, só Python): leem o arquivo inteiro pela árvore sintática (`ast`). Conseguem ligar a *origem* de um dado (`request.args`, parâmetro de rota) ao seu *uso* (`open`, `requests.get`), mesmo em linhas diferentes, ver SQL montado em várias linhas e olhar a rota inteira.
+
+| Categoria | CWE | Severidade | Camada |
+|---|---|---|---|
+| Injeção de comando | CWE-78 | crítica | linha |
+| Desserialização insegura | CWE-502 | crítica | linha + AST (`read_pickle`, `joblib.load`... com dado externo) |
+| Segredo no código (formatos conhecidos) | CWE-798 | crítica | linha |
+| SQL injection | CWE-89 | alta | linha + AST (em várias linhas, só se chega a um `execute`) |
+| Path traversal | CWE-22 | alta | AST em `.py`, linha nas demais |
+| SSRF | CWE-918 | alta | AST em `.py`, linha nas demais |
+| Segredo no código (atribuição, URL com senha) | CWE-798 | alta | linha |
+| XSS (inclui `dangerouslySetInnerHTML` e `.html()` do jQuery) | CWE-79 | média | linha |
+| Criptografia fraca (MD5/SHA-1) | CWE-327 | média | linha |
+| Verificação TLS desativada | CWE-295 | média | linha |
+| Falta de autorização (rota PUT/DELETE/PATCH sem autenticação visível) | CWE-862 | média | AST |
+
+A AST só trata como "dado externo" o `request` de arquivos de aplicação web (que importam um framework ou declaram rotas) e os parâmetros de rotas. `input()` de um script de terminal não conta, e o `request` de uma biblioteca HTTP também não.
 
 ## Uso no terminal
 
@@ -51,6 +57,7 @@ pip install -e ".[dev]"
 sentinela revisar mudancas.diff
 git diff main | sentinela revisar -
 git diff main | sentinela revisar - --formato markdown
+git diff main | sentinela revisar - --raiz .      # ativa a análise por AST nos .py do diff
 ```
 
 | Opção | O que faz |
@@ -58,6 +65,7 @@ git diff main | sentinela revisar - --formato markdown
 | `--formato terminal` (padrão) | Relatório colorido por severidade |
 | `--formato markdown` | Texto pronto para comentário de PR |
 | `--formato json` | Só JSON, para usar em pipe |
+| `--raiz PASTA` | Lê os `.py` do diff por inteiro, a partir dessa pasta, e ativa a análise por AST. A Action já usa. Só lê arquivos dentro da pasta, sem seguir links simbólicos, e só se baterem com o diff |
 
 ### Analisar um projeto inteiro
 
@@ -68,7 +76,7 @@ sentinela varrer caminho/do/projeto
 sentinela varrer . -x tests -x docs -f markdown   # -x ignora caminhos (pode repetir)
 ```
 
-Ele lê todos os arquivos de texto, pulando dependências (`node_modules`, `.venv`, `vendor`...), caches, binários, links simbólicos e arquivos com mais de 1 MB. Os mesmos formatos e códigos de saída do `revisar` valem aqui. Em projeto inteiro os falsos positivos se acumulam, então trate o resultado como uma **lista para conferir**, não como veredito. Só analise código seu ou que você tem permissão de analisar.
+Ele lê todos os arquivos de texto (os `.py` também passam pela análise por AST), pulando dependências (`node_modules`, `.venv`, `vendor`...), caches, binários, links simbólicos e arquivos com mais de 1 MB. Os mesmos formatos e códigos de saída do `revisar` valem aqui. Em projeto inteiro os falsos positivos se acumulam, então trate o resultado como uma **lista para conferir**, não como veredito. Só analise código seu ou que você tem permissão de analisar.
 
 **Código de saída:** `1` se houver achado de severidade **alta ou crítica**, `0` caso contrário, `2` se o arquivo não existir. É isso que faz o CI falhar.
 
@@ -121,25 +129,27 @@ Rodar o scanner em casos de código rotulados à mão (vulnerável ou seguro) e 
 - **Precisão:** dos alertas que ele deu, quantos eram reais. Baixa precisão = falso positivo, e falso positivo faz as pessoas ignorarem a ferramenta.
 - **Recall:** das vulnerabilidades que existem, quantas ele achou.
 
-Medições, da `v1` (regras originais) para a `v2` (exceções gerais para falsos positivos), nos mesmos casos:
+Três versões do scanner: `v1` (regras por linha), `v2` (exceções gerais contra falsos positivos) e `v3` (análise por AST). Nos mesmos 72 casos:
 
-| Conjunto | Casos | Precisão v1 → v2 | Recall v1 → v2 |
+| Conjunto | Casos | Precisão v2 → v3 | Recall v2 → v3 |
 |---|---|---|---|
-| Iniciais (20 vulneráveis, 10 seguros parecidos) | 30 | 86% → 92% | 60% → 60% |
-| Difíceis (vulneráveis que parecem inofensivos e seguros que parecem perigosos) | 10 | 43% → 100% | 60% → 60% |
-| Padrões vistos numa varredura de projeto real (só casos seguros) | 3 | 0% → sem alertas | n/a |
-| Validação: variações que **não** foram usadas para desenhar as correções | 10 | 50% → 100% | 100% → 100% |
-| **Todos** | **53** | **59% → 95%** | **67% → 67%** |
+| Iniciais (20 vulneráveis, 10 seguros parecidos) | 30 | 92% → 94% | 60% → 85% |
+| Difíceis (vulneráveis que parecem inofensivos e seguros que parecem perigosos) | 10 | 100% → 100% | 60% → 80% |
+| Validação da v2 | 10 | 100% → 100% | 100% → 100% |
+| Variações para a AST (path traversal, SSRF, SQL em várias linhas, autorização, segredo em URL) | 19 | 0% → 100% | 0% → 100% |
+| **Todos** | **72** | **91% → 97%** | **50% → 90%** |
 
-A v2 melhorou a precisão **sem perder recall**: nenhum acerto da v1 deixou de ser detectado. O recall em si **não melhorou**: o que falta (autorização, path traversal, SSRF, segredo em URL) exige entender de onde vem o dado, e não só o texto de uma linha.
+Medidos só na v3, em casos escritos depois: um segundo conjunto de 11 variações para a AST e 9 casos de regressão tirados de falsos positivos em código real. Somando os **92 casos: precisão 98%, recall 92%** (1 falso positivo e 4 falsos negativos).
 
-Recall por categoria (v2): injeção de comando 100%, XSS 86%, SQL injection 83%, desserialização 67%, SSRF 50%, segredo no código 50%, path traversal 33%, falta de autorização 0%.
+Recall por categoria (v3): SQL injection 100%, SSRF 100%, XSS 100%, injeção de comando 100%, path traversal 89%, falta de autorização 80%, segredo no código 80%, desserialização 75%.
 
 **Como ler esses números com cuidado**
-- Os casos difíceis e os "do projeto real" motivaram as correções, então o ganho neles é otimista. O conjunto de validação mede se a melhora generaliza, mas também foi escrito por mim e fica perto dos mesmos padrões.
-- A evidência mais independente é uma varredura de um projeto real de terceiros (Next.js + Supabase, cerca de 500 arquivos): os alertas caíram de **15 para 2**, e os 13 que sumiram eram todos falsos positivos. Os 2 restantes são pontos para um humano conferir. Não há como medir o recall nesse projeto, porque não existe uma lista do que realmente está vulnerável lá.
-- Com 53 casos, cada caso vale cerca de 2 pontos percentuais: os números mostram a tendência, não um valor exato.
-- Os evals pegaram um erro meu durante a v2: a primeira versão da correção de SQL derrubou o recall de SQL injection de 83% para 33% (um `(?i)` fazia `nome` parecer uma constante). Sem a medição, isso teria passado.
+- **O ganho é, em parte, ajuste ao teste.** Escrevi a AST conhecendo os casos, e depois corrigi o que o segundo conjunto errou. Por isso as três rodadas seguintes de casos não são independentes entre si. A tentativa de manter alguma honestidade foi escrever cada conjunto *antes* de implementar o que ele mede e guardar as medições de cada versão em `evals/resultados/`.
+- **Quase todos os casos foram escritos pelo mesmo autor (eu, com IA) que escreveu as regras.** Casos escritos por outra pessoa, sem olhar as regras, seriam o teste mais forte, e ainda faltam.
+- **Evidência independente 1, projeto real de terceiros** (Next.js + Supabase, cerca de 500 arquivos): os alertas caíram de 15 para 2 com a v2, e os 13 que sumiram eram falsos positivos. Os 2 que sobraram são pontos para conferir; não há como medir o recall ali.
+- **Evidência independente 2, 1650 arquivos de bibliotecas Python reais** (pydantic, pytest, pip, rich...): a varredura expôs defeitos sistemáticos que nenhum caso meu mostrava (o formato `<Classe ...>` de `__repr__` lido como HTML, `model.eval()` do PyTorch lido como `eval`, `request` de biblioteca lido como dado web). Depois de corrigi-los, os alertas caíram de 128 para 50. Os 50 restantes são, na maioria, usos legítimos de APIs sensíveis para um humano conferir (`eval`, `pickle.loads`, HTML montado por f-string), e **não houve nenhum alerta de AST**, que é o esperado para código que não é de aplicação web.
+- Com 92 casos, cada caso vale cerca de 1 ponto percentual: os números mostram a tendência, não um valor exato.
+- Duas vezes os evals pegaram um erro meu: a primeira correção de SQL derrubou o recall de SQL injection de 83% para 33% (um `(?i)` fazia `nome` parecer constante), e a primeira versão da AST tinha 3 classes de falso positivo que o conjunto fresco mostrou.
 
 Os casos e o método estão em [`evals/`](evals/README.md), e cada rodada fica salva em `evals/resultados/`.
 
@@ -147,22 +157,25 @@ Os casos e o método estão em [`evals/`](evals/README.md), e cada rodada fica s
 
 O que o Sentinela **não** pega, e por quê:
 
-- **Falta de autorização / controle de acesso** (recall 0%). O problema é uma verificação que *não existe*, e uma regra que olha o texto de uma linha não enxerga o que está ausente.
-- **Origem dos dados.** Cada regra olha uma linha. Se um valor vem da requisição numa linha e é usado na seguinte (`url = request.json["x"]` e depois `requests.post(url)`), a ligação se perde.
-- **Código em várias linhas.** Uma consulta SQL quebrada em duas linhas, com a interpolação na segunda, passa batido.
-- **APIs que a regra não conhece.** `pd.read_pickle`, `.html()` do jQuery, nomes de variável como `chavePagamento`: o que não está na lista não é detectado.
-- **Segredo dentro de uma URL** (`postgresql://usuario:senha@host`).
-- **Validação que a regra não entende** (falso positivo). Concatenar uma coluna já validada contra uma lista de permitidas continua disparando alerta, mesmo sendo seguro. (Comandos fixos com `shell=True`, `usedforsecurity=False`, `innerHTML` com texto fixo e referências a variáveis de ambiente já são tratados.)
+- **Só Python tem análise por AST.** JavaScript/TypeScript, Java e o resto contam apenas com as regras por linha. Falta de autorização num endpoint Express, por exemplo, não é detectada.
+- **A análise por AST é por função.** Ela segue o dado dentro de uma função, mas não entre funções nem entre arquivos: se a rota passa o dado para um auxiliar em outro módulo que abre o arquivo, a ligação se perde. Em funções que não são rotas, parâmetros não contam como dado externo (um `pd.read_pickle(arquivo_enviado)` num auxiliar passa batido).
+- **Falta de autorização é uma heurística.** Ela avisa (severidade média, que não derruba o CI) quando uma rota PUT/DELETE/PATCH não mostra autenticação, mas autenticação feita num middleware ou gateway não é vista: é um ponto para conferir, não um achado confirmado. Rotas POST não entram, porque costumam ser públicas (login, cadastro).
+- **Regras por linha só veem uma linha** (fora a regra do `dangerouslySetInnerHTML`, que olha até 60). Em JavaScript e nas demais linguagens, um valor que vem da requisição numa linha e é usado na seguinte perde a ligação.
+- **Nomes e APIs que a regra não conhece.** Uma chave com o nome `chavePagamento` não é vista como segredo (a palavra "chave" também é "chave primária"), e o `startswith` mal feito para limitar uma pasta não é reconhecido como proteção quebrada.
+- **Validação que a regra não entende** (falso positivo). Concatenar uma coluna já validada contra uma lista de permitidas continua disparando alerta em SQL, mesmo sendo seguro (a AST entende a validação por lista para caminhos e URLs, não para essa regra por linha). Comandos fixos com `shell=True`, `usedforsecurity=False`, `innerHTML` com texto fixo e referências a variáveis de ambiente já são tratados.
 - **As exceções podem esconder um achado real.** Valores com palavras como `fake`, `exemplo` ou `sua-` são tratados como placeholder, e uma constante em MAIÚSCULAS concatenada ao SQL é tratada como constante do código.
-- **Janela de 60 linhas** na regra de `dangerouslySetInnerHTML`: um template literal maior que isso, com `${...}` perto do fim, não é visto.
+- **A janela de 60 linhas** do `dangerouslySetInnerHTML`: um template literal maior que isso, com `${...}` perto do fim, não é visto.
 - **Acertar pelo motivo errado.** Os evals medem se o alerta saiu, não se foi pelo motivo certo.
-- Só analisa as **linhas adicionadas**: não vê vulnerabilidades que já estavam no arquivo, nem como uma mudança afeta código existente.
+- Só analisa as **linhas adicionadas** (em modo diff): não vê vulnerabilidades que já estavam no arquivo. Para isso existe o `varrer`.
 
 Em resumo: é uma rede de segurança rápida para padrões conhecidos, não uma auditoria. Não substitui revisão humana nem ferramentas de análise mais completas (como CodeQL ou Semgrep).
 
 ## Decisões técnicas
 
-- **Regras (regex) em vez de IA ou análise de árvore sintática.** É determinístico, gratuito, offline e cada alerta é explicável: dá para apontar a regra exata que disparou. O custo é o recall e a precisão acima; o próximo passo natural é usar o módulo `ast` do Python para ver o arquivo inteiro.
+- **Regras e AST em vez de IA.** É determinístico, gratuito, offline e cada alerta é explicável: dá para apontar a regra exata que disparou. As regras por linha funcionam em qualquer linguagem; a AST (módulo `ast` da biblioteca padrão, sem dependência nova) dá a precisão que o texto de uma linha não dá, mas só existe para Python.
+- **A AST substitui as regras de path traversal e SSRF nos `.py` que ela consegue ler**, porque sabe de onde vem o dado, e as regras por linha só viam a palavra `request` na mesma linha. Se o arquivo não parseia, as regras por linha voltam a valer.
+- **Ler o arquivo do disco com cuidado.** O nome do arquivo vem do diff, que pode ser de um PR malicioso. Por isso o `--raiz` só lê arquivos dentro da pasta indicada, não segue links simbólicos e descarta o arquivo se ele não bater linha a linha com o diff.
+- **"Dado externo" só em contexto web.** `request` conta se o arquivo importa um framework web ou declara rotas; `input()` de script nunca conta. Foi a lição da varredura de bibliotecas reais.
 - **Revisar o diff, não o repositório.** O desenvolvedor só vê alertas sobre o que acabou de escrever, e o tempo de execução não cresce com o tamanho do projeto.
 - **Falhar em vez de aprovar sem revisar.** Se o git não consegue calcular o diff (checkout raso), a Action falha com uma mensagem clara. Um diff vazio por erro viraria "nenhum problema", que é pior que um erro.
 - **Código de saída por severidade.** Só alta e crítica quebram o CI. Média e baixa aparecem no relatório sem bloquear, para a ferramenta não virar um obstáculo.

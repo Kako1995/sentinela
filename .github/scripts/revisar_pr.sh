@@ -29,7 +29,8 @@ if ! git diff --no-color "$BASE_SHA...$HEAD_SHA" -- . ${excluir[@]+"${excluir[@]
   exit 2
 fi
 
-sentinela revisar "$DIFF" --formato markdown > "$RELATORIO"
+# --raiz .: lê os .py inteiros do checkout, para a análise por AST (o diff sozinho só tem as linhas novas)
+sentinela revisar "$DIFF" --formato markdown --raiz . > "$RELATORIO"
 codigo=$?
 
 cat "$RELATORIO"

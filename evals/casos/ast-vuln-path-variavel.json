@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-ast",
+  "nota": "O dado da requisição entra numa variável e só depois chega ao send_file, em outra linha.",
+  "codigo": "@app.get(\"/baixar\")\ndef baixar():\n    nome = request.args.get(\"arquivo\")\n    caminho = os.path.join(PASTA_RELATORIOS, nome)\n    return send_file(caminho)"
+}

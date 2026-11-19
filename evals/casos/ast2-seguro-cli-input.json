@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ast2",
+  "nota": "Script de terminal: quem digita é o próprio usuário da máquina, não um atacante remoto.",
+  "codigo": "nome = input(\"arquivo: \")\nprint(open(nome).read())"
+}
