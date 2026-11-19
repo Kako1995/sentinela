@@ -307,3 +307,29 @@ def test_cli_varrer_usa_a_ast_nos_arquivos_python(tmp_path):
     r = runner.invoke(app, ["varrer", str(tmp_path), "-f", "json"])
 
     assert [a["regra"] for a in json.loads(r.stdout)["achados"]] == ["ast-sql-concatenacao"]
+
+
+# ---------- o mesmo fluxo não aparece duas vezes ----------
+
+
+def test_path_traversal_em_join_e_send_file_e_reportado_uma_vez_so():
+    resultado = analisar_ast("a.py", '''
+@app.get("/baixar")
+def baixar():
+    nome = request.args.get("arquivo")
+    caminho = os.path.join(PASTA, nome)
+    return send_file(caminho)
+''')
+
+    assert [(a.regra, a.linha) for a in resultado.achados] == [("ast-path-traversal", 6)]  # só o send_file
+
+
+def test_join_sozinho_ainda_e_reportado_quando_nao_ha_operacao_de_arquivo_visivel():
+    resultado = analisar_ast("a.py", '''
+@app.post("/up")
+def up():
+    f = request.files["a"]
+    f.save(os.path.join(PASTA, f.filename))
+''')
+
+    assert [a.regra for a in resultado.achados] == ["ast-path-traversal"]

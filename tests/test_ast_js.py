@@ -276,3 +276,17 @@ def test_anexar_fontes_le_typescript_e_confere_com_o_diff(tmp_path):
 
     assert anexar_fontes([t], tmp_path) == 0
     assert t.fonte is not None
+
+
+def test_js_join_e_sendfile_do_mesmo_fluxo_sao_reportados_uma_vez_so():
+    codigo = "app.get('/d', (req, res) => {\n const n = req.query.a;\n const c = path.join(DIR, n);\n res.sendFile(c);\n});"
+
+    resultado = analisar_ast_js("a.js", codigo)
+
+    assert [(a.regra, a.linha) for a in resultado.achados] == [("ast-path-traversal", 4)]
+
+
+def test_js_join_sozinho_ainda_e_reportado():
+    resultado = analisar_ast_js("a.js", "app.get('/d', (req, res) => {\n const c = path.join(DIR, req.query.a);\n log(c);\n});")
+
+    assert [a.regra for a in resultado.achados] == ["ast-path-traversal"]

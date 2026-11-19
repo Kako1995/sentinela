@@ -333,6 +333,7 @@ def _analisar_escopo(arquivo: str, escopo: ast.AST, web: bool) -> list[Finding]:
                 achados.append(_achado("ast-sql-concatenacao", arquivo, no.value.lineno))
 
     # --- dados externos chegando a operações perigosas ---
+    caminhos: list[tuple[Finding, bool]] = []  # (achado, fraco?)
     for no in nos:
         if not isinstance(no, ast.Call):
             continue
@@ -345,7 +346,7 @@ def _analisar_escopo(arquivo: str, escopo: ast.AST, web: bool) -> list[Finding]:
         if (
             nome in SINKS_CAMINHO or nome in SINKS_CAMINHO_PONTILHADOS or nome.endswith("path.join")
         ) and any(contaminado(a) for a in argumentos):
-            achados.append(_achado("ast-path-traversal", arquivo, no.lineno))
+            caminhos.append((_achado("ast-path-traversal", arquivo, no.lineno), nome.endswith("path.join")))
         elif nome in SINKS_DESSERIALIZACAO and any(contaminado(a) for a in argumentos):
             achados.append(_achado("ast-desserializacao", arquivo, no.lineno))
         elif (
@@ -358,6 +359,11 @@ def _analisar_escopo(arquivo: str, escopo: ast.AST, web: bool) -> list[Finding]:
                 url = no.args[posicao]
             if contaminado(url):
                 achados.append(_achado("ast-ssrf", arquivo, no.lineno))
+
+    # O os.path.join com dado externo é um sinal fraco: se o resultado chega a uma operação de arquivo de verdade
+    # (open, send_file...), só essa é reportada, para o mesmo fluxo não aparecer duas vezes.
+    fortes = [f for f, fraco in caminhos if not fraco]
+    achados += fortes or [f for f, _ in caminhos]
 
     # --- rota que altera dados sem autenticação visível ---
     if rota:

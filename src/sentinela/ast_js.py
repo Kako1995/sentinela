@@ -414,6 +414,7 @@ def _analisar_funcao_ou_modulo(escopo: "Node", pai_taint: set[str], arq: _Arquiv
 
 
 def _checar_sinks(nos: list["Node"], ctx: _Ctx, definicoes: dict, arq: _Arquivo, achados: list) -> None:
+    caminhos: list[tuple] = []  # (achado, fraco?): path.join com dado externo é um sinal fraco
     for no in nos:
         if no.type == "assignment_expression":
             esq = no.child_by_field_name("left")
@@ -438,7 +439,7 @@ def _checar_sinks(nos: list["Node"], ctx: _Ctx, definicoes: dict, arq: _Arquivo,
             or (ultimo in {"sendFile", "download"} and objeto in OBJETOS_RESPOSTA)
             or nome in {"path.join", "path.resolve", "path.normalize"}
         ) and any(_contaminado(a, ctx) for a in argumentos):
-            achados.append(_achado("ast-path-traversal", arq.nome, _linha(no)))
+            caminhos.append((_achado("ast-path-traversal", arq.nome, _linha(no)), nome in {"path.join", "path.resolve", "path.normalize"}))
 
         # SSRF
         elif nome in {"fetch", "axios", "got", "needle", "request"} or (objeto in OBJETOS_HTTP and ultimo in VERBOS_HTTP):
@@ -470,6 +471,9 @@ def _checar_sinks(nos: list["Node"], ctx: _Ctx, definicoes: dict, arq: _Arquivo,
             texto, _ = _partes_de_texto(alvo)
             if _contaminado(alvo, ctx) and (TAG_HTML.search(texto) or alvo.type in {"identifier", "member_expression", "subscript_expression"}):
                 achados.append(_achado("ast-xss-resposta", arq.nome, _linha(no)))
+
+    fortes = [f for f, fraco in caminhos if not fraco]
+    achados += fortes or [f for f, _ in caminhos]
 
 
 def _checar_autorizacao_da_funcao(func: "Node", nome: str | None, e_acao: bool, e_handler: bool, arq: _Arquivo, achados: list) -> None:
