@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-dificil",
+  "nota": "Usa innerHTML, mas com HTML fixo escrito no código, sem dado do usuário.",
+  "codigo": "function mostrarIconeDeCarregando(el) {\n  el.innerHTML = '<span class=\"icone-carregando\"></span>';\n}"
+}

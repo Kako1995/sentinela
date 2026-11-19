@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-dificil",
+  "nota": "Há uma checagem de pasta, mas startswith em caminho não normalizado não protege: '../' passa porque o texto ainda começa com BASE. Faltou os.path.realpath.",
+  "codigo": "def abrir(nome):\n    caminho = os.path.join(BASE, nome)\n    if not caminho.startswith(BASE):\n        abort(403)\n    return open(caminho).read()"
+}

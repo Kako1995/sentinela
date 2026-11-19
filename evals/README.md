@@ -18,13 +18,15 @@ Crie um arquivo `.json` em `casos/` (o nome do arquivo vira o id do caso):
   "vulneravel": true,
   "categoria_esperada": "SQL injection",
   "origem": "carlos",
+  "nota": "por que este caso é difícil",
   "codigo": "linha 1\nlinha 2"
 }
 ```
 
 - Caso seguro: `"vulneravel": false` e `"categoria_esperada": null`.
 - Categorias: SQL injection, XSS, segredo no código, path traversal, desserialização insegura, SSRF, injeção de comando, falta de autorização, criptografia fraca.
-- Use `"origem": "carlos"` nos casos escritos à mão, para os números deles aparecerem separados.
+- `"origem"` separa os números por quem escreveu o caso: `claude` (30 iniciais), `claude-dificil` (10 difíceis) e `carlos` (casos escritos à mão por você).
+- `"nota"` é opcional: por que o caso é difícil.
 
 ## Como os números são calculados
 

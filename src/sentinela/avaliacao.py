@@ -32,7 +32,8 @@ class Caso(BaseModel):
     linguagem: str
     vulneravel: bool
     categoria_esperada: str | None = None
-    origem: str = "claude"  # quem escreveu: "claude" ou "carlos"
+    origem: str = "claude"  # quem escreveu: "claude", "claude-dificil" ou "carlos"
+    nota: str = ""  # por que o caso é difícil (só para quem lê)
     codigo: str
 
     @model_validator(mode="after")

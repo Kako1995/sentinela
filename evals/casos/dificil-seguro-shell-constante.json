@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-dificil",
+  "nota": "Usa shell=True, mas o comando é um texto fixo, sem nenhum dado externo.",
+  "codigo": "def status_do_repositorio():\n    return subprocess.run(\"git status --short\", shell=True, check=True, capture_output=True, text=True)"
+}

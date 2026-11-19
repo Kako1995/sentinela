@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-dificil",
+  "nota": "A senha está dentro da URL de conexão, não numa variável com nome de segredo.",
+  "codigo": "from sqlalchemy import create_engine\n\nengine = create_engine(\"postgresql://admin:Sup3rS3cret@db.interno:5432/app\")"
+}

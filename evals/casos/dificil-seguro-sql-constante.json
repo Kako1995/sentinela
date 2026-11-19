@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-dificil",
+  "nota": "Concatena texto em SQL, mas só com uma constante do próprio código; o valor do usuário vai parametrizado.",
+  "codigo": "CAMPOS = \"id, nome, email\"\n\ndef usuario(cur, uid):\n    cur.execute(\"SELECT \" + CAMPOS + \" FROM usuarios WHERE id = %s\", (uid,))\n    return cur.fetchone()"
+}

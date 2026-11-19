@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude-dificil",
+  "nota": "O valor vai parametrizado (:valor), o que parece seguro, mas o NOME DA COLUNA é interpolado. Identificadores não podem ser parâmetros e precisam de lista de permitidos.",
+  "codigo": "def filtrar(session, campo, valor):\n    return session.execute(\n        text(f\"SELECT * FROM produtos WHERE {campo} = :valor\"), {\"valor\": valor}\n    ).fetchall()"
+}

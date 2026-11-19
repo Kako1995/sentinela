@@ -39,7 +39,7 @@ CLI com Typer, comando `revisar`, `diff.py` que quebra o diff por arquivo guarda
 
 **Carlos precisa saber explicar:** exit code e por que ele importa pro CI.
 
-## Fase 4: evals, a parte mais importante (30 casos e baseline feitos; faltam os 10 do Carlos e a iteração)
+## Fase 4: evals, a parte mais importante (40 casos e baseline feitos; falta a iteração nas regras)
 
 - `evals/casos/` com 30 casos rotulados em JSON: 20 vulneráveis (uma ou mais por categoria) e 10 seguros parecidos com os vulneráveis. Cada caso: `codigo`, `linguagem`, `vulneravel` (bool), `categoria_esperada`.
 - `run_evals.py` roda o scanner em todos e mostra precisão, recall e uma tabela dos erros. Salva o resultado em `evals/resultados/` com data.

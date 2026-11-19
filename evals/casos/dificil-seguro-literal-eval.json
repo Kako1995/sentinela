@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-dificil",
+  "nota": "O nome lembra eval, mas ast.literal_eval só aceita literais (números, textos, listas) e não executa código.",
+  "codigo": "import ast\n\ndef ler_lista(texto):\n    return ast.literal_eval(texto)"
+}

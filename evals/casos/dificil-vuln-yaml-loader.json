@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "desserialização insegura",
+  "origem": "claude-dificil",
+  "nota": "Parece ter cuidado porque passa um Loader, mas yaml.Loader (o completo) executa objetos Python. O seguro é yaml.SafeLoader.",
+  "codigo": "def ler_config(texto):\n    return yaml.load(texto, Loader=yaml.Loader)"
+}

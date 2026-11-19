@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-dificil",
+  "nota": "MD5 é fraco para segurança, mas aqui só gera uma chave de cache e declara usedforsecurity=False.",
+  "codigo": "def chave_de_cache(url):\n    return hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()"
+}

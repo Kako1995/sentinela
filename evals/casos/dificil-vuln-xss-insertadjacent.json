@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-dificil",
+  "nota": "insertAdjacentHTML interpreta HTML como o innerHTML, mas é menos conhecido.",
+  "codigo": "function adicionarMensagem(lista, mensagem) {\n  lista.insertAdjacentHTML(\"beforeend\", \"<li>\" + mensagem + \"</li>\");\n}"
+}
