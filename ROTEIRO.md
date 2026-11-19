@@ -50,7 +50,7 @@ O recall vai expor as limitações das regras (ex.: `open(os.path.join("/uploads
 
 **Carlos precisa saber explicar:** diferença entre precisão e recall, por que falso positivo irrita o usuário, o que ele mudou nas regras e quanto melhorou.
 
-## Fase 5: GitHub Action (feita; falta validar num PR real)
+## Fase 5: GitHub Action (feita e validada num PR real)
 
 `.github/workflows/sentinela.yml` roda o Sentinela em todo pull request, pega o diff contra a branch base e posta o relatório markdown como comentário. Documentar no README como outra pessoa instala a Action. Sem secrets de IA: só o `GITHUB_TOKEN` com permissão de comentar em PR.
 
