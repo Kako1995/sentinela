@@ -33,7 +33,7 @@ CLI com Typer, comando `revisar`, `diff.py` que quebra o diff por arquivo guarda
 
 **Carlos precisa saber explicar:** como cada regex funciona, por que regras têm `excecao`, por que comentários são ignorados, o que uma regra por linha **não** consegue ver (de onde vem uma variável, código em várias linhas, falta de autorização).
 
-## Fase 3: relatório (1 dia)
+## Fase 3: relatório (feita)
 
 `report.py` com três formatos: terminal (Rich, colorido por severidade), markdown (para comentário de PR) e JSON. Flag `--formato`. O comando sai com código 1 se houver achado de severidade alta ou crítica.
 

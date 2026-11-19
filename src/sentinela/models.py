@@ -10,6 +10,10 @@ class Severity(str, Enum):
     critica = "critica"
 
 
+# Achados nessas severidades fazem o comando sair com código 1 (e falhar o CI).
+BLOQUEANTES = {Severity.alta, Severity.critica}
+
+
 class Finding(BaseModel):
     arquivo: str
     linha: int  # linha no arquivo novo
