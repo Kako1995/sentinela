@@ -1,0 +1,23 @@
+name: Sentinela
+
+# Roda o próprio Sentinela nos pull requests deste repositório.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write  # para comentar o relatório no PR
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # histórico completo: o Sentinela precisa do commit base para calcular o diff
+
+      - uses: ./
+        with:
+          # Estes arquivos contêm código vulnerável de propósito: testes, casos dos evals e
+          # as próprias regras (as regex descrevem os padrões que o Sentinela procura).
+          excluir: "tests evals/casos src/sentinela/regras.py"
