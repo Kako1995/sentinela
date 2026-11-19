@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "O termo é escapado antes de entrar no HTML.",
+  "codigo": "app.get('/busca', (req, res) => {\n  const termo = escapeHtml(req.query.q);\n  res.send(`<h1>Resultados para ${termo}</h1>`);\n});"
+}

@@ -65,7 +65,7 @@ _INTERPOLACAO = (
     r"""|\bf["'].*\{"""  # f"...{x}..."
     r"""|["']\s*%\s*[\w(\[]"""  # "..." % x
     r"""|\.format\("""  # "...".format(x)
-    r"""|\$\{"""  # `...${x}...`
+    r"""|\$\{(?![A-Z][A-Z0-9_]*\})"""  # `...${x}...` (mas não ${CONSTANTE})
 )
 
 # Valores que indicam origem externa (requisição HTTP, entrada do usuário).
@@ -126,6 +126,8 @@ REGRAS: list[Regra] = [
             r"(?=.*\b(?i:select\b.+?\bfrom|insert\s+into|update\b.+?\bset|delete\s+from)\b)"
             rf"(?=.*({_INTERPOLACAO}))"
         ),
+        # template com tag (sql`...`, prisma.$queryRaw`...`): a biblioteca troca ${x} por parâmetro, não por texto
+        excecao=_re(r"(?:\bsql|\.sql|\$queryRaw|\$executeRaw|\$queryRawTyped)\s*`"),
         explicacao="A consulta SQL é montada juntando texto com valores variáveis, então uma entrada maliciosa muda a consulta.",
         correcao="Use consulta parametrizada: execute('... WHERE nome = ?', (nome,)).",
     ),

@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-js",
+  "nota": "O nome da requisição vai para uma variável e depois para path.join e sendFile, em linhas diferentes.",
+  "codigo": "app.get('/download', (req, res) => {\n  const nome = req.query.arquivo;\n  const caminho = path.join(__dirname, 'relatorios', nome);\n  res.sendFile(caminho);\n});"
+}

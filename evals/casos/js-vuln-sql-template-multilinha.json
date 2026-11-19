@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude-js",
+  "nota": "A consulta é um template literal de várias linhas; a interpolação fica numa linha sem SELECT.",
+  "codigo": "app.get('/clientes', async (req, res) => {\n  const { cidade } = req.query;\n  const sql = `\n    SELECT id, nome FROM clientes\n    WHERE cidade = '${cidade}'\n  `;\n  const resultado = await db.query(sql);\n  res.json(resultado.rows);\n});"
+}

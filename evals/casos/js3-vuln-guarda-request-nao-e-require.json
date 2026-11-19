@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude-real",
+  "nota": "'requestInvoice' começa com 'request', não com 'require': não é autenticação.",
+  "codigo": "'use server'\n\nexport async function cancelarPedido(id: string) {\n  await requestInvoice(id)\n  await db.pedido.update({ where: { id }, data: { cancelado: true } })\n}"
+}

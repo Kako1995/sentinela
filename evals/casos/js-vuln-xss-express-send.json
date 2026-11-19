@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-js",
+  "nota": "O termo de busca é devolvido dentro de HTML, sem escapar.",
+  "codigo": "app.get('/busca', (req, res) => {\n  const termo = req.query.q;\n  res.send(`<h1>Resultados para ${termo}</h1>`);\n});"
+}

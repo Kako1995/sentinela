@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "Todo o roteador exige autenticação por router.use.",
+  "codigo": "router.use(authenticate);\n\nrouter.delete('/documentos/:id', async (req, res) => {\n  await Documento.destroy({ where: { id: req.params.id } });\n  res.sendStatus(204);\n});"
+}

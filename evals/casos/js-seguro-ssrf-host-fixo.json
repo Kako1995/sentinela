@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "O host é fixo; o dado do usuário só entra como parâmetro, já codificado.",
+  "codigo": "app.get('/clima', async (req, res) => {\n  const r = await fetch('https://api.clima.exemplo/v1?cidade=' + encodeURIComponent(req.query.cidade));\n  res.json(await r.json());\n});"
+}

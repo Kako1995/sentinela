@@ -5,6 +5,7 @@ from fnmatch import fnmatch
 from pathlib import Path
 from typing import Iterator
 
+from sentinela.ast_js import EXTENSOES_JS
 from sentinela.diff import LinhaAdicionada, TrechoArquivo
 
 # Pastas de dependências, builds e caches: código de terceiros ou gerado, não do projeto.
@@ -17,6 +18,10 @@ ARQUIVOS_IGNORADOS = [
     "*.min.js", "*.min.css", "*.map", "*.lock", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
 ]
 TAMANHO_MAXIMO = 1_000_000  # bytes; arquivos maiores costumam ser dados ou código gerado
+
+
+def _tem_ast(nome: str) -> bool:
+    return nome.endswith(".py") or Path(nome).suffix in EXTENSOES_JS
 
 
 def _excluido(relativo: str, padroes: list[str]) -> bool:
@@ -65,7 +70,7 @@ def ler_como_trecho(caminho: Path, raiz: Path) -> TrechoArquivo | None:
 
     nome = caminho.name if raiz.is_file() else caminho.relative_to(raiz).as_posix()
     linhas = [LinhaAdicionada(i, t) for i, t in enumerate(texto.splitlines(), start=1)]
-    fonte = texto if nome.endswith(".py") else None  # a análise por AST precisa do arquivo inteiro
+    fonte = texto if _tem_ast(nome) else None  # a análise por AST precisa do arquivo inteiro
     return TrechoArquivo(arquivo=nome, linhas_adicionadas=linhas, fonte=fonte)
 
 
@@ -75,18 +80,18 @@ def varrer(raiz: Path, excluir: list[str] | None = None) -> list[TrechoArquivo]:
 
 
 def anexar_fontes(trechos: list[TrechoArquivo], raiz: Path) -> int:
-    """Lê do disco o arquivo completo de cada .py de um diff, para a análise por AST.
+    """Lê do disco o arquivo completo de cada .py/.js/.ts de um diff, para a análise por AST.
 
     O nome do arquivo vem do diff, que pode ser de um PR malicioso (`+++ b/../../etc/x.py`), então:
     só lê arquivos que, depois de resolvidos, ficam DENTRO de `raiz`, que não são links simbólicos
     e que não passam do tamanho máximo. E só usa o arquivo se ele bate com o diff: as linhas
     adicionadas precisam ser idênticas às do disco (senão é outro checkout e os números de linha
-    dos achados sairiam errados). Devolve quantos arquivos .py ficaram sem análise por AST.
+    dos achados sairiam errados). Devolve quantos desses arquivos ficaram sem análise por AST.
     """
     base = raiz.resolve()
     ignorados = 0
     for trecho in trechos:
-        if not trecho.arquivo.endswith(".py"):
+        if not _tem_ast(trecho.arquivo):
             continue
         alvo = base / trecho.arquivo
         try:

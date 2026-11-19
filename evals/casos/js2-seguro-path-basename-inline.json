@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js2",
+  "nota": "basename dentro do próprio argumento do join.",
+  "codigo": "app.get('/f', async (req, res) => {\n  res.send(await fs.promises.readFile(path.join(DIR, path.basename(req.query.f))));\n});"
+}

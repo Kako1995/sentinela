@@ -1,0 +1,9 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-js",
+  "nota": "A URL vem do corpo da requisição, passa por desestruturação e vai para o fetch.",
+  "arquivo": "app/api/js-vuln-ssrf-next-fetch/route.ts",
+  "codigo": "export async function POST(request: Request) {\n  const { url } = await request.json()\n  const resposta = await fetch(url)\n  return Response.json(await resposta.json())\n}"
+}

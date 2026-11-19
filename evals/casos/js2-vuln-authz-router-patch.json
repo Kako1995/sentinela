@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude-js2",
+  "nota": "Rota PATCH de perfil sem nenhuma autenticação.",
+  "codigo": "router.patch('/perfil/:id', async (req, res) => {\n  await Perfil.update(req.body, { where: { id: req.params.id } });\n  res.sendStatus(204);\n});"
+}

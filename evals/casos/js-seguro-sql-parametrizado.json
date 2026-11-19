@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "Consulta parametrizada: o valor vai em um array separado.",
+  "codigo": "app.get('/usuarios', async (req, res) => {\n  const { rows } = await pool.query('SELECT * FROM usuarios WHERE nome = $1', [req.query.nome]);\n  res.json(rows);\n});"
+}

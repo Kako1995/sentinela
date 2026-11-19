@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-js",
+  "nota": "Em um arquivo 'use server', os argumentos das funções exportadas vêm do navegador.",
+  "codigo": "'use server'\nimport { promises as fs } from 'fs'\n\nexport async function lerRelatorio(nome: string) {\n  return fs.readFile('/dados/relatorios/' + nome, 'utf8')\n}"
+}

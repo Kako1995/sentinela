@@ -1,0 +1,9 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "Template literal em que o host é fixo no início.",
+  "arquivo": "app/api/js-seguro-ssrf-template-host-fixo/route.ts",
+  "codigo": "export async function GET(request: Request) {\n  const id = new URL(request.url).searchParams.get('id')\n  const r = await fetch(`https://api.interna.exemplo/clientes/${encodeURIComponent(id ?? '')}`)\n  return Response.json(await r.json())\n}"
+}

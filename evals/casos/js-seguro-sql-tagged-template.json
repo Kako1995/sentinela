@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "Template com tag (postgres.js / Prisma): a biblioteca transforma ${...} em parâmetros, não em texto.",
+  "codigo": "export async function buscar(nome: string) {\n  return sql`SELECT * FROM usuarios WHERE nome = ${nome}`\n}"
+}

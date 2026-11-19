@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude-real",
+  "nota": "`required` (minúsculo) é só uma palavra, não um helper de autenticação.",
+  "codigo": "'use server'\n\nexport async function apagarComentario(id: string) {\n  const required = ['id']\n  await db.comentario.delete({ where: { id } })\n}"
+}

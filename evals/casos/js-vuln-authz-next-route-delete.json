@@ -1,0 +1,9 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude-js",
+  "nota": "Route handler DELETE do Next.js que apaga um documento sem checar a sessão.",
+  "arquivo": "app/api/js-vuln-authz-next-route-delete/route.ts",
+  "codigo": "export async function DELETE(request: Request, { params }: { params: { id: string } }) {\n  await db.documento.delete({ where: { id: params.id } })\n  return new Response(null, { status: 204 })\n}"
+}

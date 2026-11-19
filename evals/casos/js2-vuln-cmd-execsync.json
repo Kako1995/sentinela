@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "injeção de comando",
+  "origem": "claude-js2",
+  "nota": "execSync importado direto, com o nome da branch da query string no comando.",
+  "codigo": "app.get('/log', (req, res) => {\n  const saida = execSync('git log ' + req.query.branch);\n  res.send(saida.toString());\n});"
+}

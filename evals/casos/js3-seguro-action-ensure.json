@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "ensureLoggedIn() garante o login antes de mexer nos dados.",
+  "codigo": "'use server'\n\nexport async function salvarPerfil(dados: any) {\n  const u = await ensureLoggedIn()\n  await db.perfil.update({ where: { id: u.id }, data: dados })\n}"
+}

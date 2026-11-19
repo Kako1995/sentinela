@@ -1,0 +1,9 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "O route handler confere a sessão e limita o delete ao dono.",
+  "arquivo": "app/api/js-seguro-authz-next-sessao/route.ts",
+  "codigo": "export async function DELETE(request: Request, { params }: { params: { id: string } }) {\n  const session = await auth()\n  if (!session) return new Response('Unauthorized', { status: 401 })\n  await db.documento.delete({ where: { id: params.id, ownerId: session.user.id } })\n  return new Response(null, { status: 204 })\n}"
+}

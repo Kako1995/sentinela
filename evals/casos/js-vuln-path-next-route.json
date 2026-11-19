@@ -1,0 +1,9 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-js",
+  "nota": "Route handler do Next.js: o parâmetro da URL entra num template literal que vira o caminho do arquivo.",
+  "arquivo": "app/api/js-vuln-path-next-route/route.ts",
+  "codigo": "export async function GET(request: Request, { params }: { params: { nome: string } }) {\n  const dados = await fs.promises.readFile(`./uploads/${params.nome}`, 'utf8')\n  return new Response(dados)\n}"
+}

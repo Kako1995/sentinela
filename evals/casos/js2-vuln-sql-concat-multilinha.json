@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude-js2",
+  "nota": "Consulta em duas linhas coladas com +, e o id da rota no fim.",
+  "codigo": "app.get('/pedidos/:id', (req, res) => {\n  const q = \"SELECT * FROM pedidos \" +\n            \"WHERE cliente = '\" + req.params.id + \"'\";\n  db.execute(q);\n});"
+}

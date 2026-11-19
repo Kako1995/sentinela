@@ -39,7 +39,7 @@ CLI com Typer, comando `revisar`, `diff.py` que quebra o diff por arquivo guarda
 
 **Carlos precisa saber explicar:** exit code e por que ele importa pro CI.
 
-## Fase 4: evals, a parte mais importante (92 casos; v1, v2 e v3 medidas)
+## Fase 4: evals, a parte mais importante (148 casos; v1 a v4 medidas)
 
 - `evals/casos/` com 30 casos rotulados em JSON: 20 vulneráveis (uma ou mais por categoria) e 10 seguros parecidos com os vulneráveis. Cada caso: `codigo`, `linguagem`, `vulneravel` (bool), `categoria_esperada`.
 - `run_evals.py` roda o scanner em todos e mostra precisão, recall e uma tabela dos erros. Salva o resultado em `evals/resultados/` com data.
@@ -72,11 +72,13 @@ Voltar às fases anteriores com os números dos evals na mão. Ordem combinada:
 1. **Medir os casos do Carlos** (`"origem": "carlos"`) na `v1`, antes de mudar qualquer regra.
 2. **(feito) Comando `sentinela varrer <pasta>`:** lê os arquivos direto, sem depender do git, com opção de ignorar caminhos. Serve para analisar um software já pronto (hoje só dá para contornar com `git diff <árvore vazia> HEAD | sentinela revisar -`). Atenção: em projeto inteiro os falsos positivos se acumulam, então vale tratar o resultado como lista para conferir.
 3. **(feito na v2) Precisão das regras que bloqueiam (alta e crítica):** 4 dos 6 falsos positivos da v1 derrubariam o CI. Correções gerais: entender comando fixo com `shell=True`, constantes concatenadas no SQL, `usedforsecurity=False`, `innerHTML` com HTML literal.
-4. **(feito na v3) Recall:** análise por AST do Python (enxerga o arquivo inteiro e liga a origem do dado ao uso): recall de 50% para 90% nos 72 casos. Falta: JavaScript/TypeScript e análise entre funções.
+4. **(feito na v3) Recall:** análise por AST do Python (enxerga o arquivo inteiro e liga a origem do dado ao uso): recall de 50% para 90% nos 72 casos. Falta: análise entre funções/arquivos.
 5. **(feito) Meta definida antes de mexer:** precisão acima de 85% nos alertas altos e críticos, sem cair o recall. Comparar `v1` com `v2` e guardar casos novos, não vistos, só para conferir se a melhora vale fora dos casos que a motivaram.
 6. **Atualizar o README** com os números novos.
 
 ## Extras se sobrar fôlego
+
+- (feito) JavaScript/TypeScript com tree-sitter: Express, Next.js (route handlers e server actions) e Supabase
 
 - Análise de AST (módulo `ast`) para Python: enxerga o arquivo inteiro e rastreia variáveis, reduzindo falso positivo e pegando mais casos
 - Arquivo de configuração (`.sentinela.toml`) para ligar/desligar regras e ignorar caminhos

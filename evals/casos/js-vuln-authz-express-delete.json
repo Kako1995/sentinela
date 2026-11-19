@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude-js",
+  "nota": "Rota que apaga um usuário por id, sem nenhum middleware de autenticação.",
+  "codigo": "app.delete('/usuarios/:id', async (req, res) => {\n  await Usuario.destroy({ where: { id: req.params.id } });\n  res.sendStatus(204);\n});"
+}

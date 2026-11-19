@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "Number() transforma o valor em número: não dá para injetar ../.",
+  "codigo": "app.get('/log/:dia', async (req, res) => {\n  const dia = Number(req.params.dia);\n  res.send(await fs.promises.readFile(`./logs/${dia}.txt`, 'utf8'));\n});"
+}

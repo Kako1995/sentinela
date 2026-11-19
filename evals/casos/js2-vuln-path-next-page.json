@@ -1,0 +1,9 @@
+{
+  "linguagem": "tsx",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-js2",
+  "nota": "Página do Next.js: searchParams vem da URL.",
+  "arquivo": "app/docs/page.tsx",
+  "codigo": "export default async function Page({ searchParams }: { searchParams: { arquivo: string } }) {\n  const f = searchParams.arquivo\n  const texto = readFileSync('./docs/' + f, 'utf8')\n  return <pre>{texto}</pre>\n}"
+}

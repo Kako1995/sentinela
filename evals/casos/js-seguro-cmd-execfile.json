@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "execFile recebe os argumentos como lista, sem passar por um shell.",
+  "codigo": "app.post('/converter', (req, res) => {\n  execFile('convert', [req.body.arquivo, 'saida.png'], (err) => res.send('ok'));\n});"
+}

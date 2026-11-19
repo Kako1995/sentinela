@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "$queryRaw com template tag é parametrizado pelo Prisma.",
+  "codigo": "export async function porEmail(email: string) {\n  return prisma.$queryRaw`SELECT * FROM \"User\" WHERE email = ${email}`\n}"
+}

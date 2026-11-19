@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-js",
+  "nota": "path.resolve com o parâmetro da rota, direto no sendFile.",
+  "codigo": "app.get('/files/:nome', (req, res) => {\n  res.sendFile(path.resolve('./publico', req.params.nome));\n});"
+}

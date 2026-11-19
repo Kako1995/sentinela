@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "Caminho totalmente fixo, sem dado externo.",
+  "codigo": "const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));"
+}

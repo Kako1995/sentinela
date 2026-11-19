@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-js",
+  "nota": "A URL vem da query string e é usada duas linhas depois.",
+  "codigo": "router.get('/proxy', async (req, res) => {\n  const alvo = req.query.url;\n  const r = await axios.get(alvo);\n  res.json(r.data);\n});"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js2",
+  "nota": "A action pega o usuário atual antes de alterar.",
+  "codigo": "'use server'\n\nexport async function atualizarPerfil(dados: any) {\n  const usuario = await getCurrentUser()\n  await db.perfil.update({ where: { id: usuario.id }, data: dados })\n}"
+}

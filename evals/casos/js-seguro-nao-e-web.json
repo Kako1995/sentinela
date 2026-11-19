@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "Código de biblioteca (sem Express, sem Next, sem rotas): 'request' aqui é outra coisa.",
+  "codigo": "function enviar(request) {\n  return fetch(request.url, { method: request.method });\n}"
+}

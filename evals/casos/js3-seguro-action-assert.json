@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "assertAdmin() lança um erro se quem chama não for admin.",
+  "codigo": "'use server'\n\nexport async function excluirBroadcast(id: string) {\n  await assertAdmin()\n  await db.broadcast.delete({ where: { id } })\n}"
+}

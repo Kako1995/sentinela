@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-js2",
+  "nota": "O nome do arquivo vem do FormData de uma server action.",
+  "codigo": "'use server'\nimport { promises as fs } from 'fs'\n\nexport async function enviar(formData: FormData) {\n  const nome = formData.get('arquivo') as string\n  await fs.writeFile(`./uploads/${nome}`, 'x')\n}"
+}

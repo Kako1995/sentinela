@@ -1,7 +1,9 @@
 """Aplica as regras (por linha) e a análise por AST às linhas adicionadas de um diff."""
 
 import re
+from pathlib import PurePosixPath
 
+from sentinela.ast_js import EXTENSOES_JS, analisar_ast_js
 from sentinela.ast_python import ResultadoAst, analisar_ast
 from sentinela.diff import LinhaAdicionada, TrechoArquivo
 from sentinela.models import Finding
@@ -9,7 +11,7 @@ from sentinela.regras import REGRAS, Regra
 
 COMENTARIO = re.compile(r"^\s*(#|//|/\*|\*)")
 
-# Em arquivos Python que a AST conseguiu analisar, estas regras por linha são dispensadas:
+# Em arquivos Python/JS que a AST conseguiu analisar, estas regras por linha são dispensadas:
 # a AST cobre os mesmos casos com menos falsos positivos (sabe de onde vem o dado).
 COBERTAS_PELA_AST = {"path-traversal-entrada", "ssrf-url-da-entrada"}
 
@@ -30,9 +32,13 @@ def _janela(linhas: list[LinhaAdicionada], inicio: int, tamanho: int) -> str:
 
 def _resultado_ast(trecho: TrechoArquivo) -> ResultadoAst | None:
     """Análise por AST do arquivo, ou None se não foi possível (sem fonte, não é .py, erro de sintaxe)."""
-    if trecho.fonte is None or not trecho.arquivo.endswith(".py"):
+    if trecho.fonte is None:
         return None
-    return analisar_ast(trecho.arquivo, trecho.fonte)
+    if trecho.arquivo.endswith(".py"):
+        return analisar_ast(trecho.arquivo, trecho.fonte)
+    if PurePosixPath(trecho.arquivo).suffix in EXTENSOES_JS:
+        return analisar_ast_js(trecho.arquivo, trecho.fonte)
+    return None
 
 
 def analisar(trechos: list[TrechoArquivo], regras: list[Regra] = REGRAS) -> list[Finding]:

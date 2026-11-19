@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "A action começa exigindo o perfil master com um helper requireMaster().",
+  "codigo": "'use server'\n\nexport async function removerAdmin(id: string) {\n  await requireMaster()\n  await db.admin.delete({ where: { id } })\n}"
+}

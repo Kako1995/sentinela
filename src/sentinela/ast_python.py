@@ -74,6 +74,27 @@ REGRAS_AST = {
         "A consulta SQL é montada juntando texto com valores variáveis (mesmo em várias linhas), então uma entrada maliciosa muda a consulta.",
         "Use consulta parametrizada: execute('... WHERE nome = ?', (nome,)).",
     ),
+    "ast-injecao-de-comando": (
+        "injeção de comando", "CWE-78", Severity.critica,
+        "Um dado vindo da requisição entra num comando executado por um shell.",
+        "Use execFile/spawn com os argumentos em lista (sem shell) e valide a entrada.",
+    ),
+    "ast-xss-resposta": (
+        "XSS", "CWE-79", Severity.media,
+        "Um dado vindo da requisição é devolvido como HTML (ou inserido na página) sem escapar, abrindo espaço para script injetado.",
+        "Escape o valor (ou use res.json / textContent) antes de colocá-lo no HTML.",
+    ),
+    "ast-filtro-postgrest": (
+        "SQL injection", "CWE-89", Severity.media,
+        "Um dado vindo da requisição entra num filtro em texto (.or/.filter do PostgREST/Supabase) e pode injetar condições extras.",
+        "Use os métodos de filtro com valores separados (.eq, .ilike, .in) em vez de montar o texto do filtro.",
+    ),
+    "ast-falta-autorizacao-action": (
+        "falta de autorização", "CWE-862", Severity.media,
+        "Esta server action altera dados e pode ser chamada por qualquer visitante, mas não encontrei nela nenhuma verificação "
+        "de login ou permissão. Se o controle é feito em outro lugar (RLS, middleware), ignore este aviso.",
+        "Confira a sessão no começo da action e valide que o usuário pode mexer naquele recurso.",
+    ),
     "ast-falta-autorizacao": (
         "falta de autorização", "CWE-862", Severity.media,
         "Esta rota altera dados (PUT/DELETE/PATCH), mas não encontrei nenhuma verificação de login ou permissão nela. "

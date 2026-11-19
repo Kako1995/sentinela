@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js2",
+  "nota": "Utilitário de leitura de arquivo, sem Express nem Next: o parâmetro é do programador.",
+  "codigo": "function lerConfig(caminho) {\n  return JSON.parse(fs.readFileSync(caminho, 'utf8'));\n}"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "injeção de comando",
+  "origem": "claude-js",
+  "nota": "exec importado por desestruturação (sem 'child_process.' na linha), com o nome do arquivo no comando.",
+  "codigo": "app.post('/converter', (req, res) => {\n  const arquivo = req.body.arquivo;\n  exec(`convert ${arquivo} saida.png`, (err) => res.send('ok'));\n});"
+}

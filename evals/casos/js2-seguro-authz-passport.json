@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js2",
+  "nota": "A rota usa o middleware do passport.",
+  "codigo": "router.delete('/x/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {\n  await X.destroy({ where: { id: req.params.id } });\n  res.sendStatus(204);\n});"
+}

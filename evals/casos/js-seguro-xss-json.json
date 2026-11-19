@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "res.json não interpreta HTML.",
+  "codigo": "app.get('/busca', (req, res) => {\n  res.json({ termo: req.query.q });\n});"
+}

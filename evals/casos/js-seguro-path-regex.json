@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "O nome é validado por uma expressão regular que só aceita letras, números e hífen.",
+  "codigo": "app.get('/arquivo/:id', async (req, res) => {\n  const { id } = req.params;\n  if (!/^[a-z0-9-]+$/i.test(id)) {\n    return res.status(400).send('id inválido');\n  }\n  res.send(await fs.promises.readFile(`./dados/${id}.json`, 'utf8'));\n});"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude-js2",
+  "nota": "Server action em português que atualiza uma consulta sem checar login.",
+  "codigo": "'use server'\n\nexport async function atualizarConsulta(id: string, dados: any) {\n  await db.consulta.update({ where: { id }, data: dados })\n}"
+}

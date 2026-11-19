@@ -24,7 +24,7 @@ from sentinela.models import Finding
 from sentinela.regras import REGRAS, Regra
 from sentinela.scanner import analisar
 
-EXTENSOES = {"python": "py", "javascript": "js", "typescript": "ts", "java": "java"}
+EXTENSOES = {"python": "py", "javascript": "js", "typescript": "ts", "tsx": "tsx", "java": "java"}
 
 
 class Caso(BaseModel):
@@ -34,6 +34,8 @@ class Caso(BaseModel):
     categoria_esperada: str | None = None
     origem: str = "claude"  # quem escreveu: "claude", "claude-dificil" ou "carlos"
     nota: str = ""  # por que o caso é difícil (só para quem lê)
+    # Nome do arquivo de verdade, quando importa para a análise (ex.: "app/api/x/route.ts" é um route handler do Next.js).
+    arquivo: str | None = None
     codigo: str
 
     @model_validator(mode="after")
@@ -83,8 +85,8 @@ def _como_trecho(caso: Caso) -> TrechoArquivo:
     """Trata o código inteiro do caso como linhas adicionadas de um arquivo novo."""
     extensao = EXTENSOES.get(caso.linguagem, "txt")
     linhas = [LinhaAdicionada(i, t) for i, t in enumerate(caso.codigo.splitlines(), start=1)]
-    fonte = caso.codigo if caso.linguagem == "python" else None  # habilita a análise por AST
-    return TrechoArquivo(arquivo=f"{caso.id}.{extensao}", linhas_adicionadas=linhas, fonte=fonte)
+    fonte = caso.codigo if caso.linguagem in {"python", "javascript", "typescript", "tsx"} else None  # habilita a AST
+    return TrechoArquivo(arquivo=caso.arquivo or f"{caso.id}.{extensao}", linhas_adicionadas=linhas, fonte=fonte)
 
 
 def avaliar_caso(caso: Caso, regras: list[Regra] = REGRAS) -> ResultadoCaso:

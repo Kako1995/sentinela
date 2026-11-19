@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js2",
+  "nota": "A única interpolação é uma constante do próprio código.",
+  "codigo": "const rows = await db.query(`SELECT * FROM ${TABELA} WHERE ativo = true`);"
+}

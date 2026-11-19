@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "falta de autorização",
+  "origem": "claude-js",
+  "nota": "Server action que apaga um paciente: qualquer visitante consegue chamar, e ela não confere a sessão.",
+  "codigo": "'use server'\n\nexport async function apagarPaciente(id: string) {\n  await db.paciente.delete({ where: { id } })\n}"
+}

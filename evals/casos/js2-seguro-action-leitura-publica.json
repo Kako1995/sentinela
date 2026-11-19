@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js2",
+  "nota": "Server action pública que só valida um token: não altera dados.",
+  "codigo": "'use server'\n\nexport async function validarToken(token: string) {\n  return db.convite.findFirst({ where: { token } })\n}"
+}

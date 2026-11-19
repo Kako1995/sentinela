@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "O nome só é usado depois de conferido contra uma lista de temas válidos.",
+  "codigo": "app.get('/tema/:nome', (req, res) => {\n  const { nome } = req.params;\n  if (!TEMAS_VALIDOS.includes(nome)) return res.status(404).end();\n  res.sendFile(path.join(PASTA_TEMAS, nome));\n});"
+}

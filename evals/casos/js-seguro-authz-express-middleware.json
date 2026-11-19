@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "A rota passa por um middleware de autenticação.",
+  "codigo": "app.delete('/usuarios/:id', requireAuth, async (req, res) => {\n  await Usuario.destroy({ where: { id: req.params.id } });\n  res.sendStatus(204);\n});"
+}

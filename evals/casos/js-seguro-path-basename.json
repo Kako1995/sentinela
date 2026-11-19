@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js",
+  "nota": "path.basename descarta qualquer pasta enviada pelo usuário.",
+  "codigo": "app.get('/download', (req, res) => {\n  const nome = path.basename(req.query.arquivo);\n  res.sendFile(path.join(__dirname, 'relatorios', nome));\n});"
+}

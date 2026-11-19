@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "requireCurrentClinic() devolve a clínica do usuário logado e falha se não houver sessão.",
+  "codigo": "'use server'\n\nexport async function cancelarAssinatura() {\n  const clinica = await requireCurrentClinic()\n  await db.assinatura.update({ where: { clinicaId: clinica.id }, data: { ativa: false } })\n}"
+}

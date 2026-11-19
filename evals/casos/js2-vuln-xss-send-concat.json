@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-js2",
+  "nota": "HTML montado com + e o corpo da requisição.",
+  "codigo": "app.post('/recado', (req, res) => {\n  res.send('<p>' + req.body.msg + '</p>');\n});"
+}

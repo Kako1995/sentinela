@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js2",
+  "nota": "O valor passa por Number() antes de ir para o HTML.",
+  "codigo": "app.get('/n', (req, res) => {\n  res.send(`<p>Total: ${Number(req.query.n)}</p>`);\n});"
+}

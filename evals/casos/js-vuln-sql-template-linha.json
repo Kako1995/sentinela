@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude-js",
+  "nota": "Template literal com o dado do usuário dentro do query, numa linha só.",
+  "codigo": "app.get('/usuarios', async (req, res) => {\n  const { nome } = req.query;\n  const { rows } = await pool.query(`SELECT * FROM usuarios WHERE nome = '${nome}'`);\n  res.json(rows);\n});"
+}

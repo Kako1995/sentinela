@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-js2",
+  "nota": "O host é conferido num Set de permitidos antes do fetch.",
+  "codigo": "app.get('/p', async (req, res) => {\n  const alvo = req.query.url;\n  if (!HOSTS.has(new URL(alvo).hostname)) return res.status(400).end();\n  const r = await fetch(alvo);\n  res.send(await r.text());\n});"
+}
