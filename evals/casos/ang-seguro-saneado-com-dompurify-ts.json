@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-angular",
+  "nota": "O valor passa por DOMPurify antes: o bypass vale só para HTML já limpo.",
+  "codigo": "this.conteudo = this.sanitizer.bypassSecurityTrustHtml(DOMPurify.sanitize(html))"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-angular",
+  "nota": "Um literal sem interpolação: ninguém controla.",
+  "codigo": "this.aviso = this.sanitizer.bypassSecurityTrustHtml('<b>Bem-vindo de volta</b>')"
+}

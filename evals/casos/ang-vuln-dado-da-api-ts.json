@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-angular",
+  "nota": "Imagem/HTML vindo de uma API repassado como confiável.",
+  "codigo": "this.captcha = this.sanitizer.bypassSecurityTrustHtml(dados.imagem)"
+}

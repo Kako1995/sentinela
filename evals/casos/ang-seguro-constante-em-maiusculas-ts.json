@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-angular",
+  "nota": "Uma constante do módulo em MAIÚSCULAS, definida no código.",
+  "codigo": "this.icone = this.sanitizer.bypassSecurityTrustHtml(ICONE_SVG)"
+}

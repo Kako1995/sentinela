@@ -433,6 +433,33 @@ REGRAS: list[Regra] = [
         ),
     ),
     Regra(
+        id="xss-angular-bypass-sanitizer",
+        categoria="XSS",
+        cwe="CWE-79",
+        severidade=Severity.media,
+        # `.bypassSecurityTrustHtml(x)` e irmãos (Script, Style, Url, ResourceUrl): o programador DESLIGA o sanitizador
+        # do Angular para esse valor. O ponto antes e o argumento não vazio distinguem uma chamada de um texto que
+        # apenas explica a função ("Using bypassSecurityTrustHtml() instead of..."). Um argumento que começa na linha
+        # de baixo também alerta: não dá para saber que é fixo.
+        padrao=_re(r"\.bypassSecurityTrust(?:Html|Script|Style|Url|ResourceUrl)\s*\(\s*(?!\))"),
+        excecao=_rei(
+            # só um literal sem interpolação, ou uma constante em MAIÚSCULAS (o (?-i:) é necessário: esta regra ignora a caixa
+            # e `queryParam` também casaria com [A-Z]...): ninguém de fora controla o valor
+            r"""bypassSecurityTrust\w+\(\s*(?:'[^'$]*'|"[^"$]*"|`[^`$]*`|(?-i:[A-Z][A-Z0-9_]*))\s*\)"""
+            # o valor passa por uma biblioteca de saneamento antes: o bypass vale só para HTML já limpo
+            r"""|\b(?:DOMPurify|sanitize|sanitizeHtml|escape)\b"""
+        ),
+        explicacao=(
+            "O sanitizador do Angular foi desligado para este valor (bypassSecurityTrust...): ele vai para a página "
+            "sem limpeza, e qualquer script ou atributo malicioso dentro dele roda."
+        ),
+        correcao=(
+            "Não marque como confiável um valor que vem do usuário ou de uma API. Deixe o Angular sanear "
+            "([innerHTML] e interpolação já fazem isso), ou limpe com DOMPurify antes e só então use o bypass, "
+            "ou mostre como texto."
+        ),
+    ),
+    Regra(
         id="bind-todas-interfaces",
         categoria="exposição de rede",
         cwe="CWE-1327",

@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-angular",
+  "nota": "O argumento está na linha de baixo: não dá para saber que é fixo.",
+  "codigo": "feedbacks[i].comentario = this.sanitizer.bypassSecurityTrustHtml(\n  feedbacks[i].comentario\n)"
+}

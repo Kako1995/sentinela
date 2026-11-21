@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-angular",
+  "nota": "Um teste substitui o método: é atribuição, não chamada.",
+  "codigo": "sanitizer.bypassSecurityTrustHtml = jasmine.createSpy('bypassSecurityTrustHtml')"
+}

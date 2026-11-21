@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-angular",
+  "nota": "Template com ${} do usuário: o IP vira HTML confiável.",
+  "codigo": "this.ultimoIp = this.sanitizer.bypassSecurityTrustHtml(`<small>${payload.data.ultimoIp}</small>`)"
+}
