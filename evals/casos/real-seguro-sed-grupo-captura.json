@@ -1,0 +1,8 @@
+{
+  "linguagem": "bash",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "\\(.*\\) é grupo de captura do sed (regex), não a senha de verdade: o comando está lendo uma credencial de outro arquivo, não escrevendo uma aqui.",
+  "codigo": "PAT=$(sed -n 's#https://usuario:\\(.*\\)@github.com#\\1#p' ~/.git-credentials)"
+}

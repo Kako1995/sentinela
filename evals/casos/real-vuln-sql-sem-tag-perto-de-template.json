@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude-real",
+  "nota": "Parece com o caso seguro (tem um template literal por perto), mas aqui não há tag sql` nenhuma: é concatenação de texto normal mesmo.",
+  "codigo": "const log = `Buscando pedido ${id}`;\nconst sql2 = \"SELECT * FROM pedidos WHERE id = '\" + id + \"'\";"
+}
