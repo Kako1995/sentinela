@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-publicos",
+  "nota": "Endereço de contrato (40 hex) é público por natureza, mesmo com 'Token' no nome.",
+  "codigo": "const BeeTokenAddress = '0x36435796Ca9be2bf150CE0dECc2D8Fab5C4d6E13'"
+}

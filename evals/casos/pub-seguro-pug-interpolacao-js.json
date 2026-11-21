@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-publicos",
+  "nota": "#{apikey} é interpolação do Pug: o servidor troca pelo valor na hora de renderizar.",
+  "codigo": "const mapa = new Mapa({\n  apikey: '#{apikey}',\n})"
+}

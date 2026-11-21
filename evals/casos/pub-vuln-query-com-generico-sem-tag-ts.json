@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude-publicos",
+  "nota": "O tipo entre <> não torna a consulta segura: sem tag é texto concatenado.",
+  "codigo": "const r = await db.query<User[]>(`SELECT * FROM users WHERE email = '${email}'`)"
+}

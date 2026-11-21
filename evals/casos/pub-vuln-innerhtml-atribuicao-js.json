@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-publicos",
+  "nota": "Atribuição de verdade, com dado de fora.",
+  "codigo": "container.innerHTML = props.html"
+}

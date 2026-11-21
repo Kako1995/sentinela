@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-publicos",
+  "nota": "O nome termina em Url, mas o endereço tem um pedaço opaco de 24 caracteres: é um webhook secreto, que vale como senha.",
+  "codigo": "const webhookSecretUrl = 'https://hooks.provedor.net/services/T0000/B0000/AbCdEfGhIjKlMnOpQrStUvWx'"
+}

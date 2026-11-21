@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-publicos",
+  "nota": "{{chave}} (sem espaços) é interpolação Mustache/Handlebars/Jinja, não a chave.",
+  "codigo": "window.config = { apiKey: '{{chave_publica_do_mapa}}' }"
+}

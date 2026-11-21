@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-publicos",
+  "nota": "sql<User[]>`...` é a mesma tag parametrizada, só com o tipo do resultado entre <>.",
+  "codigo": "const user = await sql<User[]>`SELECT * FROM users WHERE email=${email}`"
+}

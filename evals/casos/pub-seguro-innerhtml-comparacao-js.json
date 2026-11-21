@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-publicos",
+  "nota": "=== compara, não atribui.",
+  "codigo": "if (element && element.innerHTML === value) return true"
+}

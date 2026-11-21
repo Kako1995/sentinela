@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-publicos",
+  "nota": "Mesma tag genérica, com o template em várias linhas: a linha do SELECT com ${} fica DENTRO do template.",
+  "codigo": "const rows = await sql<Pedido[]>`\n  SELECT * FROM pedidos WHERE usuario = ${id}\n`"
+}

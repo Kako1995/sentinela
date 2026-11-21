@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-publicos",
+  "nota": "Chave literal de verdade no mesmo formato de objeto.",
+  "codigo": "const mapa = new Mapa({ apiKey: 'sk-live-a8Fk2mQ9vR3nT7wZ1pB4xYz' })"
+}
