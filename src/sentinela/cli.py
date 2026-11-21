@@ -5,7 +5,7 @@ from typing import Optional
 import typer
 from rich.console import Console
 
-from sentinela.diff import parse_diff
+from sentinela.diff import TrechoArquivo, parse_diff
 from sentinela.models import Finding
 from sentinela.report import (
     Formato,
@@ -14,7 +14,7 @@ from sentinela.report import (
     imprimir_terminal,
     tem_bloqueante,
 )
-from sentinela.scanner import analisar
+from sentinela.scanner import TAMANHO_MAXIMO_LINHA, analisar
 from sentinela.varredura import anexar_fontes
 from sentinela.varredura import varrer as varrer_pasta
 
@@ -26,6 +26,18 @@ OPCAO_FORMATO = typer.Option(Formato.terminal, "--formato", "-f", help="Formato 
 @app.callback()
 def principal() -> None:
     """Mantém os comandos como subcomandos, mesmo quando há só um."""
+
+
+def _avisar_linhas_longas(trechos: list[TrechoArquivo]) -> None:
+    """Avisa quantas linhas passaram de TAMANHO_MAXIMO_LINHA e por isso não foram
+    checadas pelas regras por linha (scanner.py)."""
+    n = sum(1 for t in trechos for l in t.linhas_adicionadas if len(l.texto) > TAMANHO_MAXIMO_LINHA)
+    if n:
+        typer.echo(
+            f"{n} linha(s) com mais de {TAMANHO_MAXIMO_LINHA} caracteres não passaram pelas regras "
+            "por linha (SVG, bundle minificado ou dado numa linha só costumam ser a causa).",
+            err=True,
+        )
 
 
 def _emitir(achados: list[Finding], formato: Formato) -> None:
@@ -74,6 +86,7 @@ def revisar(
         sem_ast = anexar_fontes(trechos, raiz)
         if sem_ast:
             typer.echo(f"{sem_ast} arquivo(s) .py sem análise por AST (não encontrado em --raiz ou diferente do diff).", err=True)
+    _avisar_linhas_longas(trechos)
     # Diff vazio ou sem linhas adicionadas é um relatório sem achados, no formato pedido.
     _emitir(analisar(trechos), formato)
 
@@ -99,4 +112,5 @@ def varrer(
     trechos = varrer_pasta(pasta, excluir)
     # Fora da saída principal, para json e markdown continuarem sendo só o relatório.
     typer.echo(f"{len(trechos)} arquivo(s) analisado(s).", err=True)
+    _avisar_linhas_longas(trechos)
     _emitir(analisar(trechos), formato)
