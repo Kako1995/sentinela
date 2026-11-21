@@ -460,6 +460,41 @@ REGRAS: list[Regra] = [
         ),
     ),
     Regra(
+        id="nosql-where-dinamico",
+        categoria="NoSQL injection",
+        cwe="CWE-943",
+        severidade=Severity.media,
+        # O operador $where do MongoDB EXECUTA JavaScript no banco: se a expressão é montada juntando texto com um
+        # valor variável (`'this.id == ' + id`, `${id}`, f-string, `%`, `.format`), quem controla o valor controla o
+        # código. Cobre a chave `$where:` (também entre aspas) e a chamada `.$where(` do Mongoose. A expressão
+        # constante, a forma de função e o filtro por campo (`{ produto: Number(id) }`) não casam.
+        padrao=_re(
+            r"""(?:["']?\$where["']?\s*:|\.\$where\s*\()\s*"""
+            r"""(?:`[^`]*\$\{"""  # template com ${
+            r"""|(?:'[^'\n]*'|"[^"\n]*")\s*[+%]"""  # texto seguido de + ou % (concatenação, formatação)
+            r"""|[A-Za-z_][\w.]*\s*\+\s*["'`]"""  # variável + texto
+            # f-string e str.format: o texto da expressão tem aspas do OUTRO tipo dentro (f"this.id == '{id}'"),
+            # então o tipo de aspa que abre é o que fecha
+            r"""|f(?:"[^"\n]*\{|'[^'\n]*\{)"""  # f-string do Python
+            r"""|(?:"[^"\n]*"|'[^'\n]*')\.format\()"""  # str.format
+        ),
+        # Só um número entra: texto fixo + Number()/parseInt()/parseFloat() na própria expressão (a conversão feita
+        # em outra linha, antes, a regra por linha não enxerga).
+        excecao=_re(
+            r"""(?:["']?\$where["']?\s*:|\.\$where\s*\()\s*"""
+            r"""(?:`(?:[^`$]|\$\{\s*(?:Number|parseInt|parseFloat)\([^()]*\)\s*\})*`"""
+            r"""|(?:'[^'\n]*'|"[^"\n]*")(?:\s*\+\s*(?:(?:Number|parseInt|parseFloat)\([^()]*\)|'[^'\n]*'|"[^"\n]*"))*\s*[,})])"""
+        ),
+        explicacao=(
+            "O operador $where do MongoDB executa JavaScript no banco, e aqui a expressão é montada juntando texto com um "
+            "valor variável: quem controla o valor controla o código que roda no banco."
+        ),
+        correcao=(
+            "Troque o $where por um filtro comum por campo ({ produto: Number(id) }). Se precisar mesmo de $where, "
+            "use a forma de função com valores passados à parte (scope) e converta o dado para número antes."
+        ),
+    ),
+    Regra(
         id="bind-todas-interfaces",
         categoria="exposição de rede",
         cwe="CWE-1327",
