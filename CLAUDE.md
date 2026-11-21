@@ -59,6 +59,7 @@ class Finding(BaseModel):
 - Cada regra em `regras.py` olha uma linha adicionada. Toda regra nova vem com testes: pelo menos um caso vulnerável que dispara e um seguro parecido que não dispara.
 - Regras novas ou alteradas devem ser medidas nos evals; guardar os resultados antes e depois, e conferir que nenhum acerto (TP) da versão anterior foi perdido.
 - A AST (Python e JS/TS) só lê arquivos dentro de `--raiz`, sem links simbólicos e só se baterem com o diff (o nome vem de um diff possivelmente malicioso).
+- Linha acima de `TAMANHO_MAXIMO_LINHA` (`scanner.py`) não passa pelas regras por linha: regex com lookahead (ex.: `sql-concatenacao`) tem custo quadrático numa linha sem quebra de verdade (SVG, bundle minificado), e isso já travou a varredura por minutos. A CLI avisa quantas linhas foram puladas.
 - Nos casos de eval, escreva o conjunto novo ANTES de implementar o que ele mede, e confira que nenhum TP anterior foi perdido.
 - Uma regra que precisa ver várias linhas usa `janela` e `gatilho` (ver `regras.py`); o scanner só junta linhas vizinhas no arquivo.
 - O comando `revisar` sai com código 1 se houver achado de severidade alta ou crítica, 0 caso contrário (Fase 3).

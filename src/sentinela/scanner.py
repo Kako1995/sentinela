@@ -15,6 +15,13 @@ COMENTARIO = re.compile(r"^\s*(#|//|/\*|\*)")
 # a AST cobre os mesmos casos com menos falsos positivos (sabe de onde vem o dado).
 COBERTAS_PELA_AST = {"path-traversal-entrada", "ssrf-url-da-entrada"}
 
+# Lookahead com quantificador (ex.: ".*" em sql-concatenacao) tem custo pior-caso quadrático
+# no tamanho da entrada quando ela não casa. Linha acima deste limite pula as regras por
+# linha (a análise por AST, que lê o arquivo de outro jeito, continua valendo). O nome e o
+# conteúdo do arquivo vêm de um diff possivelmente malicioso, então isto é defesa, não só
+# desempenho.
+TAMANHO_MAXIMO_LINHA = 2000
+
 
 def _janela(linhas: list[LinhaAdicionada], inicio: int, tamanho: int) -> str:
     """Junta até `tamanho` linhas SEGUIDAS no arquivo, começando em `inicio`.
@@ -54,6 +61,8 @@ def analisar(trechos: list[TrechoArquivo], regras: list[Regra] = REGRAS) -> list
 
         for i, linha in enumerate(linhas):
             if COMENTARIO.match(linha.texto) or linha.numero in texto_solto:
+                continue
+            if len(linha.texto) > TAMANHO_MAXIMO_LINHA:
                 continue
             for regra in ativas:
                 if regra.janela == 1:
