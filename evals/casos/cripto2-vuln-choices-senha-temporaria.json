@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto2",
+  "nota": "random.choices para senha temporária.",
+  "codigo": "senha_temporaria = \"\".join(random.choices(string.ascii_letters + string.digits, k=10))\nenviar_email(usuario, senha_temporaria)"
+}

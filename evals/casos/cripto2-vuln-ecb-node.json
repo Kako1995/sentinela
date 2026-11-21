@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto2",
+  "nota": "No Node o modo vem dentro do nome do algoritmo.",
+  "codigo": "const cifra = crypto.createCipheriv('aes-256-ecb', chave, null)\nreturn cifra.update(dados, 'utf8', 'hex') + cifra.final('hex')"
+}

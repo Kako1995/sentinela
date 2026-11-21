@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto2",
+  "nota": "getrandbits do módulo random é previsível; id de sessão precisa de fonte criptográfica.",
+  "codigo": "session_id = random.getrandbits(128)\nresposta.set_cookie('sessao', str(session_id))"
+}

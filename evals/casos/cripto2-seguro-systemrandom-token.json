@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cripto2",
+  "nota": "random.SystemRandom usa a fonte do sistema operacional: é seguro para token.",
+  "codigo": "rng = random.SystemRandom()\ntoken = \"\".join(rng.choice(string.ascii_letters) for _ in range(32))"
+}

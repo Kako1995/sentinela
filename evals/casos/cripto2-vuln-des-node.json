@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto2",
+  "nota": "DES no Node.",
+  "codigo": "const cifra = crypto.createCipheriv('des-cbc', chave, iv)\nreturn cifra.update(dados, 'utf8', 'hex')"
+}

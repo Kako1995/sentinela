@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cripto2",
+  "nota": "AES em modo CTR com nonce novo: não é ECB.",
+  "codigo": "cipher = AES.new(chave, AES.MODE_CTR)\ntexto_cifrado = cipher.encrypt(dados)"
+}
