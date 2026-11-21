@@ -98,8 +98,14 @@ REGRAS: list[Regra] = [
         cwe="CWE-798",
         severidade=Severity.alta,
         padrao=_rei(
-            r"""(api[_-]?key|secret|token|passw(or)?d|senha|private[_-]?key|access[_-]?key)"""
+            r"""(?:(?:api[_-]?key|secret|token|passw(?:or)?d|senha|private[_-]?key|access[_-]?key)"""
             r"""\w*["']?\s*[:=]\s*["'][^"'\s]{8,}["']"""
+            # Senha curta: nome de senha + valor de 6 ou 7 caracteres, mas SÓ se tiver número ou símbolo
+            # (hunter2, abc123, root123, 123456). Só letras (`'Salvar'`, `'Senha'`) é rótulo de tela, não senha:
+            # um mapa de rótulos de botão com "senha" na chave já gerou alerta falso em código real. O custo é
+            # `senha = "letmein"` (só letras, 7) passar. A classe de símbolos NÃO inclui as aspas (0x22 e 0x27),
+            # senão a aspa que fecha a string contaria como símbolo.
+            r"""|(?:passw(?:or)?d|senha)\w*["']?\s*[:=]\s*["'](?=[^"'\s]*[\d!#-&(-/:-@\[-`{-~])[^"'\s]{6,7}["'])"""
         ),
         excecao=_rei(
             # placeholders ("changeme", "sua-chave-aqui", "troque...") e referências a variável de
@@ -116,6 +122,9 @@ REGRAS: list[Regra] = [
             # e símbolo. NÃO vale para api_token/access_token (o `_` antes de token quebra o (?<!\w)) nem para
             # password/secret/senha, onde uma senha literal em minúsculas continua sendo um problema real.
             r"""|(?<!\w)(?-i:token)\w*["']?\s*[:=]\s*["'](?-i:[a-z]{8,16})["']"""
+            # valor em MAIÚSCULAS_COM_UNDERSCORE e só letras (DB_PASSWORD, GITHUB_TOKEN): é o NOME de uma variável de
+            # ambiente (PASSWORD_ENV = "DB_PASSWORD"), não a senha. Com número (SK_LIVE_1234) continua alertando.
+            r"""|[:=]\s*["'](?-i:[A-Z]+(?:_[A-Z]+)+)["']"""
         ),
         explicacao="Um valor que parece segredo (chave, token ou senha) está escrito direto no código.",
         correcao="Leia o valor de uma variável de ambiente ou de um gerenciador de segredos e revogue a chave exposta.",
