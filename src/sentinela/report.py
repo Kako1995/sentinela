@@ -25,6 +25,7 @@ class Formato(str, Enum):
     terminal = "terminal"
     markdown = "markdown"
     json = "json"
+    sarif = "sarif"
 
 
 # Quanto cada achado tira da nota (0 a 10). Pesos simples de propósito: a fórmula precisa caber
@@ -117,3 +118,62 @@ def formatar_json(achados: list[Finding], nota: bool = False) -> str:
     if nota:
         dados["nota"] = {"valor": calcular_nota(achados), "formula": FORMULA_NOTA, "aviso": AVISO_NOTA}
     return json.dumps(dados, ensure_ascii=False, indent=2)
+
+
+# SARIF (Static Analysis Results Interchange Format): o GitHub Code Scanning e outras ferramentas
+# de CI leem esse formato e mostram os achados na aba Security do repositório, não só no comentário
+# do PR. "error" bloqueia o mesmo jeito que já bloqueia o CI (BLOQUEANTES); "warning" e "note" não.
+_NIVEL_SARIF = {
+    Severity.critica: "error", Severity.alta: "error", Severity.media: "warning", Severity.baixa: "note",
+}
+SCHEMA_SARIF = "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json"
+
+
+def formatar_sarif(achados: list[Finding]) -> str:
+    # Um resumo da regra (nome, descrição, correção) por id, só das que aparecem aqui — não a lista
+    # inteira de regras do projeto, que SARIF não precisa e ficaria desatualizada sozinha.
+    regras_vistas: dict[str, Finding] = {}
+    for a in achados:
+        regras_vistas.setdefault(a.regra, a)
+
+    sarif = {
+        "$schema": SCHEMA_SARIF,
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {
+                    "driver": {
+                        "name": "Sentinela",
+                        "informationUri": "https://github.com/Kako1995/sentinela",
+                        "rules": [
+                            {
+                                "id": regra_id,
+                                "shortDescription": {"text": f.categoria},
+                                "fullDescription": {"text": f.explicacao},
+                                "help": {"text": f.correcao},
+                                **({"properties": {"tags": [f.cwe]}} if f.cwe else {}),
+                            }
+                            for regra_id, f in regras_vistas.items()
+                        ],
+                    }
+                },
+                "results": [
+                    {
+                        "ruleId": a.regra,
+                        "level": _NIVEL_SARIF[a.severidade],
+                        "message": {"text": a.explicacao},
+                        "locations": [
+                            {
+                                "physicalLocation": {
+                                    "artifactLocation": {"uri": a.arquivo},
+                                    "region": {"startLine": a.linha},
+                                }
+                            }
+                        ],
+                    }
+                    for a in _mais_graves_primeiro(achados)
+                ],
+            }
+        ],
+    }
+    return json.dumps(sarif, ensure_ascii=False, indent=2)

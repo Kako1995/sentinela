@@ -66,6 +66,7 @@ git diff main | sentinela revisar - --raiz .      # ativa a análise por AST nos
 | `--formato terminal` (padrão) | Relatório colorido por severidade |
 | `--formato markdown` | Texto pronto para comentário de PR |
 | `--formato json` | Só JSON, para usar em pipe |
+| `--formato sarif` | [SARIF](https://sarifweb.azurewebsites.net/) 2.1.0, para o GitHub Code Scanning mostrar os achados na aba **Security** do repositório, não só no comentário do PR. Ignora `--nota` (SARIF é lido por ferramenta, não por gente) |
 | `--raiz PASTA` | Lê os `.py`, `.js`, `.ts` e `.tsx` do diff por inteiro, a partir dessa pasta, e ativa a análise por AST. A Action já usa. Só lê arquivos dentro da pasta, sem seguir links simbólicos, e só se baterem com o diff |
 | `--nota` | Acrescenta uma nota de 0 a 10 ao relatório (fórmula e aviso de limitação juntos — não é uma nota de segurança, ver abaixo) |
 
@@ -149,6 +150,16 @@ Não precisa de nenhuma chave de API nem de `secrets`: ele usa só o `GITHUB_TOK
 - PRs vindos de **forks** recebem um token somente leitura: o comentário não é postado, mas o relatório aparece no resumo do job e o check continua funcionando.
 - Para outras pessoas usarem `Kako1995/sentinela@main`, o repositório precisa ser **público**.
 - Fixe uma versão (`@v1`, quando houver) em vez de `@main` se quiser estabilidade.
+
+**Opcional: aparecer na aba Security.** A Action acima só comenta no PR. Para também mandar os achados pro GitHub Code Scanning (pede a permissão extra `security-events: write`, por isso fica fora do padrão):
+
+```yaml
+      - run: pip install git+https://github.com/Kako1995/sentinela  # repo privado: precisa de token com acesso
+      - run: git diff ${{ github.event.pull_request.base.sha }} | sentinela revisar - -f sarif > sentinela.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: sentinela.sarif
+```
 
 ## Como sei que funciona: os evals
 

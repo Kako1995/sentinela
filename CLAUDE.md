@@ -67,6 +67,7 @@ class Finding(BaseModel):
 - Nunca commitar segredos.
 - `--nota` (0 a 10, `report.py`) é opcional (`revisar`/`varrer`) e nunca chamada de "nota de segurança": a fórmula é simples e visível (cabe numa frase) e vem sempre com o aviso de que só cobre o que as regras e a AST enxergam.
 - `# sentinela: ignore` (ou `//`) numa linha silencia só aquela linha (`IGNORAR_LINHA`, `scanner.py`), igual `# noqa`; `.sentinela.toml` (`config.py`) silencia uma regra no projeto inteiro. São dois níveis de propósito: um pra exceção pontual, outro pra decisão de projeto.
+- `--formato sarif` (`report.py`) não aceita `--nota` (SARIF é lido por ferramenta, não por gente) e não muda a Action empacotada (que continua só comentando no PR); subir pro GitHub Code Scanning é opcional, documentado no README, e pede uma permissão extra (`security-events: write`) que o padrão não tem.
 
 ## Comandos
 
