@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SQL injection",
+  "origem": "claude-real",
+  "nota": "A rota não monta o SQL ela mesma: repassa o parâmetro pra uma função ajudante que concatena a consulta.",
+  "codigo": "from flask import Flask\napp = Flask(__name__)\n\ndef buscar_cliente(nome):\n    query = \"SELECT * FROM clientes WHERE nome = '\" + nome + \"'\"\n    return db.execute(query)\n\n@app.route(\"/clientes/<nome>\")\ndef rota_cliente(nome):\n    return buscar_cliente(nome)"
+}

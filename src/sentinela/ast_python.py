@@ -9,8 +9,14 @@ As regras por linha só enxergam o texto de uma linha. Aqui o arquivo é lido in
 Só são "externos" os dados de uma aplicação web: `request` (quando o arquivo é de um framework web) e os
 parâmetros de rotas. `input()` e sys.argv não contam: num script de terminal quem digita é o próprio usuário.
 
-Limites (de propósito, para ficar explicável): a análise é por função, sem seguir chamadas entre
-funções nem arquivos, e ignora a ordem das linhas. Só roda em Python.
+Limites (de propósito, para ficar explicável): a análise é por função, e ignora a ordem das linhas.
+Só roda em Python.
+
+Uma exceção: uma função solta no nível do módulo (não método, não aninhada) chamada DIRETO (`ajuda(x)`,
+não `obj.ajuda(x)`) de outro lugar no MESMO arquivo propaga o dado contaminado para dentro dela — ver
+`_resumo_por_parametro` e `_chamadas_para_funcoes_ajudantes`. Isso resolve a rota "fina" que só repassa
+o parâmetro para quem faz o trabalho de verdade. Ainda não segue chamada para outro arquivo (precisaria
+resolver import) nem uma função ajudante chamando outra ajudante (só um nível).
 """
 
 import ast
@@ -303,16 +309,11 @@ def _contexto_web(arvore: ast.AST) -> bool:
     return False
 
 
-def _analisar_escopo(arquivo: str, escopo: ast.AST, web: bool) -> list[Finding]:
-    nos = list(_nos_do_escopo(escopo))
-    # `request` só é um dado de usuário em arquivos de aplicação web; em bibliotecas HTTP é outra coisa.
-    taint: set[str] = {"request"} if web else set()
-    rota = isinstance(escopo, (ast.FunctionDef, ast.AsyncFunctionDef)) and bool(_decoradores_de_rota(escopo))
-    if rota:
-        taint |= _parametros_externos(escopo)
-    validados = _guardas_de_validacao(nos)
-    _propagar(nos, taint, validados)
-
+def _achados_por_sinks(arquivo: str, nos: list[ast.AST], taint: set[str], validados: set[str]) -> list[Finding]:
+    """Sinks (SQL, caminho de arquivo, desserialização, SSRF) alcançados a partir de `taint`, já com
+    `validados` descontado. Separado de `_analisar_escopo` para ser reaproveitado tanto no escopo normal
+    (dado vindo da própria rota) quanto no resumo por parâmetro de uma função ajudante (ver
+    `_resumo_por_parametro`): o cálculo de "o que esse dado alcança" é o mesmo nos dois casos."""
     achados: list[Finding] = []
 
     def contaminado(e: ast.AST | None) -> bool:
@@ -364,10 +365,94 @@ def _analisar_escopo(arquivo: str, escopo: ast.AST, web: bool) -> list[Finding]:
     # (open, send_file...), só essa é reportada, para o mesmo fluxo não aparecer duas vezes.
     fortes = [f for f, fraco in caminhos if not fraco]
     achados += fortes or [f for f, _ in caminhos]
+    return achados
+
+
+def _analisar_escopo(
+    arquivo: str,
+    escopo: ast.AST,
+    web: bool,
+    funcoes_topo: dict[str, ast.FunctionDef | ast.AsyncFunctionDef],
+    resumos: dict[str, dict[str, list[Finding]]],
+) -> list[Finding]:
+    nos = list(_nos_do_escopo(escopo))
+    # `request` só é um dado de usuário em arquivos de aplicação web; em bibliotecas HTTP é outra coisa.
+    taint: set[str] = {"request"} if web else set()
+    rota = isinstance(escopo, (ast.FunctionDef, ast.AsyncFunctionDef)) and bool(_decoradores_de_rota(escopo))
+    if rota:
+        taint |= _parametros_externos(escopo)
+    validados = _guardas_de_validacao(nos)
+    _propagar(nos, taint, validados)
+
+    achados = _achados_por_sinks(arquivo, nos, taint, validados)
+    achados += _chamadas_para_funcoes_ajudantes(nos, taint, validados, funcoes_topo, resumos)
 
     # --- rota que altera dados sem autenticação visível ---
     if rota:
         achados += _checar_autorizacao(arquivo, escopo)
+    return achados
+
+
+def _funcoes_de_nivel_superior(arvore: ast.Module) -> dict[str, ast.FunctionDef | ast.AsyncFunctionDef]:
+    """Funções soltas no nível do módulo (não métodos, não aninhadas): candidatas a serem chamadas
+    como 'função ajudante' de outro lugar no mesmo arquivo."""
+    return {no.name: no for no in arvore.body if isinstance(no, (ast.FunctionDef, ast.AsyncFunctionDef))}
+
+
+def _parametros_simples(func: ast.FunctionDef | ast.AsyncFunctionDef) -> list[str]:
+    """Nomes dos parâmetros (posicionais e nomeados), na ordem, sem self/cls."""
+    args = func.args.posonlyargs + func.args.args + func.args.kwonlyargs
+    return [a.arg for a in args if a.arg not in {"self", "cls"}]
+
+
+def _resumo_por_parametro(arquivo: str, func: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str, list[Finding]]:
+    """Para uma função de nível superior: se SÓ este parâmetro viesse contaminado (os outros não),
+    quais achados o corpo dela produziria? Roda uma vez por parâmetro para saber exatamente qual é
+    o perigoso — não é o mesmo que rodar com todos contaminados de uma vez, que não diria qual."""
+    nos = list(_nos_do_escopo(func))
+    validados = _guardas_de_validacao(nos)
+    resumo: dict[str, list[Finding]] = {}
+    for nome in _parametros_simples(func):
+        taint = {nome}
+        _propagar(nos, taint, validados)
+        resumo[nome] = _achados_por_sinks(arquivo, nos, taint, validados)
+    return resumo
+
+
+def _args_por_parametro(chamada: ast.Call, func: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str, ast.expr]:
+    """Liga cada argumento de uma chamada ao nome do parâmetro correspondente da função chamada
+    (por posição ou por nome)."""
+    parametros = _parametros_simples(func)
+    ligados: dict[str, ast.expr] = {}
+    for i, arg in enumerate(chamada.args):
+        if i < len(parametros):
+            ligados[parametros[i]] = arg
+    for kw in chamada.keywords:
+        if kw.arg in parametros:
+            ligados[kw.arg] = kw.value
+    return ligados
+
+
+def _chamadas_para_funcoes_ajudantes(
+    nos: list[ast.AST],
+    taint: set[str],
+    validados: set[str],
+    funcoes_topo: dict[str, ast.FunctionDef | ast.AsyncFunctionDef],
+    resumos: dict[str, dict[str, list[Finding]]],
+) -> list[Finding]:
+    """Chamada direta (`ajuda(x)`, não `obj.ajuda(x)`) para uma função do mesmo arquivo: se o argumento
+    passado está contaminado aqui, traz os achados que o resumo dessa função já calculou para o
+    parâmetro correspondente. Só um nível (a função ajudante chamando outra ajudante não é seguido)."""
+    achados: list[Finding] = []
+    for no in nos:
+        if not (isinstance(no, ast.Call) and isinstance(no.func, ast.Name)):
+            continue
+        func = funcoes_topo.get(no.func.id)
+        if func is None:
+            continue
+        for parametro, arg in _args_por_parametro(no, func).items():
+            if _contaminado(arg, taint, validados):
+                achados += resumos[no.func.id].get(parametro, [])
     return achados
 
 
@@ -427,9 +512,11 @@ def analisar_ast(arquivo: str, fonte: str) -> ResultadoAst | None:
             arvore = ast.parse(fonte)
         escopos = [arvore] + [n for n in ast.walk(arvore) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
         web = _contexto_web(arvore)
+        funcoes_topo = _funcoes_de_nivel_superior(arvore)
+        resumos = {nome: _resumo_por_parametro(arquivo, f) for nome, f in funcoes_topo.items()}
         achados: list[Finding] = []
         for escopo in escopos:
-            achados += _analisar_escopo(arquivo, escopo, web)
+            achados += _analisar_escopo(arquivo, escopo, web, funcoes_topo, resumos)
         return ResultadoAst(achados, _linhas_de_texto(arvore))
     except (SyntaxError, ValueError, RecursionError, MemoryError):
         return None

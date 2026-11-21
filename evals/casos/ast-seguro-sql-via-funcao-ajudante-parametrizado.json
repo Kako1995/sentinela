@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "Mesmo desenho (rota fina chamando função ajudante), mas a função ajudante usa consulta parametrizada: não há o que propagar.",
+  "codigo": "from flask import Flask\napp = Flask(__name__)\n\ndef buscar_cliente(nome):\n    return db.execute(\"SELECT * FROM clientes WHERE nome = ?\", (nome,))\n\n@app.route(\"/clientes/<nome>\")\ndef rota_cliente_segura(nome):\n    return buscar_cliente(nome)"
+}

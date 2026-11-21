@@ -72,7 +72,7 @@ Voltar às fases anteriores com os números dos evals na mão. Ordem combinada:
 1. **Medir os casos do Carlos** (`"origem": "carlos"`) na `v1`, antes de mudar qualquer regra.
 2. **(feito) Comando `sentinela varrer <pasta>`:** lê os arquivos direto, sem depender do git, com opção de ignorar caminhos. Serve para analisar um software já pronto (hoje só dá para contornar com `git diff <árvore vazia> HEAD | sentinela revisar -`). Atenção: em projeto inteiro os falsos positivos se acumulam, então vale tratar o resultado como lista para conferir.
 3. **(feito na v2) Precisão das regras que bloqueiam (alta e crítica):** 4 dos 6 falsos positivos da v1 derrubariam o CI. Correções gerais: entender comando fixo com `shell=True`, constantes concatenadas no SQL, `usedforsecurity=False`, `innerHTML` com HTML literal.
-4. **(feito na v3) Recall:** análise por AST do Python (enxerga o arquivo inteiro e liga a origem do dado ao uso): recall de 50% para 90% nos 72 casos. Falta: análise entre funções/arquivos.
+4. **(feito na v3) Recall:** análise por AST do Python (enxerga o arquivo inteiro e liga a origem do dado ao uso): recall de 50% para 90% nos 72 casos. **(feito em parte)** análise entre funções no MESMO arquivo (rota fina que repassa o parâmetro pra uma função ajudante): só em Python, só um nível, só chamada direta (`ajuda(x)`). Falta: entre arquivos (precisa resolver import; decisão de design maior, não feita ainda) e o mesmo em JS/TS.
 5. **(feito) Meta definida antes de mexer:** precisão acima de 85% nos alertas altos e críticos, sem cair o recall. Comparar `v1` com `v2` e guardar casos novos, não vistos, só para conferir se a melhora vale fora dos casos que a motivaram.
 6. **Atualizar o README** com os números novos.
 
