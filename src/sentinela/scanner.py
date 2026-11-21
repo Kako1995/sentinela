@@ -73,8 +73,14 @@ def _resultado_ast(trecho: TrechoArquivo) -> ResultadoAst | None:
     return None
 
 
-def analisar(trechos: list[TrechoArquivo], regras: list[Regra] = REGRAS) -> list[Finding]:
-    """Devolve os achados na ordem dos arquivos e das linhas, sem repetir (linha, categoria)."""
+def analisar(
+    trechos: list[TrechoArquivo], regras: list[Regra] = REGRAS, desativadas: frozenset[str] = frozenset()
+) -> list[Finding]:
+    """Devolve os achados na ordem dos arquivos e das linhas, sem repetir (linha, categoria).
+
+    `desativadas` (de .sentinela.toml) filtra pelo id da regra DEPOIS de tudo calculado: vale tanto
+    para as regras por linha quanto para as da AST (que não passam por `regras`), e não muda o
+    resultado de quem não usa configuração nenhuma (o padrão é o conjunto vazio)."""
     achados: list[Finding] = []
     for trecho in trechos:
         resultado = _resultado_ast(trecho)
@@ -119,4 +125,6 @@ def analisar(trechos: list[TrechoArquivo], regras: list[Regra] = REGRAS) -> list
             if (a.linha, a.categoria) not in vistos:
                 vistos.add((a.linha, a.categoria))
                 achados.append(a)
+    if desativadas:
+        achados = [a for a in achados if a.regra not in desativadas]
     return achados

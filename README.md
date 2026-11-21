@@ -67,6 +67,7 @@ git diff main | sentinela revisar - --raiz .      # ativa a análise por AST nos
 | `--formato markdown` | Texto pronto para comentário de PR |
 | `--formato json` | Só JSON, para usar em pipe |
 | `--raiz PASTA` | Lê os `.py`, `.js`, `.ts` e `.tsx` do diff por inteiro, a partir dessa pasta, e ativa a análise por AST. A Action já usa. Só lê arquivos dentro da pasta, sem seguir links simbólicos, e só se baterem com o diff |
+| `--nota` | Acrescenta uma nota de 0 a 10 ao relatório (fórmula e aviso de limitação juntos — não é uma nota de segurança, ver abaixo) |
 
 ### Analisar um projeto inteiro
 
@@ -80,6 +81,26 @@ sentinela varrer . -x tests -x docs -f markdown   # -x ignora caminhos (pode rep
 Ele lê todos os arquivos de texto (`.py`, `.js`, `.ts` e `.tsx` também passam pela análise por AST), pulando dependências (`node_modules`, `.venv`, `vendor`...), caches, binários, links simbólicos e arquivos com mais de 1 MB. Os mesmos formatos e códigos de saída do `revisar` valem aqui. Em projeto inteiro os falsos positivos se acumulam, então trate o resultado como uma **lista para conferir**, não como veredito. Só analise código seu ou que você tem permissão de analisar.
 
 **Código de saída:** `1` se houver achado de severidade **alta ou crítica**, `0` caso contrário, `2` se o arquivo não existir. É isso que faz o CI falhar.
+
+### A nota (`--nota`)
+
+Uma régua rápida de 0 a 10, só se você pedir com `--nota` (em `revisar` ou `varrer`). A fórmula é simples de propósito, pra caber numa frase: começa em 10; cada achado crítico tira 3 pontos, alta tira 2, média tira 1, baixa tira 0,5; nunca passa de 0 nem de 10.
+
+**Não é uma nota de segurança.** Uma nota alta quer dizer só que as regras e a análise por AST não acharam muita coisa nas linhas analisadas — não que o código é seguro. Por isso ela sempre vem junto com esse aviso, em qualquer formato de saída.
+
+### Configurar (`.sentinela.toml`)
+
+Arquivo opcional, na raiz do projeto (a pasta passada em `varrer` ou em `--raiz`):
+
+```toml
+[regras]
+desativar = ["segredo-url-com-senha", "tls-sem-verificacao"]
+
+[varrer]
+ignorar = ["migrations/", "*.generated.ts"]
+```
+
+Sem o arquivo, ou com algum problema nele (sintaxe inválida, campo no formato errado), o Sentinela roda do jeito de sempre — nada fica desativado — e avisa o motivo no terminal. O próprio arquivo `.sentinela.toml` não entra na varredura.
 
 ## Instalar a Action em outro repositório
 

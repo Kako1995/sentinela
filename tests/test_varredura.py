@@ -135,3 +135,32 @@ def test_cli_varrer_caminho_inexistente_sai_com_2(tmp_path):
     r = runner.invoke(app, ["varrer", str(tmp_path / "nao_existe")])
 
     assert r.exit_code == 2
+
+
+def test_cli_varrer_le_sentinela_toml_desativa_regra_e_ignora_caminho(tmp_path):
+    criar(
+        tmp_path,
+        {
+            "app/db.py": VULNERAVEL,
+            "migrations/antiga.py": VULNERAVEL,
+            ".sentinela.toml": '[regras]\ndesativar = ["sql-concatenacao"]\n\n[varrer]\nignorar = ["migrations/"]\n',
+        },
+    )
+
+    r = runner.invoke(app, ["varrer", str(tmp_path), "-f", "json"])
+
+    dados = json.loads(r.stdout)
+    assert dados["achados"] == []  # a única regra que pegaria VULNERAVEL está desativada
+    assert r.exit_code == 0
+    # migrations/ ficou fora da contagem de arquivos analisados (1, não 2)
+    assert "1 arquivo(s) analisado(s)." in r.output
+
+
+def test_cli_varrer_sentinela_toml_invalido_avisa_e_roda_com_padrao(tmp_path):
+    criar(tmp_path, {"app/db.py": VULNERAVEL, ".sentinela.toml": "isto não é toml válido [[["})
+
+    r = runner.invoke(app, ["varrer", str(tmp_path), "-f", "json"])
+
+    assert "sintaxe inválida" in r.output
+    dados = json.loads(r.stdout)
+    assert len(dados["achados"]) == 1  # sem a configuração, a regra continua ativa
