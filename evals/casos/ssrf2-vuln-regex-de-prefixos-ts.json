@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ssrf2",
+  "nota": "Regex de prefixos no hostname: mesmo buraco, com cara de proteção.",
+  "codigo": "const PRIVADO = /^(localhost|127\\.|10\\.|192\\.168\\.)/\nexport function checar(hostname: string) {\n  if (PRIVADO.test(hostname)) throw new Error('host interno bloqueado')\n}"
+}

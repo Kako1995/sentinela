@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf2",
+  "nota": "Lista de permissão de hosts exatos: a forma recomendada.",
+  "codigo": "const PERMITIDOS = new Set(['api.exemplo.com', 'cdn.exemplo.com'])\nif (!PERMITIDOS.has(new URL(u).hostname)) throw new Error('host não permitido')"
+}

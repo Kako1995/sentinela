@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf2",
+  "nota": "Resolve o nome e confere a faixa do IP com a biblioteca: é a forma certa.",
+  "codigo": "import ipaddress\nimport socket\n\ndef publico(host):\n    ip = ipaddress.ip_address(socket.gethostbyname(host))\n    return not (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved)"
+}

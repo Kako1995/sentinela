@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ssrf2",
+  "nota": "Procura 'localhost' e '127.0.0.1' como pedaço do texto da URL: http://0.0.0.0 e http://[::1] passam.",
+  "codigo": "if (url.includes('localhost') || url.includes('127.0.0.1')) throw new Error('interno')"
+}

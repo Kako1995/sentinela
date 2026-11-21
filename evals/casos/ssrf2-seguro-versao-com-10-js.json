@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf2",
+  "nota": "Texto de versão que começa com 10.",
+  "codigo": "if (versao.startsWith('10.')) usarFormatoAntigo()"
+}

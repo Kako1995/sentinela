@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf2",
+  "nota": "'10.' aqui é a versão do Node, não um endereço.",
+  "codigo": "if (process.versions.node.startsWith('10.')) console.warn('versão antiga do Node')"
+}

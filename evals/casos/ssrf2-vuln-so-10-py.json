@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ssrf2",
+  "nota": "Só a faixa 10.x num startswith do host.",
+  "codigo": "if host.startswith(\"10.\"):\n    raise ValueError(\"interno\")"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf2",
+  "nota": "Um endereço interno fixo na configuração do próprio código: ninguém controla.",
+  "codigo": "const API_INTERNA = 'http://10.0.0.5:8080/v1'"
+}

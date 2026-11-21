@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ssrf2",
+  "nota": "re.match com prefixos privados.",
+  "codigo": "import re\n\ndef checar(host):\n    if re.match(r\"^(127\\.|10\\.|192\\.168\\.)\", host):\n        raise ValueError(\"host interno\")"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ssrf2",
+  "nota": "Lista de prefixos privados + .some(startsWith).",
+  "codigo": "const INTERNOS = ['localhost', '127.', '10.', '192.168.']\nif (INTERNOS.some(p => hostname.startsWith(p))) return deny()"
+}
