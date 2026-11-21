@@ -64,6 +64,7 @@ class Finding(BaseModel):
 - Uma regra que precisa ver várias linhas usa `janela` e `gatilho` (ver `regras.py`); o scanner só junta linhas vizinhas no arquivo.
 - O comando `revisar` sai com código 1 se houver achado de severidade alta ou crítica, 0 caso contrário (Fase 3).
 - Nunca commitar segredos.
+- `--nota` (0 a 10, `report.py`) é opcional (`revisar`/`varrer`) e nunca chamada de "nota de segurança": a fórmula é simples e visível (cabe numa frase) e vem sempre com o aviso de que só cobre o que as regras e a AST enxergam.
 
 ## Comandos
 
@@ -75,6 +76,7 @@ sentinela revisar caminho/do.diff
 sentinela varrer caminho/do/projeto -x tests
 git diff main | sentinela revisar - --raiz .   # com AST nos .py/.js/.ts do diff
 git diff main | sentinela revisar -
+sentinela revisar caminho/do.diff --nota   # nota de 0 a 10, com fórmula e aviso junto (ver report.py)
 python evals/run_evals.py
 ```
 
