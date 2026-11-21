@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "autenticação fraca",
+  "origem": "claude-cfaccess",
+  "nota": "Lê o JWT mas só confere que ele EXISTE; nunca verifica assinatura, iss, aud nem exp.",
+  "codigo": "const email = req.headers.get('cf-access-authenticated-user-email')\nconst jwt = req.headers.get('cf-access-jwt-assertion')\nif (!jwt) return deny()\nreturn { email }"
+}

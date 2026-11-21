@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cfaccess",
+  "nota": "Nunca lê o cabeçalho de e-mail: usa o e-mail de dentro do JWT já verificado.",
+  "codigo": "const { payload } = await jwtVerify(token, JWKS, { issuer: ISSUER, audience: AUD })\nreturn payload.email as string"
+}

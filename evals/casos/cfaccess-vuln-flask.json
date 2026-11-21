@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "autenticação fraca",
+  "origem": "claude-cfaccess",
+  "nota": "Flask: o e-mail do cabeçalho faz login direto.",
+  "codigo": "email = request.headers.get(\"Cf-Access-Authenticated-User-Email\")\nif not email:\n    abort(401)\nlogin_user(User.query.filter_by(email=email).first())"
+}

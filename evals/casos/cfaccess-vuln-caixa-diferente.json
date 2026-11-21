@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "autenticação fraca",
+  "origem": "claude-cfaccess",
+  "nota": "Os nomes de cabeçalho não diferenciam maiúsculas: CF-Access-Authenticated-User-Email é o mesmo.",
+  "codigo": "const quem = req.header('CF-Access-Authenticated-User-Email')\nawait registrarAcesso(quem)"
+}

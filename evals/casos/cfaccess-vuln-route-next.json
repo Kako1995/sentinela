@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "autenticação fraca",
+  "origem": "claude-cfaccess",
+  "nota": "O e-mail do cabeçalho vira a identidade do usuário, sem conferir a assinatura do JWT: quem alcança o servidor sem passar pelo Cloudflare forja o cabeçalho.",
+  "codigo": "export async function GET(req: Request) {\n  const email = req.headers.get('cf-access-authenticated-user-email')\n  const usuario = await db.usuarios.findUnique({ where: { email } })\n  return Response.json(usuario)\n}"
+}

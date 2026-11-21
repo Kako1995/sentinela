@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "autenticação fraca",
+  "origem": "claude-cfaccess",
+  "nota": "get com valor padrão ainda é leitura.",
+  "codigo": "dono = request.headers.get('cf-access-authenticated-user-email', '')\nif dono == ADMIN_EMAIL:\n    liberar_painel()"
+}

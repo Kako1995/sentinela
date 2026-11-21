@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cfaccess",
+  "nota": "Lê o e-mail E verifica o JWT com a chave pública do Cloudflare (jose + JWKS), conferindo issuer e audience.",
+  "codigo": "import { jwtVerify, createRemoteJWKSet } from 'jose'\n\nconst JWKS = createRemoteJWKSet(new URL(`https://${TIME}.cloudflareaccess.com/cdn-cgi/access/certs`))\n\nexport async function usuarioDoAccess(req: Request) {\n  const email = req.headers.get('cf-access-authenticated-user-email')\n  const token = req.headers.get('cf-access-jwt-assertion')\n  if (!email || !token) return null\n  const { payload } = await jwtVerify(token, JWKS, { issuer: `https://${TIME}.cloudflareaccess.com`, audience: AUD })\n  return payload.email === email ? email : null\n}"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cfaccess",
+  "nota": "Um teste DEFINE o cabeçalho (chave de objeto); não é leitura nem confiança.",
+  "codigo": "const req = new Request('http://localhost/api/eu', {\n  headers: { 'cf-access-authenticated-user-email': 'teste@exemplo.com' },\n})"
+}
