@@ -2,7 +2,7 @@
 
 Revisor de segurança para diffs de código, baseado em regras e em análise de árvore sintática de Python, JavaScript e TypeScript (sem IA, sem rede). Lê um diff, aponta vulnerabilidades nas **linhas adicionadas** e diz o arquivo, a linha, o CWE e como corrigir. Roda no terminal e como GitHub Action em pull requests.
 
-> Projeto de estudo, em evolução. Os números abaixo são medidos, não estimados, e a seção [Limitações](#limitações) diz com franqueza o que ele **não** pega.
+> Projeto de estudo, em evolução. Os números abaixo são medidos, não estimados, e a seção [Limitações](#limitações) diz com franqueza o que ele **não** pega. Mais detalhes: [como foi medido](docs/evals.md) e [limitações completas](docs/limitacoes.md).
 
 ## Como é a saída
 
@@ -140,7 +140,7 @@ jobs:
         with:
           fetch-depth: 0  # o Sentinela precisa do commit base para calcular o diff
 
-      - uses: Kako1995/sentinela@main
+      - uses: Kako1995/sentinela@v0.2.0   # fixe uma versão; @main é a mais nova, sem garantia de estabilidade
         with:
           excluir: "tests docs"  # opcional: caminhos a ignorar, separados por espaço
 ```
@@ -158,8 +158,7 @@ Não precisa de nenhuma chave de API nem de `secrets`: ele usa só o `GITHUB_TOK
 **Pontos de atenção**
 - O `fetch-depth: 0` é obrigatório. Com o checkout raso padrão o commit base não existe e o Sentinela falha de propósito, em vez de passar sem revisar.
 - PRs vindos de **forks** recebem um token somente leitura: o comentário não é postado, mas o relatório aparece no resumo do job e o check continua funcionando.
-- Para outras pessoas usarem `Kako1995/sentinela@main`, o repositório precisa ser **público**.
-- Fixe uma versão (`@v1`, quando houver) em vez de `@main` se quiser estabilidade.
+- **Fixe uma versão** (`@v0.2.0`) em vez de `@main` se quiser estabilidade: `@main` muda a cada PR mesclado. As versões estão em [Releases](https://github.com/Kako1995/sentinela/releases).
 
 **Opcional: aparecer na aba Security.** A Action acima só comenta no PR. Para também mandar os achados pro GitHub Code Scanning (pede a permissão extra `security-events: write`, por isso fica fora do padrão):
 
@@ -173,83 +172,47 @@ Não precisa de nenhuma chave de API nem de `secrets`: ele usa só o `GITHUB_TOK
 
 ## Como sei que funciona: os evals
 
-Rodar o scanner em casos de código rotulados à mão (vulnerável ou seguro) e medir:
+Rodo o scanner em casos de código rotulados à mão (vulnerável ou seguro) e meço:
 
 - **Precisão:** dos alertas que ele deu, quantos eram reais. Baixa precisão = falso positivo, e falso positivo faz as pessoas ignorarem a ferramenta.
 - **Recall:** das vulnerabilidades que existem, quantas ele achou.
 
-Quatro versões do scanner: `v1` (regras por linha), `v2` (exceções gerais contra falsos positivos), `v3` (análise por AST de Python) e `v4` (análise por AST de JavaScript/TypeScript). Nos mesmos 125 casos, `v3` → `v4`:
+**Hoje: 255 casos, precisão 99% e recall 97%** (122 vulneráveis, dos quais 118 achados e 4 perdidos; 133 seguros, dos quais 132 passaram e 1 deu falso positivo).
 
-| Conjunto | Casos | Precisão | Recall |
-|---|---|---|---|
-| Python e gerais (iniciais, difíceis, validação, AST) | 92 | 98% → 98% | 92% → 92% |
-| JavaScript/TypeScript (Express, Next.js, Supabase) | 33 | 20% → 100% | 7% → 100% |
-| **Todos** | **125** | **90% → 98%** | **73% → 94%** |
-
-Casos escritos só depois (medidos só na `v4`): um segundo conjunto de **17 casos de JS/TS** (precisão e recall de 88% na primeira medição, 100% depois de duas correções gerais) e 6 casos de regressão. Somando os **148 casos: precisão 99%, recall 95%** (1 falso positivo e 4 falsos negativos).
-
-**Depois da v4, uma calibração contra código real** (ver Evidência independente 4, abaixo) achou falso positivo em 4 regras e um padrão novo (bind em `0.0.0.0`) sem regra nenhuma. Escrevendo 21 casos genéricos a partir desses padrões (nunca copiando código de ninguém) **antes** de mexer em qualquer regra: precisão caiu pra 92% só com os casos novos, confirmando os falsos positivos. Depois de 4 correções de regra, 1 regra nova e a análise entre funções no mesmo arquivo (Python): **169 casos, precisão 99%, recall 95%** de novo — mesmo nível dos 148, mas numa base mais honesta, com padrões que eu não escolhi pensando nas minhas próprias regras.
-
-**Depois disso, a cobertura da regra de criptografia fraca.** Ela só tinha casos *seguros* (md5 de cache, sha1 de checksum) e nenhum vulnerável, então nunca tinha sido medida de verdade. Escrevi 12 casos (6 vulneráveis, 6 seguros parecidos) **antes** de mexer em qualquer coisa: os 6 seguros passaram, mas **só 2 das 6 vulneráveis foram pegas**. A regra só olhava `hashlib.md5/sha1` e `createHash('md5'/'sha1')`; não pegava AES em modo ECB, DES, nem `random`/`Math.random()` gerando token. Com isso: 181 casos, precisão 99%, **recall 91%**.
-
-Antes de consertar, escrevi mais 12 casos que generalizam o problema (outras bibliotecas, `getrandbits`, `random.choices` para senha temporária) e, principalmente, seguros "armadilha" pra pegar falso positivo: `random.choice` de fichas de jogo com a palavra "token" no nome, `Math.random().toString(36)` como `key` de lista do React, `random.SystemRandom()` (que é seguro), nome de arquivo aleatório. Medido antes do conserto: **193 casos, precisão 99%, recall 85%**. Depois de 3 regras novas (modo ECB, DES, `random` gerando segredo): **193 casos, precisão 99%, recall 96%**. Os 10 casos que mudaram foram todos de erro para acerto; nenhum acerto anterior se perdeu, nenhum falso positivo novo, e os 169 casos de antes ficaram idênticos. Em 1383 arquivos de bibliotecas Python reais as regras novas não geraram nenhum alerta (os mesmos 50 de antes, todos de outras regras). Custo: a varredura ficou cerca de 10% mais lenta.
-
-A regra de `random` é a mais frágil: ela só dispara se **uma palavra de segredo** (`token`, `senha`, `session`, `otp`...) e **uma forma típica de gerar segredo** (sortear caracteres de um alfabeto, `getrandbits`, `Math.random().toString(36)`) aparecem a até 4 linhas de distância. Isso evita falso positivo, mas deixa passar variações (veja Limitações).
-
-**Depois, três falsos positivos que sobraram da calibração em código real** (`token: 'vermelho'` de uma ficha de jogo, `innerHTML` recebendo só número formatado, `__html: ICONES[nome]` de um mapa fixo). Escrevi 14 casos **antes** de mexer nas regras: 7 seguros (que reproduziam o problema) e 7 "controles", parecidos mas vulneráveis, que precisam continuar alertando (`access_token` em minúsculas, `password = "senhaforte"`, número **e** nome de usuário no mesmo template, `ICONES[nome] + usuario.bio`). Medido antes: **207 casos, precisão 92,5%**, com os 7 seguros virando falso positivo. Depois das três correções: **207 casos, precisão 99%, recall 96%**. Os 7 seguros viraram acerto, os 7 controles continuam alertando, nenhum acerto antigo se perdeu e os 193 casos de antes ficaram idênticos.
-
-Rodando de novo nas cópias locais dos 7 repositórios reais da evidência 4: **5 alertas sumiram e nenhum apareceu**. Li os 5, e todos eram falsos positivos (4 fichas de jogo, 1 calculadora com `toFixed`); nenhum achado real foi escondido. Em 1685 arquivos de bibliotecas Python reais: os mesmos 50 alertas. (Essas bibliotecas não têm JavaScript, então só os repositórios reais exercitam duas das três correções.)
-
-Um ponto em que **não** segui a sugestão de quem propôs essa lista: ela pedia para isentar também `toLocaleString()`. Eu não isentei, porque em JavaScript uma *string* também tem `toLocaleString()` e devolve a própria string, sem limpar nada. Só isento o que existe apenas em número (`toFixed`, `Intl.NumberFormat`, `Math.*`) e `Number(x).toLocaleString()`. Há um caso de controle para isso.
-
-**Depois, o recall de senha curta** (`password = "hunter2"` passava em silêncio, porque a regra exigia 8 caracteres). Escrevi 15 casos **antes** de mexer: 5 senhas curtas vulneráveis e 10 seguros "armadilha" (vazia, 3 caracteres, rótulo de tela, máscara `••••••`, nome de variável de ambiente...). Medido antes: **222 casos, precisão 98%, recall 91,6%** (as 5 senhas curtas não eram pegas, e o `PASSWORD_ENV = "DB_PASSWORD"` já era um falso positivo). Depois: **222 casos, precisão 99%, recall 96%**. As 5 senhas viraram acerto, o nome de variável de ambiente deixou de ser falso positivo, nenhum acerto antigo se perdeu e os 207 casos de antes ficaram idênticos.
-
-Este item era o oposto dos anteriores (aumentar detecção em vez de cortar alarme falso), então o risco era criar falso positivo, e **medi isso em código real antes de implementar**. Funcionou, e me salvou de um erro: a primeira versão (aceitar 6 caracteres em qualquer valor) gerou um alerta novo num mapa de rótulos de botão (`'nova-senha': 'Salvar'`). A correção foi exigir **número ou símbolo** na faixa de 6 e 7 caracteres. Mesmo assim, a primeira expressão que escrevi para "símbolo" estava errada: a classe de caracteres incluía as aspas, e a aspa que fecha a string contava como símbolo. Foi o experimento em código real que mostrou isso, e virou um caso de eval e um teste de regressão. Resultado final nos 7 repositórios reais e em 1685 arquivos de bibliotecas: **1527 alertas antes, 1527 depois, 0 sumiram e 0 apareceram**. Ou seja, **a regra não cria falso positivo ali, mas também não achou nenhuma senha curta real**: o ganho de detecção só está demonstrado nos casos sintéticos, que são meus.
-
-**Depois, a trava de SSRF por prefixo de texto** (`host.startsWith('127.')`, `/^(localhost|127\.|10\.|192\.168\.)/.test(hostname)`): uma proteção que parece proteger e deixa passar `172.16.0.1`, `0.0.0.0`, `[::1]` e `100.64.x.x`. A regra que já existia detecta o *pedido* feito com URL do usuário; esta detecta a *trava frágil* que o programador escreveu. Escrevi 17 casos **antes** de implementar: 8 travas frágeis (Python e JS/TS, regex, lista de prefixos, `startsWith`, `includes`) e 9 seguros "armadilha" (`ipaddress` do jeito certo, `startsWith('10.')` numa **versão do Node**, URL base por ambiente, origens de CORS de desenvolvimento com `localhost` e `127.0.0.1`, lista de hosts permitidos, um IP de métrica). Medido antes: **239 casos, recall 89,6%**, as 8 travas passavam em silêncio. Depois: **240 casos, precisão 99%, recall 96%**; as 8 viraram acerto, os seguros continuam passando, nenhum acerto antigo se perdeu e os 222 casos de antes ficaram idênticos.
-
-**Código real achou um erro meu antes de eu publicar:** a primeira versão tratava `10.5` como o prefixo `10.` de um IP, e disparou 5 vezes em dados de desenho de ícones SVG (`cx="10.5"`). Corrigi exigindo que um prefixo de IP termine em ponto ou continue com mais octetos (`10.` ou `10.0.0.1`, mas não `10.5`), e o caso virou um caso de eval e um teste. Depois da correção, nos 7 repositórios reais e em 1685 arquivos de bibliotecas, a regra apontou **1 lugar, e é um acerto verdadeiro** (uma trava por prefixo que esquece a faixa `172.16-31.x`). É só 1 amostra, então ela mostra que a regra não é barulhenta, e não mede o recall.
-
-**Depois, o Cloudflare Access sem validar o JWT** (`Cf-Access-Authenticated-User-Email` usado como identidade sem verificar o `Cf-Access-Jwt-Assertion`, o JWT assinado): quem alcança o servidor sem passar pelo Cloudflare forja o cabeçalho e vira qualquer usuário. É a primeira regra que depende do **arquivo inteiro**: o código só é suspeito se a verificação do JWT não existe em lugar nenhum do arquivo, então criei uma isenção por arquivo (`excecao_arquivo`) e um pré-filtro que não diferencia maiúsculas (nome de cabeçalho HTTP não diferencia). Escrevi 15 casos **antes**: 7 vulneráveis (Next, Express, Flask, Django com `HTTP_CF_ACCESS_...`, caixa diferente, JWT lido mas **só com a presença conferida**, `get` com valor padrão) e 8 seguros (o JWT verificado com `jose` e com `PyJWKClient`, só ler o e-mail de dentro do JWT, teste que **define** o cabeçalho, proxy de desenvolvimento que **escreve** o cabeçalho, outro cabeçalho do Cloudflare, Bearer normal). Medido antes: **255 casos, recall 91%**, as 7 passavam em silêncio. Depois: **255 casos, precisão 99%, recall 96,7%**; as 7 viraram acerto, os 8 seguros continuam passando, nenhum acerto antigo se perdeu e os 240 casos de antes ficaram idênticos. Custo de tempo na varredura de 1685 arquivos: nenhum mensurável.
-
-**Dois erros meus que o processo pegou antes de publicar.** (1) A isenção por arquivo mostrou um erro de sintaxe na expressão que escrevi (opções globais têm que vir antes do `\A`); os testes pegaram na hora. (2) Ao revisar o padrão, vi que `res.header('cf-access-authenticated-user-email', 'x')` do Express, que **escreve** o cabeçalho, casaria como leitura, porque eu aceitava a vírgula depois do nome para todos os métodos. Agora só `get` aceita um valor padrão e `header(...)` só vale com um argumento, com um teste.
-
-**Código real: 1 alerta, e ele não é um erro simples.** Nos 7 repositórios e em 1685 arquivos de bibliotecas a regra apontou **um lugar**, num código que restringe o uso do cabeçalho a conexões vindas do próprio computador (de onde um túnel entrega a requisição). Isso é **defesa pela origem da conexão**: válida, mas mais frágil do que verificar o JWT assinado (um processo local qualquer também consegue mandar o cabeçalho). Eu classifico como **ponto para conferir / defesa em profundidade**, não como falha. É 1 amostra: mostra que a regra não é barulhenta, e não mede o recall.
-
-Recall por categoria (atual, 255 casos): SQL injection 100%, SSRF 100%, autenticação fraca 100%, XSS 100%, injeção de comando 100%, exposição de rede 100%, criptografia fraca 100%, falta de autorização 92%, path traversal 94%, segredo no código 93%, desserialização 75%.
+| Categoria | Achados | Recall |
+|---|---:|---:|
+| SQL injection | 15/15 | 100% |
+| SSRF | 15/15 | 100% |
+| XSS | 16/16 | 100% |
+| Criptografia fraca | 12/12 | 100% |
+| Autenticação fraca | 7/7 | 100% |
+| Injeção de comando | 7/7 | 100% |
+| Exposição de rede | 4/4 | 100% |
+| Segredo no código | 13/14 | 93% |
+| Path traversal | 15/16 | 94% |
+| Falta de autorização | 11/12 | 92% |
+| Desserialização insegura | 3/4 | 75% |
 
 **Como ler esses números com cuidado**
-- **O ganho é, em parte, ajuste ao teste.** Escrevi a AST conhecendo os casos, e depois corrigi o que o segundo conjunto errou. Por isso as três rodadas seguintes de casos não são independentes entre si. A tentativa de manter alguma honestidade foi escrever cada conjunto *antes* de implementar o que ele mede e guardar as medições de cada versão em `evals/resultados/`.
-- **Quase todos os casos foram escritos pelo mesmo autor (eu, com IA) que escreveu as regras.** Casos escritos por outra pessoa, sem olhar as regras, seriam o teste mais forte, e ainda faltam.
-- **Evidência independente 3, o projeto TypeScript real da varredura anterior** (Next.js + Supabase) com a análise de JS/TS: 20 alertas na primeira versão, dos quais 15 eram falsos positivos sistemáticos de server actions (helpers `requireAdmin()`, `requireOrg()` não eram reconhecidos como autenticação). Depois de corrigir o padrão `require`/`assert`/`ensure` para 5 alertas: os 2 de segredo de antes e 3 server actions finas que repassam os dados a outra função (a autenticação pode estar lá, e a análise não segue chamadas entre arquivos). Nenhum alerta de path traversal, SSRF, SQL ou comando.
-- **Evidência independente 4, sete repositórios reais de terceiros em produção** (acesso de leitura, autorizado), em linguagens variadas (TypeScript/Next.js, Python, Swift, Astro): dos alertas de severidade alta e crítica, **nenhum procedeu** na minha leitura, antes de qualquer correção. O padrão mais comum foi a regra confundir o *nome* de uma variável com o dado em si — por exemplo, uma variável chamada com a palavra "token" guardando o nome de uma chave de armazenamento ou um atributo de jogo, não uma credencial. Também achei um servidor caindo para `0.0.0.0` sem regra nenhuma pra avisar. Isso virou os 21 casos novos (acima): o número mais honesto que o projeto tem, porque não fui eu quem escolheu os padrões pensando nas regras.
-- **Evidência independente 1, projeto real de terceiros** (Next.js + Supabase, cerca de 500 arquivos): os alertas caíram de 15 para 2 com a v2, e os 13 que sumiram eram falsos positivos. Os 2 que sobraram são pontos para conferir; não há como medir o recall ali.
-- **Evidência independente 2, 1650 arquivos de bibliotecas Python reais** (pydantic, pytest, pip, rich...): a varredura expôs defeitos sistemáticos que nenhum caso meu mostrava (o formato `<Classe ...>` de `__repr__` lido como HTML, `model.eval()` do PyTorch lido como `eval`, `request` de biblioteca lido como dado web). Depois de corrigi-los, os alertas caíram de 128 para 50. Os 50 restantes são, na maioria, usos legítimos de APIs sensíveis para um humano conferir (`eval`, `pickle.loads`, HTML montado por f-string), e **não houve nenhum alerta de AST**, que é o esperado para código que não é de aplicação web.
-- Com 92 casos, cada caso vale cerca de 1 ponto percentual: os números mostram a tendência, não um valor exato.
-- Duas vezes os evals pegaram um erro meu: a primeira correção de SQL derrubou o recall de SQL injection de 83% para 33% (um `(?i)` fazia `nome` parecer constante), e a primeira versão da AST tinha 3 classes de falso positivo que o conjunto fresco mostrou.
 
-Os casos e o método estão em [`evals/`](evals/README.md), e cada rodada fica salva em `evals/resultados/`.
+- **Quase todos os casos foram escritos pelo mesmo autor (eu, com IA) que escreveu as regras.** Casos escritos por outra pessoa, sem olhar as regras, seriam o teste mais forte, e ainda faltam.
+- **O ganho é, em parte, ajuste ao teste.** A tentativa de manter alguma honestidade foi escrever cada conjunto de casos *antes* de implementar o que ele mede e guardar a medição de cada versão em [`evals/resultados/`](evals/resultados/). Mesmo assim, os conjuntos não são independentes entre si.
+- **A validação que mais pesou foi rodar em código real.** A primeira varredura em 7 repositórios reais de terceiros deu **zero acertos entre os alertas de severidade alta e crítica** (na minha leitura de cada um): foi o que mostrou que os números dos evals eram otimistas, e levou à maior parte das correções. Várias correções foram revalidadas varrendo de novo esses repositórios e 1685 arquivos de bibliotecas Python reais.
+- **Nenhum acerto anterior se perde sem aparecer:** um CI roda os evals em todo PR e compara cada caso com [`evals/baseline.json`](evals/baseline.json) (veja [Desenvolvimento](#desenvolvimento)).
+
+O histórico completo, rodada a rodada, com o que cada correção mudou e os erros meus que o processo pegou, está em **[`docs/evals.md`](docs/evals.md)**. Os casos e o método estão em [`evals/`](evals/README.md).
 
 ## Limitações
 
-O que o Sentinela **não** pega, e por quê:
+O que o Sentinela **não** pega, e por quê (a lista completa, com cada regra e seu ponto cego, está em [`docs/limitacoes.md`](docs/limitacoes.md)):
 
 - **Só Python, JavaScript e TypeScript têm análise por AST.** Java, PHP, Go e o resto contam apenas com as regras por linha.
 - **A análise por AST é por função, com uma exceção.** Em Python, uma função solta chamada direto (`ajuda(x)`, não `obj.ajuda(x)`) **no mesmo arquivo** já é seguida: se a rota repassa o dado para essa função ajudante, a AST sabe. Isso ainda não vale para JS/TS, nem para chamada **entre arquivos** (`import`) em nenhuma das duas linguagens: se a rota passa o dado para um auxiliar em outro módulo que abre o arquivo, a ligação se perde. Em funções que não são rotas (nem server actions) e não são chamadas por uma, parâmetros não contam como dado externo (um `pd.read_pickle(arquivo_enviado)` num auxiliar isolado passa batido), e uma server action fina que repassa tudo a outra função em outro arquivo gera um aviso de autorização que pode ser falso.
-- **Falta de autorização é uma heurística.** Ela avisa (severidade média, que não derruba o CI) quando uma rota PUT/DELETE/PATCH, um route handler do Next.js ou uma server action com nome de verbo que altera dados (`apagar`, `update`, `criar`...) não mostra autenticação, mas autenticação feita num middleware, RLS ou gateway não é vista (só se reconhece pelo nome: `auth`, `session`, `getUser`, `requireX()`, `createClient`...): é um ponto para conferir, não um achado confirmado. Rotas POST não entram, porque costumam ser públicas (login, cadastro). Um IDOR (ler o recurso de outro usuário por id numa rota GET) não é detectado.
-- **A regra de `random` para segredo é estreita de propósito.** Não pega código numérico (`random.randint(100000, 999999)` para um código por SMS), nem uma variável chamada `valor` que na verdade guarda um token, nem 3DES (que é fraco, mas é outra decisão). E como a palavra de segredo precisa estar a até 4 linhas do sorteio, um sorteio cuja função só se chama "token" mais longe passa.
-- **As três isenções mais novas são heurísticas, e cada uma tem um ponto cego.** (1) `token` de jogo: só vale para um nome que *começa* com `token` e um valor de 8 a 16 letras minúsculas; um token real fraco nesse formato (`token = "abcdefgh"`) passa. `api_token`, `access_token`, `password` e `secret` continuam alertando. (2) `innerHTML` só com número: vale para `toFixed`, `Intl.NumberFormat`, `Math.*` e `Number(x).toLocaleString()`, em fórmulas simples (sem parênteses aninhados nos argumentos); `n.toLocaleString()` com `n` desconhecido ainda alerta, porque pode ser uma string. (3) `__html: ICONES[nome]`: vale pelo nome em MAIÚSCULAS, então um mapa em maiúsculas que guardasse dado do usuário esconderia o alerta.
-- **Senha curta só de letras passa.** `password = "letmein"` (6 ou 7 letras e nada mais) não alerta, porque é indistinguível de um rótulo de tela (`'Salvar'`, `'Entrar'`); alerta com número ou símbolo (`hunter2`, `p@ss12`) e, de 8 caracteres para cima, sempre. É uma troca consciente de um pouco de detecção por menos alarme falso. Os nomes de variável de ambiente em maiúsculas (`"DB_PASSWORD"`) também não alertam; com número (`SK_LIVE_1234`) alertam.
-- **A regra de trava de SSRF por prefixo é uma heurística de texto, com falso positivo e falso negativo conhecidos.** Ela só olha uma linha: uma checagem escrita de outro jeito (comparando o IP depois de converter, ou em várias linhas) não é vista. `ip.startsWith('10.')` com um receptor chamado `ip` **não** alerta de propósito (é comum para marcar tráfego interno em métrica), então a regra perde esse caso. E ela pode alertar numa checagem de rede interna que não protege nenhuma requisição de saída (por exemplo, decidir o que mostrar numa tela); por isso a severidade é média. O que ela **não** faz é provar que a trava é contornável nem que o pedido existe: só diz que o jeito de proteger é frágil.
-- **A regra do Cloudflare Access olha um arquivo por vez.** Se a verificação do JWT está num *middleware* (outro arquivo) e a rota só lê o e-mail, a regra alerta mesmo assim: é falso positivo, por isso a severidade é média e a mensagem diz isso. Ela também não confere o que o JWT valida: basta o arquivo chamar uma verificação de verdade (`jwtVerify`, `jwt.verify`, `PyJWKClient`, o endereço das chaves do Cloudflare), e não checa se `aud`, `iss` e `exp` foram conferidos. Em um diff sem `--raiz` ela só vê as linhas adicionadas, não o arquivo inteiro (a Action usa `--raiz`). E alerta mesmo quando a confiança está amarrada à origem da conexão (`127.0.0.1` do `cloudflared`), que é defesa válida mas mais fraca do que o JWT.
 - **Regras por linha só veem uma linha** (fora a regra do `dangerouslySetInnerHTML`, que olha até 60, e a de `random` para segredo, que olha 4). Em JavaScript e nas demais linguagens, um valor que vem da requisição numa linha e é usado na seguinte perde a ligação.
 - **Sem tipos.** Um valor validado por `zod` continua contando como externo; `String(x)` e outras conversões não limpam nada.
-- **Nomes e APIs que a regra não conhece.** Uma chave com o nome `chavePagamento` não é vista como segredo (a palavra "chave" também é "chave primária"), e o `startswith` mal feito para limitar uma pasta não é reconhecido como proteção quebrada.
-- **Validação que a regra não entende** (falso positivo). Concatenar uma coluna já validada contra uma lista de permitidas continua disparando alerta em SQL, mesmo sendo seguro (a AST entende a validação por lista para caminhos e URLs, não para essa regra por linha). Comandos fixos com `shell=True`, `usedforsecurity=False`, `innerHTML` com texto fixo e referências a variáveis de ambiente já são tratados.
-- **As exceções podem esconder um achado real.** Valores com palavras como `fake`, `exemplo` ou `sua-` são tratados como placeholder, e uma constante em MAIÚSCULAS concatenada ao SQL é tratada como constante do código.
-- **A janela de 60 linhas** do `dangerouslySetInnerHTML`: um template literal maior que isso, com `${...}` perto do fim, não é visto.
 - **Acertar pelo motivo errado.** Os evals medem se o alerta saiu, não se foi pelo motivo certo.
 - Só analisa as **linhas adicionadas** (em modo diff): não vê vulnerabilidades que já estavam no arquivo. Para isso existe o `varrer`.
+- **As regras mais novas são heurísticas, e cada uma tem um ponto cego documentado:** `random` para gerar segredo, senha curta, token de jogo, `innerHTML` só com número, trava de SSRF por prefixo e Cloudflare Access sem JWT. Elas foram desenhadas para errar pelo lado de alertar menos, e a lista do que passa está em [`docs/limitacoes.md`](docs/limitacoes.md).
 
 Em resumo: é uma rede de segurança rápida para padrões conhecidos, não uma auditoria. Não substitui revisão humana nem ferramentas de análise mais completas (como CodeQL ou Semgrep).
 
