@@ -78,7 +78,7 @@ pip install -e ".[dev]"
 pytest
 sentinela revisar caminho/do.diff
 sentinela varrer caminho/do/projeto -x tests
-sentinela varrer caminho/do/projeto --incluir-md   # .md/.mdx ficam de fora por padrão; o varrer sempre lista o que pulou
+sentinela varrer caminho/do/projeto --incluir-md   # .md/.mdx, testes e traduções ficam de fora por padrão (--incluir-testes, --incluir-traducoes); o varrer sempre lista o que pulou
 git diff main | sentinela revisar - --raiz .   # com AST nos .py/.js/.ts do diff
 git diff main | sentinela revisar -
 sentinela revisar caminho/do.diff --nota   # nota de 0 a 10, com fórmula e aviso junto (ver report.py)

@@ -1,6 +1,7 @@
 """Varre uma pasta inteira: cada arquivo de texto vira um trecho com todas as linhas "adicionadas"."""
 
 import os
+import re
 from dataclasses import dataclass, field
 from fnmatch import fnmatch
 from pathlib import Path
@@ -24,11 +25,25 @@ ARQUIVOS_IGNORADOS = [
 # Markdown fica de fora por padrão (README e docs têm HTML e código de exemplo de propósito e geram alerta
 # que não é do código do projeto), mas dá para incluir com `varrer --incluir-md`.
 EXTENSOES_MARKDOWN = {".md", ".mdx"}
+# Testes também ficam de fora por padrão: têm código vulnerável de propósito e credenciais de mentira, e num projeto
+# real (Angular) testes e traduções somavam 281 dos 342 alertas (82%). Dá para incluir com `varrer --incluir-testes`.
+# Uma pasta chamada `tests` passada como raiz é lida (foi pedida de propósito).
+PASTAS_DE_TESTE = {"tests", "test", "__tests__", "__mocks__", "__snapshots__", "spec"}
+_ARQUIVO_DE_TESTE = re.compile(r"(?:\.(?:spec|test)\.[cm]?[jt]sx?|_test\.(?:py|go))$|^test_.+\.py$|^conftest\.py$")
+# Traduções: o valor de `"password": "Senha"` num JSON de idioma não é uma senha, e textos em tailandês ou japonês não
+# têm espaço, então pareciam segredos (75 alertas falsos num único projeto real). Só os ARQUIVOS DE DADOS dessas pastas ficam
+# de fora; código dentro delas (`i18n/index.ts`) continua sendo analisado. `varrer --incluir-traducoes` traz de volta.
+PASTAS_DE_TRADUCAO = {"i18n", "l10n", "locales", "locale", "translations"}
+EXTENSOES_DE_TRADUCAO = {
+    ".json", ".yml", ".yaml", ".po", ".pot", ".properties", ".xlf", ".xliff", ".arb", ".ini", ".toml", ".csv", ".xml",
+}
 TAMANHO_MAXIMO = 1_000_000  # bytes; arquivos maiores costumam ser dados ou código gerado
 
 # Por que um arquivo ou pasta não foi analisado (aparece na saída do `varrer`).
 MOTIVO_MARKDOWN = "Markdown (.md/.mdx)"
 MOTIVO_SVG = "SVG"
+MOTIVO_TESTE = "arquivo ou pasta de teste"
+MOTIVO_TRADUCAO = "arquivo de tradução (i18n)"
 MOTIVO_GERADO = "minificado, mapa ou lockfile"
 MOTIVO_PASTA = "pasta de dependências ou build"
 MOTIVO_EXCLUIDO = "excluído por -x ou pelo .sentinela.toml"
@@ -65,12 +80,20 @@ def _excluido(relativo: str, padroes: list[str]) -> bool:
     )
 
 
-def _motivo_de_pular_arquivo(rel: str, excluir: list[str], incluir_markdown: bool) -> str | None:
+def _motivo_de_pular_arquivo(
+    rel: str, excluir: list[str], incluir_markdown: bool, incluir_testes: bool = True, incluir_traducoes: bool = True
+) -> str | None:
     """Por que um arquivo não deve ser lido (None = deve ser lido)."""
     if _excluido(rel, excluir):
         return MOTIVO_EXCLUIDO
     if not incluir_markdown and Path(rel).suffix.lower() in EXTENSOES_MARKDOWN:
         return MOTIVO_MARKDOWN
+    nome = rel.rsplit("/", 1)[-1]
+    if not incluir_testes and _ARQUIVO_DE_TESTE.search(nome):
+        return MOTIVO_TESTE
+    pastas = rel.split("/")[:-1]
+    if not incluir_traducoes and Path(rel).suffix.lower() in EXTENSOES_DE_TRADUCAO and PASTAS_DE_TRADUCAO.intersection(pastas):
+        return MOTIVO_TRADUCAO
     if rel.rsplit("/", 1)[-1] == ARQUIVO_DE_CONFIGURACAO:
         return ARQUIVO_DE_CONFIGURACAO  # só um marcador: quem chama não registra esse
     if _excluido(rel, ARQUIVOS_IGNORADOS):
@@ -83,15 +106,21 @@ def listar_arquivos(
     excluir: list[str] | None = None,
     incluir_markdown: bool = False,
     pulados: Pulados | None = None,
+    incluir_testes: bool = False,
+    incluir_traducoes: bool = False,
 ) -> Iterator[Path]:
     """Percorre a pasta, pulando pastas de dependências, links simbólicos e caminhos excluídos.
 
+    Também pula Markdown, testes e arquivos de tradução, a não ser que `incluir_*` peça o contrário.
     Se `pulados` for dado, anota nele o que foi deixado de fora e por quê.
     """
     excluir = excluir or []
     if raiz.is_file():
         yield raiz
         return
+    # Quem aponta o varrer para a própria pasta de testes (ou de traduções) pediu para lê-la.
+    incluir_testes = incluir_testes or raiz.resolve().name in PASTAS_DE_TESTE
+    incluir_traducoes = incluir_traducoes or raiz.resolve().name in PASTAS_DE_TRADUCAO
 
     for pasta, subpastas, arquivos in os.walk(raiz):
         relativa = Path(pasta).relative_to(raiz).as_posix()
@@ -100,6 +129,8 @@ def listar_arquivos(
             rel_sub = s if relativa == "." else f"{relativa}/{s}"
             if s in PASTAS_IGNORADAS:
                 motivo = MOTIVO_PASTA
+            elif s in PASTAS_DE_TESTE and not incluir_testes:
+                motivo = MOTIVO_TESTE
             elif _excluido(rel_sub, excluir):
                 motivo = MOTIVO_EXCLUIDO
             else:
@@ -112,7 +143,11 @@ def listar_arquivos(
         for nome in sorted(arquivos):
             caminho = Path(pasta) / nome
             rel = caminho.relative_to(raiz).as_posix()
-            motivo = MOTIVO_LINK if caminho.is_symlink() else _motivo_de_pular_arquivo(rel, excluir, incluir_markdown)
+            motivo = (
+                MOTIVO_LINK
+                if caminho.is_symlink()
+                else _motivo_de_pular_arquivo(rel, excluir, incluir_markdown, incluir_testes, incluir_traducoes)
+            )
             if motivo is None:
                 yield caminho
             elif pulados is not None and motivo != ARQUIVO_DE_CONFIGURACAO:
@@ -147,8 +182,11 @@ def varrer(
     excluir: list[str] | None = None,
     incluir_markdown: bool = False,
     pulados: Pulados | None = None,
+    incluir_testes: bool = False,
+    incluir_traducoes: bool = False,
 ) -> list[TrechoArquivo]:
-    trechos = (ler_como_trecho(c, raiz, pulados) for c in listar_arquivos(raiz, excluir, incluir_markdown, pulados))
+    arquivos = listar_arquivos(raiz, excluir, incluir_markdown, pulados, incluir_testes, incluir_traducoes)
+    trechos = (ler_como_trecho(c, raiz, pulados) for c in arquivos)
     return [t for t in trechos if t is not None]
 
 

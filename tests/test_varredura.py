@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from typer.testing import CliRunner
 
 from sentinela.cli import app
@@ -13,6 +15,8 @@ from sentinela.varredura import (
     MOTIVO_MARKDOWN,
     MOTIVO_PASTA,
     MOTIVO_SVG,
+    MOTIVO_TESTE,
+    MOTIVO_TRADUCAO,
     TAMANHO_MAXIMO,
     Pulados,
     ler_como_trecho,
@@ -310,3 +314,107 @@ def test_pastas_de_controle_de_versao_e_editor_nao_entram_no_aviso(tmp_path):
     assert pulados.por_motivo == {}
     r = runner.invoke(app, ["varrer", str(tmp_path)])
     assert "Pulados" not in r.output
+
+
+# --- menos ruído, parte 2: arquivos de TESTE e de TRADUÇÃO ficam de fora por padrão ---
+
+
+def test_pastas_de_teste_ficam_de_fora_por_padrao(tmp_path):
+    criar(tmp_path, {
+        "src/a.py": "x\n",
+        "tests/t.py": "x\n", "test/u.py": "x\n", "src/__tests__/v.ts": "x\n",
+        "src/__mocks__/m.ts": "x\n", "spec/w.rb": "x\n",
+    })
+
+    assert nomes(tmp_path) == ["src/a.py"]
+
+
+@pytest.mark.parametrize("arquivo", [
+    "src/a.spec.ts", "src/a.test.js", "src/a.test.tsx", "src/a.spec.mjs", "pkg/test_a.py", "pkg/a_test.py",
+    "pkg/conftest.py", "cmd/a_test.go",
+])
+def test_arquivo_de_teste_e_reconhecido_pelo_nome_em_qualquer_pasta(tmp_path, arquivo):
+    criar(tmp_path, {arquivo: "x\n", "src/real.py": "x\n"})
+
+    assert nomes(tmp_path) == ["src/real.py"]
+
+
+@pytest.mark.parametrize("arquivo", [
+    "src/latest.py", "src/contest.py", "src/testing.py", "src/spec.ts", "api/openapi.spec.json", "src/a.testimonial.ts",
+    "src/attest.js", "src/protest_data.py",
+])
+def test_nome_parecido_com_teste_mas_que_nao_e_teste_continua_sendo_lido(tmp_path, arquivo):
+    criar(tmp_path, {arquivo: "x\n"})
+
+    assert nomes(tmp_path) == [arquivo]
+
+
+def test_incluir_testes_traz_de_volta_pastas_e_arquivos_de_teste(tmp_path):
+    criar(tmp_path, {"src/a.py": "x\n", "tests/t.py": "x\n", "src/b.spec.ts": "x\n"})
+
+    assert nomes(tmp_path, incluir_testes=True) == ["src/a.py", "src/b.spec.ts", "tests/t.py"]
+
+
+def test_varrer_uma_pasta_que_ela_mesma_se_chama_tests_le_os_testes(tmp_path):
+    """Quem manda varrer `tests/` pediu para ler testes: não faz sentido devolver 0 arquivos analisados."""
+    pasta = tmp_path / "tests"
+    criar(pasta, {"test_a.py": "x\n", "b.spec.ts": "y\n"})
+
+    assert nomes(pasta) == ["b.spec.ts", "test_a.py"]
+
+
+def test_arquivo_de_teste_passado_direto_e_analisado(tmp_path):
+    criar(tmp_path, {"a.spec.ts": "x\n"})
+
+    assert [t.arquivo for t in varrer(tmp_path / "a.spec.ts")] == ["a.spec.ts"]
+
+
+def test_arquivos_de_dados_de_traducao_ficam_de_fora_mas_o_codigo_da_pasta_nao(tmp_path):
+    criar(tmp_path, {
+        "src/app.ts": "x\n",
+        "src/i18n/index.ts": "x\n",  # CÓDIGO dentro de i18n continua sendo analisado
+        "src/i18n/pt.json": "{}", "src/locales/en.yml": "a: b\n", "translations/de.po": "msgid ''\n",
+        "frontend/assets/i18n/th_TH.json": "{}",
+        "config/settings.json": "{}",  # JSON fora de pasta de tradução continua sendo lido
+    })
+
+    assert nomes(tmp_path) == ["config/settings.json", "src/app.ts", "src/i18n/index.ts"]
+
+
+def test_incluir_traducoes_traz_de_volta_os_dados(tmp_path):
+    criar(tmp_path, {"src/app.ts": "x\n", "src/i18n/pt.json": "{}"})
+
+    assert nomes(tmp_path, incluir_traducoes=True) == ["src/app.ts", "src/i18n/pt.json"]
+
+
+def test_registra_testes_e_traducoes_como_pulados(tmp_path):
+    criar(tmp_path, {
+        "ok.py": "x\n", "tests/t.py": "x\n", "src/a.spec.ts": "x\n", "src/i18n/pt.json": "{}", "locales/en.yml": "a: b\n",
+    })
+    pulados = Pulados()
+
+    varrer(tmp_path, pulados=pulados)
+
+    assert sorted(pulados.por_motivo[MOTIVO_TESTE]) == ["src/a.spec.ts", "tests"]  # a pasta conta 1, os arquivos dela não
+    assert sorted(pulados.por_motivo[MOTIVO_TRADUCAO]) == ["locales/en.yml", "src/i18n/pt.json"]
+
+
+def test_cli_varrer_avisa_de_testes_e_traducoes_e_diz_como_incluir(tmp_path):
+    criar(tmp_path, {"ok.py": "x = 1\n", "tests/t.py": VULNERAVEL, "src/i18n/pt.json": '{"password": "palavrasecreta"}'})
+
+    r = runner.invoke(app, ["varrer", str(tmp_path)])
+
+    assert "1 arquivo(s) analisado(s)." in r.output
+    assert "teste" in r.output.lower() and "--incluir-testes" in r.output
+    assert "tradu" in r.output.lower() and "--incluir-traducoes" in r.output
+    assert "SQL injection" not in r.output and "segredo" not in r.output.lower()  # nada do que foi pulado foi lido
+
+
+def test_cli_varrer_incluir_testes_e_incluir_traducoes_leem_de_volta(tmp_path):
+    criar(tmp_path, {"tests/t.py": VULNERAVEL, "src/i18n/pt.json": '{"password": "palavrasecreta"}'})
+
+    r = runner.invoke(app, ["varrer", str(tmp_path), "--incluir-testes", "--incluir-traducoes"])
+
+    assert "2 arquivo(s) analisado(s)." in r.output
+    assert "SQL injection" in r.output and "tests/t.py" in r.output
+    assert "segredo no código" in r.output

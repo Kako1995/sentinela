@@ -19,7 +19,7 @@ from sentinela.report import (
 )
 from sentinela.scanner import TAMANHO_MAXIMO_LINHA, analisar
 from sentinela.varredura import anexar_fontes
-from sentinela.varredura import MOTIVO_MARKDOWN, MOTIVO_PASTA, Pulados
+from sentinela.varredura import MOTIVO_MARKDOWN, MOTIVO_PASTA, MOTIVO_TESTE, MOTIVO_TRADUCAO, Pulados
 from sentinela.varredura import varrer as varrer_pasta
 
 app = typer.Typer(help="Sentinela: revisor de segurança para diffs de código.")
@@ -66,14 +66,22 @@ def _avisar_linhas_longas(trechos: list[TrechoArquivo]) -> None:
         )
 
 
-def _avisar_pulados(pulados: Pulados, incluir_markdown: bool) -> None:
+# Motivos de pular que o usuário pode desfazer, e a opção que desfaz.
+OPCAO_PARA_INCLUIR = {
+    MOTIVO_MARKDOWN: "--incluir-md",
+    MOTIVO_TESTE: "--incluir-testes",
+    MOTIVO_TRADUCAO: "--incluir-traducoes",
+}
+
+
+def _avisar_pulados(pulados: Pulados) -> None:
     """Diz o que o `varrer` deixou de analisar e por quê, para ninguém achar que "não deu alerta"
     quando na verdade o arquivo nem foi lido."""
     if not pulados.por_motivo:
         return
     typer.echo(f"Pulados ({pulados.total()}), não analisados:", err=True)
     for motivo, nomes in pulados.por_motivo.items():
-        dica = " — use --incluir-md para analisar" if motivo == MOTIVO_MARKDOWN and not incluir_markdown else ""
+        dica = f" — use {OPCAO_PARA_INCLUIR[motivo]} para analisar" if motivo in OPCAO_PARA_INCLUIR else ""
         total = len(nomes)
         if motivo == MOTIVO_PASTA:
             # 130 `__pycache__` espalhadas não ajudam em nada listadas uma a uma: agrupa pelo nome da pasta.
@@ -159,11 +167,19 @@ def varrer(
         False, "--incluir-md",
         help="Analisa também os arquivos Markdown (.md/.mdx), que ficam de fora por padrão.",
     ),
+    incluir_testes: bool = typer.Option(
+        False, "--incluir-testes",
+        help="Analisa também testes (tests/, *.spec.ts, *.test.js, test_*.py), que ficam de fora por padrão.",
+    ),
+    incluir_traducoes: bool = typer.Option(
+        False, "--incluir-traducoes",
+        help="Analisa também os arquivos de tradução (JSON, YAML, .po em i18n/, locales/...), que ficam de fora por padrão.",
+    ),
 ) -> None:
     """Analisa todos os arquivos de texto de uma pasta, não só um diff.
 
-    Pula dependências e builds (node_modules, .venv, .next...), Markdown, SVG, arquivos
-    minificados, binários e arquivos grandes, e avisa o que pulou. Tem mais ruído que
+    Pula dependências e builds (node_modules, .venv, .next...), Markdown, testes, arquivos de
+    tradução, SVG, arquivos minificados, binários e arquivos grandes, e avisa o que pulou. Tem mais ruído que
     `revisar`: trate o resultado como uma lista para conferir. Mesmos códigos de saída
     do `revisar`.
     """
@@ -173,9 +189,9 @@ def varrer(
 
     config = _config(pasta)
     pulados = Pulados()
-    trechos = varrer_pasta(pasta, [*excluir, *config.ignorar], incluir_markdown, pulados)
+    trechos = varrer_pasta(pasta, [*excluir, *config.ignorar], incluir_markdown, pulados, incluir_testes, incluir_traducoes)
     # Fora da saída principal, para json e markdown continuarem sendo só o relatório.
     typer.echo(f"{len(trechos)} arquivo(s) analisado(s).", err=True)
-    _avisar_pulados(pulados, incluir_markdown)
+    _avisar_pulados(pulados)
     _avisar_linhas_longas(trechos)
     _emitir(analisar(trechos, desativadas=config.regras_desativadas), formato, nota)
