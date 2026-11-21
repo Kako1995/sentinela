@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-angular",
+  "nota": "URL vinda da query string marcada como confiável (iframe/src).",
+  "codigo": "this.endereco = this.sanitizer.bypassSecurityTrustResourceUrl(this.route.snapshot.queryParams['url'])"
+}

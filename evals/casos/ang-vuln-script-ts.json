@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-angular",
+  "nota": "bypassSecurityTrustScript com dado do usuário.",
+  "codigo": "this.codigo = this.sanitizer.bypassSecurityTrustScript(parametroDaUrl)"
+}

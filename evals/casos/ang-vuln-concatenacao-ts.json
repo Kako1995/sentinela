@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-angular",
+  "nota": "Texto fixo concatenado com o nome do usuário.",
+  "codigo": "this.saudacao = this.sanitizer.bypassSecurityTrustHtml('<b>' + usuario.nome + '</b>')"
+}

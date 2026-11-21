@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-angular",
+  "nota": "A API certa: pede ao Angular que sanee, em vez de desligar a proteção.",
+  "codigo": "this.conteudo = this.sanitizer.sanitize(SecurityContext.HTML, valor)"
+}

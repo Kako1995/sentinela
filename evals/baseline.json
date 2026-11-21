@@ -1,13 +1,28 @@
 {
   "aviso": "Gerado por `python evals/run_evals.py --atualizar-baseline`. Não edite à mão.",
   "metricas": {
-    "casos": 296,
-    "tp": 135,
+    "casos": 311,
+    "tp": 136,
     "fp": 1,
-    "fn": 5,
-    "tn": 155
+    "fn": 12,
+    "tn": 162
   },
   "casos": {
+    "ang-seguro-atribuicao-de-mock-ts": "TN",
+    "ang-seguro-constante-em-maiusculas-ts": "TN",
+    "ang-seguro-saneado-com-dompurify-ts": "TN",
+    "ang-seguro-sanitize-do-proprio-angular-ts": "TN",
+    "ang-seguro-template-sem-interpolacao-ts": "TN",
+    "ang-seguro-texto-explicativo-em-yaml": "TN",
+    "ang-seguro-texto-fixo-ts": "TN",
+    "ang-vuln-chamada-em-varias-linhas-ts": "FN",
+    "ang-vuln-concatenacao-ts": "TP",
+    "ang-vuln-dado-da-api-ts": "FN",
+    "ang-vuln-descricao-de-produto-ts": "FN",
+    "ang-vuln-resource-url-da-query-ts": "FN",
+    "ang-vuln-script-ts": "FN",
+    "ang-vuln-style-ts": "FN",
+    "ang-vuln-template-com-dado-ts": "FN",
     "ast-seguro-authz-depends": "TN",
     "ast-seguro-authz-login-required": "TN",
     "ast-seguro-funcao-ajudante-chamada-com-constante": "TN",

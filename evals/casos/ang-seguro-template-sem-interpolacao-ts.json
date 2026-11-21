@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-angular",
+  "nota": "Template literal sem ${}: também é constante.",
+  "codigo": "this.icone = this.sanitizer.bypassSecurityTrustHtml(`<svg viewBox=\"0 0 8 8\"><path d=\"M0 4l4-4 4 4\"/></svg>`)"
+}
