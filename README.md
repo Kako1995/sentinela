@@ -142,7 +142,7 @@ jobs:
         with:
           fetch-depth: 0  # o Sentinela precisa do commit base para calcular o diff
 
-      - uses: Kako1995/sentinela@v0.2.0   # fixe uma versão; @main é a mais nova, sem garantia de estabilidade
+      - uses: Kako1995/sentinela@v0.3.0   # fixe uma versão; @main é a mais nova, sem garantia de estabilidade
         with:
           excluir: "tests docs"  # opcional: caminhos a ignorar, separados por espaço
 ```
@@ -160,7 +160,7 @@ Não precisa de nenhuma chave de API nem de `secrets`: ele usa só o `GITHUB_TOK
 **Pontos de atenção**
 - O `fetch-depth: 0` é obrigatório. Com o checkout raso padrão o commit base não existe e o Sentinela falha de propósito, em vez de passar sem revisar.
 - PRs vindos de **forks** recebem um token somente leitura: o comentário não é postado, mas o relatório aparece no resumo do job e o check continua funcionando.
-- **Fixe uma versão** (`@v0.2.0`) em vez de `@main` se quiser estabilidade: `@main` muda a cada PR mesclado. As versões estão em [Releases](https://github.com/Kako1995/sentinela/releases).
+- **Fixe uma versão** (`@v0.3.0`) em vez de `@main` se quiser estabilidade: `@main` muda a cada PR mesclado. As versões estão em [Releases](https://github.com/Kako1995/sentinela/releases).
 
 **Opcional: aparecer na aba Security.** A Action acima só comenta no PR. Para também mandar os achados pro GitHub Code Scanning (pede a permissão extra `security-events: write`, por isso fica fora do padrão):
 
