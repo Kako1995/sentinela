@@ -55,7 +55,11 @@ A AST só trata como "dado externo" o `request`/`req` de arquivos de aplicação
 
 ## Uso no terminal
 
+**Requisito: Python 3.10 ou mais novo** (confira com `python3 --version`; o Python que vem de fábrica no macOS é o 3.9 e não serve, instale um mais novo, por exemplo com `brew install python@3.12`). Sem chave de API e sem rede.
+
 ```bash
+pip install git+https://github.com/Kako1995/sentinela   # só para usar
+# ou, clonando o repositório para mexer no código:
 pip install -e ".[dev]"
 
 sentinela revisar mudancas.diff
