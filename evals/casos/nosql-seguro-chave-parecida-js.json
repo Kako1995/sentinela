@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-nosql",
+  "nota": "Uma chave que só COMEÇA com $where não é o operador.",
+  "codigo": "const filtro = { $whereabouts: 'sala ' + numero }"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-nosql",
+  "nota": "Template em que todo ${} é parseInt/Number.",
+  "codigo": "db.itens.find({ $where: `this.dono == ${parseInt(donoId, 10)} && this.preco > ${Number(minimo)}` })"
+}

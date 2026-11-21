@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "NoSQL injection",
+  "origem": "claude-nosql",
+  "nota": "O id do usuário concatenado no JavaScript que o MongoDB vai executar.",
+  "codigo": "db.avaliacoes.find({ $where: 'this.produto == ' + id }).toArray()"
+}

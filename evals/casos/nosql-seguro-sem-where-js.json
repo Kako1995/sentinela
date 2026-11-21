@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-nosql",
+  "nota": "A forma segura: filtro por campo, sem executar JavaScript.",
+  "codigo": "db.avaliacoes.find({ produto: Number(id) })"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-nosql",
+  "nota": "Python com expressão constante.",
+  "codigo": "db.itens.find({\"$where\": \"this.estoque > this.minimo\"})"
+}

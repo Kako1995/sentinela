@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "NoSQL injection",
+  "origem": "claude-nosql",
+  "nota": "str.format dentro do $where.",
+  "codigo": "db.itens.find({\"$where\": \"this.dono == '{}'\".format(dono)})"
+}

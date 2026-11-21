@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-nosql",
+  "nota": "Texto fixo: o MongoDB executa sempre a mesma expressão.",
+  "codigo": "db.itens.find({ $where: 'this.estoque > this.minimo' })"
+}
