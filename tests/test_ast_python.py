@@ -344,3 +344,70 @@ def up():
 ''')
 
     assert [a.regra for a in resultado.achados] == ["ast-path-traversal"]
+
+
+# ---------- SSRF: clientes HTTP guardados numa variável, e host fixo ----------
+
+CABECALHO_FLASK = "from flask import Flask, request\nimport requests, httpx, aiohttp, urllib3\napp = Flask(__name__)\n"
+
+
+def _rota(corpo: str, antes: str = "", assincrona: bool = False) -> str:
+    return CABECALHO_FLASK + antes + "@app.route('/p')\n" + ("async " if assincrona else "") + "def p():\n    u = request.args.get('url')\n" + corpo
+
+
+@pytest.mark.parametrize(
+    "antes, corpo, assincrona",
+    [
+        ("s = requests.Session()\n", "    return s.get(u).text", False),  # variável no nível do módulo, usada na rota
+        ("", "    s = requests.Session()\n    return s.post(u).text", False),
+        ("", "    with httpx.Client() as c:\n        return c.get(u).text", False),
+        ("", "    async with httpx.AsyncClient() as c:\n        return (await c.get(u)).text", True),
+        ("", "    async with aiohttp.ClientSession() as s:\n        async with s.get(u) as r:\n            return await r.text()", True),
+        ("", "    http = urllib3.PoolManager()\n    return http.request('GET', u).data", False),  # a URL é o 2º argumento
+        ("", "    c = httpx.AsyncClient()\n    return str(c.request('GET', u))", False),
+    ],
+)
+def test_ssrf_com_cliente_http_guardado_numa_variavel(antes, corpo, assincrona):
+    assert "ast-ssrf" in regras(_rota(corpo, antes, assincrona))
+
+
+@pytest.mark.parametrize(
+    "antes, corpo",
+    [
+        ("", "    cache = {}\n    return str(cache.get(u))"),  # dicionário, não cliente HTTP
+        ("from sqlalchemy.orm import Session\n", "    s = Session(engine)\n    return str(s.get(User, u))"),  # Session do SQLAlchemy
+        ("", "    s = requests.Session()\n    return s.get('https://api.fixa.net/v1/status').text"),  # URL constante
+        ("", "    s = requests.Session()\n    s2 = {}\n    return str(s2.get(u))"),  # outra variável, não a do cliente
+        ("", "    sessao = request.args\n    return str(sessao.get(u))"),  # nome parecido, mas não é Session()
+    ],
+)
+def test_get_que_nao_e_cliente_http_nao_e_ssrf(antes, corpo):
+    assert "ast-ssrf" not in regras(_rota(corpo, antes))
+
+
+@pytest.mark.parametrize(
+    "corpo",
+    [
+        "    return requests.get('https://api.fixa.net/v1/' + u).text",
+        "    return requests.get(f'https://api.fixa.net/v1/{u}').text",
+        "    return requests.get('https://api.fixa.net/v1/%s' % u).text",
+        "    return requests.get('https://api.fixa.net/v1/' + u + '/detalhe').text",
+        "    return requests.get('http://localhost:8080/x?q=' + u).text",  # host constante, a consulta é do usuário
+    ],
+)
+def test_ssrf_com_host_fixo_no_comeco_da_url_nao_alerta(corpo):
+    assert "ast-ssrf" not in regras(_rota(corpo))
+
+
+@pytest.mark.parametrize(
+    "corpo",
+    [
+        "    return requests.get(f'https://{u}/v1/x').text",  # o host é o dado do usuário
+        "    return requests.get('https://' + u).text",
+        "    return requests.get(u + '/v1').text",
+        "    return requests.get('https://api.fixa.net@' + u).text",  # truque do usuário@host: o prefixo não tem / depois do host
+        "    return requests.get('/relativa/' + u).text",  # prefixo que não é um host
+    ],
+)
+def test_ssrf_sem_host_fixo_completo_continua_alertando(corpo):
+    assert "ast-ssrf" in regras(_rota(corpo))

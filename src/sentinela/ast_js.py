@@ -48,8 +48,11 @@ FS = {
 }
 OBJETOS_FS = {"fs", "fsp", "promises"}
 SINKS_SQL = {"query", "execute", "raw", "$queryRawUnsafe", "$executeRawUnsafe", "queryRawUnsafe", "executeRawUnsafe", "unsafe"}
-OBJETOS_HTTP = {"axios", "got", "ky", "needle", "superagent", "http", "https"}
-VERBOS_HTTP = {"get", "post", "put", "delete", "head", "patch", "request", "options"}
+# Clientes HTTP: `objeto.verbo(url)` ou, para os que se chamam como função, `nome(url)`. undici é o cliente do Node
+# moderno (e o que está por baixo do fetch global); `fetch` e `stream` cobrem undici.fetch e got.stream.
+OBJETOS_HTTP = {"axios", "got", "ky", "needle", "superagent", "http", "https", "undici"}
+VERBOS_HTTP = {"get", "post", "put", "delete", "head", "patch", "request", "options", "stream", "fetch"}
+CHAMAVEIS_HTTP = {"fetch", "axios", "got", "needle", "request", "ky"}
 OBJETOS_RESPOSTA = {"res", "response", "reply"}
 OBJETOS_ROTEADOR = {"app", "router", "server", "api", "routes"}
 TAG_HTML = re.compile(r"<(?:a|b|i|p|br|div|span|h[1-6]|ul|ol|li|table|tr|td|th|img|input|form|script|style|button|label|strong|em|pre|code|iframe|body|html|head|title)\b")
@@ -442,7 +445,7 @@ def _checar_sinks(nos: list["Node"], ctx: _Ctx, definicoes: dict, arq: _Arquivo,
             caminhos.append((_achado("ast-path-traversal", arq.nome, _linha(no)), nome in {"path.join", "path.resolve", "path.normalize"}))
 
         # SSRF
-        elif nome in {"fetch", "axios", "got", "needle", "request"} or (objeto in OBJETOS_HTTP and ultimo in VERBOS_HTTP):
+        elif nome in CHAMAVEIS_HTTP or (objeto in OBJETOS_HTTP and ultimo in VERBOS_HTTP):
             url = _arg_url(no)
             if url is not None and _contaminado(url, ctx) and not HOST_FIXO.match(_prefixo_literal(url)):
                 achados.append(_achado("ast-ssrf", arq.nome, _linha(no)))

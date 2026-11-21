@@ -179,12 +179,12 @@ Rodo o scanner em casos de código rotulados à mão (vulnerável ou seguro) e m
 - **Precisão:** dos alertas que ele deu, quantos eram reais. Baixa precisão = falso positivo, e falso positivo faz as pessoas ignorarem a ferramenta.
 - **Recall:** das vulnerabilidades que existem, quantas ele achou.
 
-**Hoje: 276 casos, precisão 99% e recall 97%** (129 vulneráveis, dos quais 125 achados e 4 perdidos; 147 seguros, dos quais 146 passaram e 1 deu falso positivo).
+**Hoje: 296 casos, precisão 99% e recall 96%** (140 vulneráveis, dos quais 135 achados e 5 perdidos; 156 seguros, dos quais 155 passaram e 1 deu falso positivo).
 
 | Categoria | Achados | Recall |
 |---|---:|---:|
 | SQL injection | 16/16 | 100% |
-| SSRF | 16/16 | 100% |
+| SSRF | 26/27 | 96% |
 | XSS | 17/17 | 100% |
 | Criptografia fraca | 12/12 | 100% |
 | Autenticação fraca | 7/7 | 100% |
@@ -200,7 +200,7 @@ Rodo o scanner em casos de código rotulados à mão (vulnerável ou seguro) e m
 - **Quase todos os casos foram escritos pelo mesmo autor (eu, com IA) que escreveu as regras.** Casos escritos por outra pessoa, sem olhar as regras, seriam o teste mais forte, e ainda faltam.
 - **O ganho é, em parte, ajuste ao teste.** A tentativa de manter alguma honestidade foi escrever cada conjunto de casos *antes* de implementar o que ele mede e guardar a medição de cada versão em [`evals/resultados/`](evals/resultados/). Mesmo assim, os conjuntos não são independentes entre si.
 - **A validação que mais pesou foi rodar em código real.** A primeira varredura em 7 repositórios reais de terceiros deu **zero acertos entre os alertas de severidade alta e crítica** (na minha leitura de cada um): foi o que mostrou que os números dos evals eram otimistas, e levou à maior parte das correções. Várias correções foram revalidadas varrendo de novo esses repositórios e 1685 arquivos de bibliotecas Python reais.
-- **Em código de projetos públicos a precisão é menor do que nos evals.** Num teste em 5 projetos públicos de JS/TS, os alertas de severidade alta e crítica dos apps "normais" eram válidos em só 2 de 11, e o Sentinela deixou passar cerca de 10 falhas conhecidas do Juice Shop (NoSQL `$where`, `bypassSecurityTrustHtml` do Angular, redirecionamento aberto...). O que já foi corrigido e o que falta está em [`docs/evals.md`](docs/evals.md).
+- **Em código de projetos públicos a precisão é menor do que nos evals.** Num teste em 5 projetos públicos de JS/TS, os alertas de severidade alta e crítica dos apps "normais" eram válidos em só 2 de 11, e o Sentinela deixou passar cerca de 10 falhas conhecidas do Juice Shop (NoSQL `$where`, `bypassSecurityTrustHtml` do Angular, redirecionamento aberto...) e a SSRF do NodeGoat, por estar num arquivo que só exporta o handler `(req, res)`. O que já foi corrigido e o que falta está em [`docs/evals.md`](docs/evals.md).
 - **Nenhum acerto anterior se perde sem aparecer:** um CI roda os evals em todo PR e compara cada caso com [`evals/baseline.json`](evals/baseline.json) (veja [Desenvolvimento](#desenvolvimento)).
 
 O histórico completo, rodada a rodada, com o que cada correção mudou e os erros meus que o processo pegou, está em **[`docs/evals.md`](docs/evals.md)**. Os casos e o método estão em [`evals/`](evals/README.md).
