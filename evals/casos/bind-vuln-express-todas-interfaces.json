@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "exposição de rede",
+  "origem": "claude-real",
+  "nota": "app.listen com '0.0.0.0' escuta em todas as interfaces de rede.",
+  "codigo": "app.listen(3000, \"0.0.0.0\", () => console.log(\"up\"));"
+}

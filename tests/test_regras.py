@@ -35,6 +35,10 @@ def regras_que_casam(linha: str) -> set[str]:
         ("resultado = eval(expressao)", "injecao-de-comando"),
         ("h = hashlib.md5(senha.encode())", "cripto-hash-fraco"),
         ("requests.get(url, verify=False)", "tls-sem-verificacao"),
+        ('app.run(host="0.0.0.0", port=5000)', "bind-todas-interfaces"),
+        ('app.listen(3000, "0.0.0.0")', "bind-todas-interfaces"),
+        ('sock.bind(("0.0.0.0", 9000))', "bind-todas-interfaces"),
+        ('host: "0.0.0.0"', "bind-todas-interfaces"),
     ],
 )
 def test_regra_pega_codigo_vulneravel(linha, regra):
@@ -60,6 +64,10 @@ def test_regra_pega_codigo_vulneravel(linha, regra):
         "requests.get(url, timeout=5)",
         'subprocess.run(["ls", pasta])',
         'texto = "selecione todos os itens da lista"',
+        'app.run(host="127.0.0.1", port=5000)',
+        'app.listen(3000, "127.0.0.1")',
+        'host: "127.0.0.1"',
+        'element.addEventListener("click", handler)',
     ],
 )
 def test_regra_nao_dispara_em_codigo_seguro(linha):

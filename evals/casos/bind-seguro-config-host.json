@@ -1,0 +1,8 @@
+{
+  "linguagem": "yaml",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "host apontando para 127.0.0.1: o oposto do caso vulnerável.",
+  "codigo": "host: \"127.0.0.1\"\nport: 8080"
+}
