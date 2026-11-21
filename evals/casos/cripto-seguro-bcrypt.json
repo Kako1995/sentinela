@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cripto",
+  "nota": "bcrypt com sal é o jeito certo de guardar senha.",
+  "codigo": "senha_hash = bcrypt.hashpw(senha.encode(), bcrypt.gensalt())\nusuario.senha = senha_hash"
+}

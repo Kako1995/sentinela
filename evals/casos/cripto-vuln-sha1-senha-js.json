@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto",
+  "nota": "SHA-1 sem sal para senha: rápido de quebrar por força bruta.",
+  "codigo": "const hash = crypto.createHash('sha1').update(password).digest('hex')\nawait db.users.update({ password: hash })"
+}

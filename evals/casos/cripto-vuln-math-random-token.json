@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto",
+  "nota": "Math.random() é previsível e não serve para token de sessão.",
+  "codigo": "const token = Math.random().toString(36).slice(2)\nawait salvarTokenDeSessao(usuario.id, token)"
+}

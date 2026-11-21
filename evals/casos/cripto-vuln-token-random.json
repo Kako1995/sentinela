@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto",
+  "nota": "`random` é previsível; um token de redefinição de senha precisa de fonte criptográfica.",
+  "codigo": "import random\nimport string\n\ndef gerar_token_reset():\n    return \"\".join(random.choice(string.ascii_letters) for _ in range(32))"
+}
