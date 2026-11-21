@@ -279,3 +279,82 @@ def test_random_sem_segredo_ou_seguro_nao_dispara(linhas):
 def test_random_para_segredo_nao_roda_em_arquivo_sem_random():
     # o pré-filtro (gatilho_arquivo) não pode mudar o resultado: sem a palavra, nada a achar de qualquer jeito
     assert analisar([trecho("token = gerar_token()", "senha = pedir_senha()")]) == []
+
+
+# --- três falsos positivos de código real: token de jogo, innerHTML só com número, __html de mapa fixo ---
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "const jogador = { nome: 'Ana', token: 'vermelho' }",
+        'peca = {"cor": "azul", "token": "amarelinho"}',
+        "tokenCor = 'vermelhinho'",
+    ],
+)
+def test_token_de_jogo_so_com_letras_minusculas_nao_alerta(linha):
+    assert "segredo-atribuicao" not in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "const token = 'a8Fk2mQ9vR3nT7wZ1pB4'",  # mistura maiúscula e número: parece credencial
+        "const access_token = 'kjhgfdsapoiuytre'",  # o nome é de credencial (o _ quebra a isenção do `token` solto)
+        "api_token = 'abcdefghij'",
+        'password = "senhaforte"',  # senha literal em minúsculas continua sendo problema
+        "const secret_token = 'abcdefgh'",
+        "token = 'vermelho1'",  # tem número
+        "token = 'abcdefghijklmnopq'",  # 17 letras: passou do tamanho de "palavra"
+        'TOKEN = "abcdefghij"',  # constante em maiúsculas: não é ficha de jogo
+    ],
+)
+def test_token_que_parece_credencial_continua_alertando(linha):
+    assert "segredo-atribuicao" in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "el.innerHTML = `${n.toFixed(1)}%`",
+        "el.innerHTML = `${pedido.total.toFixed(2)}`;",
+        "el.innerHTML = (a / b).toFixed(1)",
+        "el.innerHTML = new Intl.NumberFormat('pt-BR').format(total)",
+        "el.innerHTML = `<b>${preco.toFixed(2)}</b> de ${Math.round(maximo)}`",
+        "el.innerHTML = Number(total).toLocaleString('pt-BR')",
+        "el.innerHTML = Math.round(x)",
+        "el.innerHTML = parseInt(valor, 10)",
+        "el.innerHTML += `${n.toFixed(0)} itens`",
+    ],
+)
+def test_innerhtml_so_com_numero_nao_alerta(linha):
+    assert "xss-saida-sem-escape" not in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "el.innerHTML = resposta.msg",
+        "el.innerHTML = `${n.toFixed(1)}% de ${usuario.nome}`",  # um ${} que não é número estraga a isenção
+        "el.innerHTML = `${usuario.nome}`",
+        "el.innerHTML = texto.toLocaleString()",  # toLocaleString numa string devolve a própria string
+        "el.innerHTML = nome + n.toFixed(1)",
+        "el.innerHTML = n.toFixed(1) + sufixo",
+        "el.innerHTML = `${n.toFixed(1)}` + comentario",
+    ],
+)
+def test_innerhtml_com_texto_variavel_continua_alertando(linha):
+    assert "xss-saida-sem-escape" in regras_que_casam(linha)
+
+
+def test_react_html_de_mapa_constante_nao_alerta():
+    for conteudo in ("ICONES[nome]", "ICONES", "MAPA_DE_ICONES[props.nome]"):
+        achados = analisar([trecho_numerado((1, f"<span dangerouslySetInnerHTML={{{{ __html: {conteudo} }}}} />"))])
+        assert achados == [], conteudo
+
+
+@pytest.mark.parametrize("conteudo", ["ICONES[nome] + usuario.bio", "iconesPorNome[nome]", "html", "props.html"])
+def test_react_html_que_nao_e_so_constante_continua_alertando(conteudo):
+    achados = analisar([trecho_numerado((1, f"<span dangerouslySetInnerHTML={{{{ __html: {conteudo} }}}} />"))])
+
+    assert [a.regra for a in achados] == ["xss-react-html-perigoso"]

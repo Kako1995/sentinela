@@ -60,3 +60,18 @@ def test_linha_no_limite_exato_ainda_passa_pelas_regras():
 
     achados = analisar([TrechoArquivo(arquivo="a.py", linhas_adicionadas=[LinhaAdicionada(1, vulneravel)])])
     assert any(a.regra == "cripto-hash-fraco" for a in achados)
+
+
+def test_isencao_de_innerhtml_numerico_nao_trava_perto_do_limite():
+    """As exceções novas (template só com número) não podem ter custo explosivo: uma linha quase no
+    limite que NÃO casa a isenção (último ${} não é número) é o pior caso do backtracking."""
+    corpo = "${n.toFixed(1)}" * 120  # ~1800 caracteres, abaixo de TAMANHO_MAXIMO_LINHA
+    linha = "el.innerHTML = `" + corpo + "${usuario.nome}`"
+    assert len(linha) < TAMANHO_MAXIMO_LINHA
+
+    inicio = time.perf_counter()
+    achados = analisar([TrechoArquivo(arquivo="a.js", linhas_adicionadas=[LinhaAdicionada(1, linha)])])
+    duracao = time.perf_counter() - inicio
+
+    assert duracao < LIMITE_SEGUNDOS, f"demorou {duracao:.2f}s"
+    assert [a.regra for a in achados] == ["xss-saida-sem-escape"]  # e ainda alerta, porque tem dado variável

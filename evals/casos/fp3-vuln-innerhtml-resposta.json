@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-fp3",
+  "nota": "Texto vindo da resposta da API direto no innerHTML.",
+  "codigo": "el.innerHTML = resposta.msg"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-fp3",
+  "nota": "Mesma coisa em Python: dicionário de uma peça de jogo.",
+  "codigo": "peca = {\"cor\": \"azul\", \"token\": \"amarelinho\"}"
+}

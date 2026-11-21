@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-fp3",
+  "nota": "toLocaleString() numa STRING devolve a própria string: não limpa nada.",
+  "codigo": "el.innerHTML = texto.toLocaleString()"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-fp3",
+  "nota": "Token com letras maiúsculas, minúsculas e números: parece credencial de verdade.",
+  "codigo": "const token = 'a8Fk2mQ9vR3nT7wZ1pB4'"
+}
