@@ -1,0 +1,8 @@
+{
+  "linguagem": "yaml",
+  "vulneravel": true,
+  "categoria_esperada": "exposição de rede",
+  "origem": "claude-real",
+  "nota": "Mesmo sem chamada de função, um campo 'host' apontando para 0.0.0.0 num arquivo de configuração é o mesmo problema.",
+  "codigo": "host: \"0.0.0.0\"\nport: 8080"
+}

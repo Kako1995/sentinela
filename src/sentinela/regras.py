@@ -259,6 +259,19 @@ REGRAS: list[Regra] = [
         correcao="Use SHA-256 ou superior; para senhas, use bcrypt, scrypt ou argon2.",
     ),
     Regra(
+        id="bind-todas-interfaces",
+        categoria="exposição de rede",
+        cwe="CWE-1327",
+        severidade=Severity.media,  # média, não alta: dentro de um container isso costuma ser esperado
+        padrao=_rei(
+            r"""\b(listen|bind)\w*\s*\(.{0,200}?["']0\.0\.0\.0["']"""
+            r"""|\bhost\s*[:=]\s*["']?0\.0\.0\.0\b"""
+        ),
+        explicacao="O servidor escuta em todas as interfaces de rede (0.0.0.0), não só localhost.",
+        correcao="Se o serviço não precisa ser alcançado de fora da máquina, use 127.0.0.1. Rodando num "
+        "container, 0.0.0.0 costuma ser necessário (o isolamento vem de outra camada) — confira se é o caso.",
+    ),
+    Regra(
         id="tls-sem-verificacao",
         categoria="verificação TLS desativada",
         cwe="CWE-295",

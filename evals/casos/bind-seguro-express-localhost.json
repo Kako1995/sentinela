@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "app.listen com '127.0.0.1': só escuta localhost.",
+  "codigo": "app.listen(3000, \"127.0.0.1\", () => console.log(\"up\"));"
+}

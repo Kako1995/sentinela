@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "host=\"127.0.0.1\": só escuta localhost, o oposto do caso vulnerável.",
+  "codigo": "app.run(host=\"127.0.0.1\", port=5000, debug=True)"
+}

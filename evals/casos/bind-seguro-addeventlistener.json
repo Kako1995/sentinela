@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "addEventListener tem 'listen' dentro de 'Listener', mas não é fronteira de palavra: não é uma chamada de bind/listen de servidor.",
+  "codigo": "element.addEventListener(\"click\", handler);"
+}

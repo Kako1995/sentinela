@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "exposição de rede",
+  "origem": "claude-real",
+  "nota": "host=\"0.0.0.0\" escuta em todas as interfaces de rede, não só localhost.",
+  "codigo": "app.run(host=\"0.0.0.0\", port=5000, debug=True)"
+}

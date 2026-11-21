@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "exposição de rede",
+  "origem": "claude-real",
+  "nota": "Socket de baixo nível, mesmo problema: bind em 0.0.0.0 escuta em todas as interfaces.",
+  "codigo": "sock.bind((\"0.0.0.0\", 9000))"
+}
