@@ -1,0 +1,8 @@
+{
+  "linguagem": "swift",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "'token' aparece dentro de totalInputTokens, mas o valor é o nome do campo no JSON (snake_case, sem dado secreto), não uma credencial.",
+  "codigo": "enum CodingKeys: String, CodingKey {\n    case totalInputTokens = \"total_input_tokens\"\n}"
+}

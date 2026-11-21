@@ -1,0 +1,8 @@
+{
+  "linguagem": "tsx",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-real",
+  "nota": "Parece com o caso seguro (identificador sozinho), mas aqui não é maiúsculo: pode ser dado do usuário.",
+  "codigo": "<style dangerouslySetInnerHTML={{ __html: perfilCss }} />"
+}

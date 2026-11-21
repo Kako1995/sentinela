@@ -71,6 +71,11 @@ _INTERPOLACAO = (
 # Valores que indicam origem externa (requisição HTTP, entrada do usuário).
 _ENTRADA_EXTERNA = r"(request\.|req\.(params|query|body)|\binput\()"
 
+# Abertura de template com tag (sql`...`, prisma.$queryRaw`...`): a biblioteca troca cada ${x} por
+# parâmetro, não por texto. Usado na exceção de sql-concatenacao (tag e ${x} na mesma linha) e por
+# scanner.linhas_em_template_sql (tag numa linha, ${x} só numa linha seguinte: o caso comum na prática).
+ABRE_TEMPLATE_SQL = r"(?:\bsql|\.sql|\$queryRaw|\$executeRaw|\$queryRawTyped)\s*`"
+
 REGRAS: list[Regra] = [
     Regra(
         id="segredo-atribuicao",
@@ -86,6 +91,11 @@ REGRAS: list[Regra] = [
             # ambiente (os.environ, process.env, env(NOME), ${NOME}), que não são o segredo em si
             r"changeme|example|exemplo|your[_-]|sua[-_ ]|seu[-_ ]|[-_]aqui|troque|insira|coloque|dummy|fake"
             r"|redacted|<.+>|\$\{|x{4,}|\*{4,}|placeholder|os\.environ|getenv|process\.env|\benv\("
+            # valor minúsculo com separador (spira:auth:token, total_input_tokens): é o NOME de uma
+            # chave ou de um campo, não o segredo (mesmo raciocínio de MAIÚSCULAS = constante, mas
+            # aqui o sinal é a forma de identificador, não a caixa da letra); (?-i:) porque isto
+            # precisa ser estritamente minúsculo mesmo com o resto da regra sendo case-insensitive
+            r"""|[:=]\s*["'](?-i:[a-z]+(?:[_:\-/.][a-z]+)+)["']\s*[;,)]?\s*$"""
         ),
         explicacao="Um valor que parece segredo (chave, token ou senha) está escrito direto no código.",
         correcao="Leia o valor de uma variável de ambiente ou de um gerenciador de segredos e revogue a chave exposta.",
@@ -112,6 +122,8 @@ REGRAS: list[Regra] = [
         excecao=_rei(
             r"""://[^\s/:@]+:(password|senha|pass|passwd|secret|changeme|user|usuario|xxx+|\*+)@"""
             r"""|\$\{|\{\{|<[^>]+>|%\(|\benv\(|os\.environ|getenv|process\.env"""
+            # \(.*\) no lugar da senha é grupo de captura do sed/grep (BRE), não uma senha de verdade
+            r"""|:\\\([^@]*\\\)@"""
         ),
         explicacao="Há uma URL de conexão com usuário e senha escritos no código.",
         correcao="Tire a senha da URL: monte-a a partir de variáveis de ambiente e revogue a senha exposta.",
@@ -127,7 +139,7 @@ REGRAS: list[Regra] = [
             rf"(?=.*({_INTERPOLACAO}))"
         ),
         # template com tag (sql`...`, prisma.$queryRaw`...`): a biblioteca troca ${x} por parâmetro, não por texto
-        excecao=_re(r"(?:\bsql|\.sql|\$queryRaw|\$executeRaw|\$queryRawTyped)\s*`"),
+        excecao=_re(ABRE_TEMPLATE_SQL),
         explicacao="A consulta SQL é montada juntando texto com valores variáveis, então uma entrada maliciosa muda a consulta.",
         correcao="Use consulta parametrizada: execute('... WHERE nome = ?', (nome,)).",
     ),
@@ -162,7 +174,13 @@ REGRAS: list[Regra] = [
             r"""dangerouslySetInnerHTML\s*=\s*\{\s*(?:(?!\{)[A-Za-z_(]"""
             r"""|\{\s*__html\s*:\s*(?:(?![\s"'`])[^\n]*|`[^`]*\$\{|["'][^"'\n]*["']\s*\+))"""
         ),
-        excecao=_re(r"\b(DOMPurify|sanitize|sanitizeHtml|escape)\b"),
+        excecao=_re(
+            r"\b(DOMPurify|sanitize|sanitizeHtml|escape)\b"
+            # __html: CONSTANTE (maiúsculas, sem mais nada antes do fechamento): é o mesmo raciocínio
+            # de ${CONSTANTE} em sql-concatenacao. Case-sensitive de propósito: variável minúscula
+            # (perfilCss) continua sendo tratada como possível dado do usuário.
+            r"|__html\s*:\s*[A-Z][A-Z0-9_]*\s*\}"
+        ),
         explicacao="dangerouslySetInnerHTML recebe conteúdo variável sem sanitizar, abrindo espaço para script injetado.",
         correcao="Sanitize com uma biblioteca (DOMPurify) ou renderize como texto/JSX em vez de HTML bruto.",
     ),

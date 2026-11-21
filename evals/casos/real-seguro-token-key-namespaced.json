@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "TOKEN_KEY é o nome da chave no localStorage (um identificador separado por dois-pontos), não a credencial em si.",
+  "codigo": "const TOKEN_KEY = 'app:auth:token';\nlocalStorage.setItem(TOKEN_KEY, token);"
+}

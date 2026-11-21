@@ -7,7 +7,7 @@ from sentinela.ast_js import EXTENSOES_JS, analisar_ast_js
 from sentinela.ast_python import ResultadoAst, analisar_ast
 from sentinela.diff import LinhaAdicionada, TrechoArquivo
 from sentinela.models import Finding
-from sentinela.regras import REGRAS, Regra
+from sentinela.regras import ABRE_TEMPLATE_SQL, REGRAS, Regra
 
 COMENTARIO = re.compile(r"^\s*(#|//|/\*|\*)")
 
@@ -21,6 +21,31 @@ COBERTAS_PELA_AST = {"path-traversal-entrada", "ssrf-url-da-entrada"}
 # conteúdo do arquivo vêm de um diff possivelmente malicioso, então isto é defesa, não só
 # desempenho.
 TAMANHO_MAXIMO_LINHA = 2000
+
+_RE_ABRE_TEMPLATE_SQL = re.compile(ABRE_TEMPLATE_SQL)
+
+
+def _linhas_em_template_sql(linhas: list[LinhaAdicionada]) -> set[int]:
+    """Números de linha dentro de um template com tag (sql`...`, $queryRaw`...`) que abre numa
+    linha e só fecha numa linha seguinte: a tag ainda parametriza cada ${x}, mas a exceção de
+    sql-concatenacao só olha a própria linha, então não vê a tag quando ela está numa linha
+    anterior. Isto cobre esse caso; a exceção continua cuidando do caso de uma linha só."""
+    dentro: set[int] = set()
+    aberto = False
+    for linha in linhas:
+        texto = linha.texto
+        if aberto:
+            dentro.add(linha.numero)
+            fecha = "`" in texto
+        else:
+            m = _RE_ABRE_TEMPLATE_SQL.search(texto)
+            if not m:
+                continue
+            fecha = "`" in texto[m.end() :]
+            if not fecha:
+                dentro.add(linha.numero)
+        aberto = not fecha
+    return dentro
 
 
 def _janela(linhas: list[LinhaAdicionada], inicio: int, tamanho: int) -> str:
@@ -57,6 +82,7 @@ def analisar(trechos: list[TrechoArquivo], regras: list[Regra] = REGRAS) -> list
         texto_solto = resultado.linhas_de_texto if resultado else set()
         adicionadas = {l.numero for l in trecho.linhas_adicionadas}
         linhas = trecho.linhas_adicionadas
+        em_template_sql = _linhas_em_template_sql(linhas)
         do_trecho: list[Finding] = []
 
         for i, linha in enumerate(linhas):
@@ -65,6 +91,8 @@ def analisar(trechos: list[TrechoArquivo], regras: list[Regra] = REGRAS) -> list
             if len(linha.texto) > TAMANHO_MAXIMO_LINHA:
                 continue
             for regra in ativas:
+                if regra.id == "sql-concatenacao" and linha.numero in em_template_sql:
+                    continue
                 if regra.janela == 1:
                     casou = regra.casa(linha.texto)
                 elif regra.gatilho and regra.gatilho not in linha.texto:
