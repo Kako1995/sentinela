@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "Mesma função ajudante perigosa, mas a rota valida (secure_filename) antes de repassar: o argumento que chega na função ajudante não está mais contaminado.",
+  "codigo": "from flask import Flask\nfrom werkzeug.utils import secure_filename\napp = Flask(__name__)\n\ndef ler_relatorio(nome):\n    caminho = os.path.join(\"/dados/relatorios\", nome)\n    return open(caminho).read()\n\n@app.route(\"/relatorios/<nome>\")\ndef rota_relatorio_segura(nome):\n    return ler_relatorio(secure_filename(nome))"
+}

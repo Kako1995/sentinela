@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "Mesma função ajudante perigosa (se o parâmetro viesse de fora), mas aqui quem chama passa um texto fixo, não dado de ninguém.",
+  "codigo": "def ler_relatorio(nome):\n    caminho = os.path.join(\"/dados/relatorios\", nome)\n    return open(caminho).read()\n\ndef tarefa_agendada():\n    return ler_relatorio(\"resumo-mensal.pdf\")"
+}

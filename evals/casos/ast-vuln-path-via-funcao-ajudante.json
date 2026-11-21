@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "path traversal",
+  "origem": "claude-real",
+  "nota": "A rota é fina: só repassa o parâmetro pra uma função ajudante no mesmo arquivo, que é quem de fato abre o arquivo.",
+  "codigo": "from flask import Flask\napp = Flask(__name__)\n\ndef ler_relatorio(nome):\n    caminho = os.path.join(\"/dados/relatorios\", nome)\n    return open(caminho).read()\n\n@app.route(\"/relatorios/<nome>\")\ndef rota_relatorio(nome):\n    return ler_relatorio(nome)"
+}
