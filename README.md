@@ -239,3 +239,7 @@ python evals/run_evals.py --rotulo minha-rodada   # mede precisão e recall (vej
 ```
 
 Estrutura: `src/sentinela/` (`diff.py` lê o diff, `varredura.py` percorre pastas, `regras.py` define as regras por linha, `ast_python.py` e `ast_js.py` fazem a análise por AST, `scanner.py` junta tudo, `report.py` formata a saída, `avaliacao.py` calcula as métricas), `tests/`, `evals/` e `action.yml`.
+
+## Licença
+
+[MIT](LICENSE).
