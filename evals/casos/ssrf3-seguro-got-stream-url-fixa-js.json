@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf3",
+  "nota": "got.stream com URL constante.",
+  "codigo": "const express = require('express')\nconst app = express()\napp.get('/p', async (req, res) => {\n  const u = req.query.url\n  got.stream('https://cdn.fixa.net/arquivo.zip').pipe(res)\n  res.send('ok')\n})"
+}

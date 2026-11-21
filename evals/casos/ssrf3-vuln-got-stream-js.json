@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ssrf3",
+  "nota": "got.stream(url) repassando o corpo da URL do usuário para a resposta.",
+  "codigo": "const express = require('express')\nconst app = express()\napp.get('/p', async (req, res) => {\n  const u = req.query.url\n  got.stream(u).pipe(res)\n  res.send('ok')\n})"
+}

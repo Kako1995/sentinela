@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf3",
+  "nota": "Session do SQLAlchemy também tem .get(), mas é banco de dados, não HTTP.",
+  "codigo": "from flask import Flask, request\nimport requests, httpx, aiohttp, urllib3\napp = Flask(__name__)\nfrom sqlalchemy.orm import Session\n@app.route('/p')\ndef p():\n    u = request.args.get('url')\n    s = Session(engine)\n    return str(s.get(User, u))"
+}

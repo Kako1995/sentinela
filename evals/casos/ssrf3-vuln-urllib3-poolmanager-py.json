@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ssrf3",
+  "nota": "urllib3.PoolManager: a URL é o 2º argumento de request('GET', url).",
+  "codigo": "from flask import Flask, request\nimport requests, httpx, aiohttp, urllib3\napp = Flask(__name__)\n@app.route('/p')\ndef p():\n    u = request.args.get('url')\n    http = urllib3.PoolManager()\n    return http.request('GET', u).data"
+}

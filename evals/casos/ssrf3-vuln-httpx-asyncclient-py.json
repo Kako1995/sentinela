@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ssrf3",
+  "nota": "httpx.AsyncClient em async with.",
+  "codigo": "from flask import Flask, request\nimport requests, httpx, aiohttp, urllib3\napp = Flask(__name__)\n@app.route('/p')\nasync def p():\n    u = request.args.get('url')\n    async with httpx.AsyncClient() as c:\n        r = await c.get(u)\n        return r.text"
+}
