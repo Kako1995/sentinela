@@ -75,3 +75,14 @@ def test_isencao_de_innerhtml_numerico_nao_trava_perto_do_limite():
 
     assert duracao < LIMITE_SEGUNDOS, f"demorou {duracao:.2f}s"
     assert [a.regra for a in achados] == ["xss-saida-sem-escape"]  # e ainda alerta, porque tem dado variável
+
+
+def test_regra_de_senha_curta_nao_trava_com_muitas_ocorrencias_na_mesma_linha():
+    linha = "senha='abcdef" * 150  # sem aspa de fechamento: a regra tenta (e desiste de) cada ocorrência
+    assert len(linha) < TAMANHO_MAXIMO_LINHA
+
+    inicio = time.perf_counter()
+    analisar([TrechoArquivo(arquivo="a.js", linhas_adicionadas=[LinhaAdicionada(1, linha)])])
+    duracao = time.perf_counter() - inicio
+
+    assert duracao < LIMITE_SEGUNDOS, f"demorou {duracao:.2f}s"

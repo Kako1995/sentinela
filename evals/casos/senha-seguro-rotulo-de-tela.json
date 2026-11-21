@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-senha",
+  "nota": "'Senha' é o texto do rótulo de um campo, não uma senha.",
+  "codigo": "const rotulos = { password: 'Senha', email: 'E-mail', nome: 'Nome' }"
+}

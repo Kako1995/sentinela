@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-senha",
+  "nota": "3 caracteres: abaixo de qualquer senha plausível; provavelmente texto de teste ou rótulo.",
+  "codigo": "senha = \"abc\""
+}

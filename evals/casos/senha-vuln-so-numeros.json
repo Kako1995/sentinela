@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-senha",
+  "nota": "Senha só de números, 6 dígitos.",
+  "codigo": "senha = \"123456\""
+}

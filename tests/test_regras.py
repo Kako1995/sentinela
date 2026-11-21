@@ -358,3 +358,62 @@ def test_react_html_que_nao_e_so_constante_continua_alertando(conteudo):
     achados = analisar([trecho_numerado((1, f"<span dangerouslySetInnerHTML={{{{ __html: {conteudo} }}}} />"))])
 
     assert [a.regra for a in achados] == ["xss-react-html-perigoso"]
+
+
+# --- senha curta (6 ou 7 caracteres): só alerta com número ou símbolo ---
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        'password = "hunter2"',  # 7, com número
+        "const senha = 'abc123'",  # 6, o limite de baixo
+        'admin_password = "root123"',
+        "const db = { host: 'localhost', password: 'qwerty1' }",
+        'senha = "123456"',
+        'passwd = "p@ss12"',  # símbolo
+        "DB_PASSWORD = 'Abc#123'",
+    ],
+)
+def test_senha_curta_com_numero_ou_simbolo_alerta(linha):
+    assert "segredo-atribuicao" in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        'password = ""',
+        'senha = "abc"',
+        'senha = "a1b2c"',  # 5 caracteres: abaixo do mínimo de 6
+        "const rotulos = { password: 'Senha', email: 'E-mail' }",
+        "const rotulo = { criar: 'Criar conta', 'nova-senha': 'Salvar' }[modo]",  # rótulo de botão (caso real)
+        "password: 'Entrar'",
+        'password = "letmein"',  # LIMITAÇÃO CONHECIDA: 7 letras e nada mais é indistinguível de um rótulo
+        "const senha = '••••••'",  # máscara de exibição
+        'password = "******"',
+        'password = os.environ["APP_PASSWORD"]',
+        'PASSWORD_ENV = "DB_PASSWORD"',  # nome de variável de ambiente, não a senha
+        "const GITHUB_TOKEN_ENV = 'GITHUB_TOKEN'",
+    ],
+)
+def test_senha_curta_so_de_letras_ou_rotulo_nao_alerta(linha):
+    assert "segredo-atribuicao" not in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        'password = "abcdefgh"',  # 8 letras: acima do limite novo, sempre alertou e continua
+        'senha = "senhaforte"',
+        'api_key = "SK_LIVE_1234"',  # MAIÚSCULAS_COM_UNDERSCORE mas COM número: não é nome de variável de ambiente
+    ],
+)
+def test_de_oito_caracteres_para_cima_nada_mudou(linha):
+    assert "segredo-atribuicao" in regras_que_casam(linha)
+
+
+def test_quote_que_fecha_a_string_nao_conta_como_simbolo():
+    """Regressão de um erro real da primeira versão: a classe de símbolos incluía as aspas, então a aspa que fecha
+    a string fazia `'Salvar'` (6 letras) parecer uma senha com símbolo."""
+    for valor in ("'Salvar'", '"Salvar"', "'trocar'", "'Entrar'"):
+        assert "segredo-atribuicao" not in regras_que_casam(f"botao = {{ 'nova-senha': {valor} }}"), valor

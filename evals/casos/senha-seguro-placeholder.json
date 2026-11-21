@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-senha",
+  "nota": "Placeholder explícito.",
+  "codigo": "password = \"changeme\""
+}
