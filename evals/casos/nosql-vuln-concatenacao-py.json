@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "NoSQL injection",
+  "origem": "claude-nosql",
+  "nota": "pymongo: o produto concatenado na expressão JavaScript.",
+  "codigo": "db.avaliacoes.find({\"$where\": \"this.produto == \" + produto})"
+}

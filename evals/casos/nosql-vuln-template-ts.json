@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": true,
+  "categoria_esperada": "NoSQL injection",
+  "origem": "claude-nosql",
+  "nota": "Template com ${}: o id vira parte da expressão.",
+  "codigo": "db.pedidos.find({ $where: `this.pedidoId === '${id}'` }).then((r) => res.json(r))"
+}

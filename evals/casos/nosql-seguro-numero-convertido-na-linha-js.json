@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-nosql",
+  "nota": "O dado passa por Number() na própria expressão: só um número entra.",
+  "codigo": "db.itens.find({ $where: 'this.preco > ' + Number(preco) })"
+}

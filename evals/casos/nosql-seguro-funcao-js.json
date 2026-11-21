@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-nosql",
+  "nota": "Forma de função: nada é montado a partir de texto.",
+  "codigo": "db.itens.find({ $where: function () { return this.estoque > this.minimo } })"
+}

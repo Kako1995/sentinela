@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-nosql",
+  "nota": "Uma string que fala do operador, sem ser o operador.",
+  "codigo": "const aviso = 'evite o operador $where com dado do usuario: ' + motivo"
+}

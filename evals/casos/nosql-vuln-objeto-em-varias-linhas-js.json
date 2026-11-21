@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "NoSQL injection",
+  "origem": "claude-nosql",
+  "nota": "O $where está numa linha própria do objeto.",
+  "codigo": "return db.alocacoes.find({\n  $where: `this.usuarioId == ${usuarioId} && this.acoes > '${limite}'`\n}).toArray()"
+}

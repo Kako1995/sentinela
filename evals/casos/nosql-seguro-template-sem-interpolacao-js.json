@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-nosql",
+  "nota": "Template literal sem ${}: constante.",
+  "codigo": "db.itens.find({ $where: `this.estoque > this.minimo` })"
+}

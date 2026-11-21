@@ -749,3 +749,55 @@ def test_angular_bypass_em_comentario_de_linha_nao_alerta():
     achados = analisar([trecho("// this.sanitizer.bypassSecurityTrustHtml(dados.imagem)  <- era assim antes")])
 
     assert [a.regra for a in achados if a.regra == "xss-angular-bypass-sanitizer"] == []
+
+
+# --- $where do MongoDB: JavaScript executado no banco, montado com texto ---
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "db.reviews.find({ $where: 'this.product == ' + id })",
+        'db.reviews.find({ $where: "this.product == " + id })',
+        "db.orders.find({ $where: `this.orderId === '${id}'` })",
+        "  $where: `this.userId == ${userId} && this.stocks > '${limite}'`",  # a linha só tem a chave e o template
+        'db.items.find({ "$where": \'this.dono == \' + dono })',
+        "db.items.find({ '$where': 'this.dono == ' + dono })",
+        "db.items.find({ $where: filtro + ' && this.ativo' })",
+        "Pedido.find().$where('this.total > ' + minimo).exec()",  # Mongoose
+        'db.c.find({"$where": "this.produto == " + produto})',
+        "db.c.find({'$where': f\"this.pedido_id == '{pedido_id}'\"})",  # aspas simples dentro de f-string de aspas duplas
+        "db.c.find({'$where': f'this.pedido_id == \"{pedido_id}\"'})",  # e o contrário
+        'db.c.find({"$where": "this.dono == \'%s\'" % dono})',
+        'db.c.find({"$where": "this.dono == \'{}\'".format(dono)})',
+        "db.c.find({ $where: 'this.a == ' +",  # a concatenação continua na linha de baixo
+    ],
+)
+def test_where_do_mongodb_com_expressao_montada_alerta(linha):
+    assert "nosql-where-dinamico" in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "db.items.find({ $where: 'this.estoque > this.minimo' })",
+        'db.items.find({ $where: "this.estoque > this.minimo" })',
+        "db.items.find({ $where: `this.estoque > this.minimo` })",  # template sem ${}
+        "db.items.find({ $where: function () { return this.estoque > this.minimo } })",
+        "db.items.find({ $where: 'this.preco > ' + Number(preco) })",
+        "db.items.find({ $where: 'this.a == ' + parseInt(a, 10) + ' && this.b == ' + Number(b) })",
+        "db.items.find({ $where: `this.dono == ${parseInt(donoId, 10)} && this.preco > ${Number(minimo)}` })",
+        "db.reviews.find({ product: Number(id) })",  # a forma certa, sem $where
+        "const filtro = { $whereabouts: 'sala ' + numero }",  # outra chave
+        "const aviso = 'evite o operador $where com dado do usuario: ' + motivo",  # só cita o operador
+        'db.c.find({"$where": "this.estoque > this.minimo"})',
+        "db.items.find({ $where: query })",  # variável solta: sem evidência, fica de fora (limitação documentada)
+    ],
+)
+def test_where_do_mongodb_constante_numerico_ou_que_nao_e_o_operador_nao_alerta(linha):
+    assert "nosql-where-dinamico" not in regras_que_casam(linha)
+
+
+def test_where_com_conversao_numerica_so_em_parte_ainda_alerta():
+    """Um Number() num pedaço não protege o outro: o texto concatenado sem conversão continua sendo injeção."""
+    assert "nosql-where-dinamico" in regras_que_casam("db.i.find({ $where: 'this.a == ' + Number(a) + ' && this.b == ' + b })")

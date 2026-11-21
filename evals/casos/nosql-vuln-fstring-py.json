@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "NoSQL injection",
+  "origem": "claude-nosql",
+  "nota": "f-string dentro do $where.",
+  "codigo": "db.pedidos.find({'$where': f\"this.pedido_id == '{pedido_id}'\"})"
+}

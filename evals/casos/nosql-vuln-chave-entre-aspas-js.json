@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "NoSQL injection",
+  "origem": "claude-nosql",
+  "nota": "A chave $where entre aspas.",
+  "codigo": "db.itens.find({ \"$where\": 'this.dono == ' + dono })"
+}
