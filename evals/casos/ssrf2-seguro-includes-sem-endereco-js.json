@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf2",
+  "nota": "includes na url, mas procurando um parâmetro de rastreio.",
+  "codigo": "if (url.includes('utm_source')) limparParametros(url)"
+}

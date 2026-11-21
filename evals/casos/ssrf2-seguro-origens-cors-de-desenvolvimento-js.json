@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf2",
+  "nota": "Lista de origens de desenvolvimento para CORS: tem localhost e 127.0.0.1, mas nenhuma faixa privada, e não é trava de saída.",
+  "codigo": "const ORIGENS_DE_DEV = ['http://localhost:3000', 'http://127.0.0.1:3000']"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ssrf2",
+  "nota": "Bloqueia só alguns prefixos: 172.16.x.x, 0.0.0.0, [::1] e 100.64.x.x passam.",
+  "codigo": "function urlPermitida(u) {\n  const host = new URL(u).hostname\n  if (host === 'localhost' || host.startsWith('127.') || host.startsWith('10.') || host.startsWith('192.168.')) return false\n  return true\n}"
+}

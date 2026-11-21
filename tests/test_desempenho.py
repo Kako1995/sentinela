@@ -86,3 +86,16 @@ def test_regra_de_senha_curta_nao_trava_com_muitas_ocorrencias_na_mesma_linha():
     duracao = time.perf_counter() - inicio
 
     assert duracao < LIMITE_SEGUNDOS, f"demorou {duracao:.2f}s"
+
+
+def test_regra_de_ssrf_por_prefixo_nao_trava_com_muitos_enderecos_na_mesma_linha():
+    """A regra procura dois endereços na mesma linha com `[^\\n]{0,100}?` no meio: o pior caso é uma linha
+    cheia de candidatos que nunca fecha o par."""
+    linha = "x = ['10.', '" + "10.5', '" * 180  # vários "10." seguidos de decimais, perto do limite de tamanho
+    assert len(linha) < TAMANHO_MAXIMO_LINHA
+
+    inicio = time.perf_counter()
+    analisar([TrechoArquivo(arquivo="a.js", linhas_adicionadas=[LinhaAdicionada(1, linha)])])
+    duracao = time.perf_counter() - inicio
+
+    assert duracao < LIMITE_SEGUNDOS, f"demorou {duracao:.2f}s"

@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf2",
+  "nota": "Marca tráfego interno para métricas: não bloqueia requisição nenhuma (receptor é um IP, não um host de destino).",
+  "codigo": "if (ip.startsWith('10.')) etiqueta = 'rede interna'"
+}

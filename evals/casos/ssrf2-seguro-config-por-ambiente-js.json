@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf2",
+  "nota": "Escolhe a URL base conforme o ambiente: compara 'localhost', mas não é uma trava.",
+  "codigo": "const base = host === 'localhost' ? 'http://localhost:3000' : 'https://api.exemplo.com'"
+}
