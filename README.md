@@ -6,6 +6,8 @@ Revisor de segurança para diffs de código, baseado em regras e em análise de 
 
 ## Como é a saída
 
+![Terminal mostrando o Sentinela revisando um diff: acha um segredo no código e um XSS, depois roda de novo com --nota](docs/demo.gif)
+
 ```
 $ git diff main | sentinela revisar -
 
