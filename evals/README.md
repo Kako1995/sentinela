@@ -24,7 +24,7 @@ Crie um arquivo `.json` em `casos/` (o nome do arquivo vira o id do caso):
 ```
 
 - Caso seguro: `"vulneravel": false` e `"categoria_esperada": null`.
-- Categorias: SQL injection, XSS, segredo no código, path traversal, desserialização insegura, SSRF, injeção de comando, falta de autorização, criptografia fraca, exposição de rede.
+- Categorias: SQL injection, XSS, segredo no código, path traversal, desserialização insegura, SSRF, injeção de comando, falta de autorização, criptografia fraca, exposição de rede, autenticação fraca.
 - `"origem"` separa os números por quem escreveu o caso: `claude` (30 iniciais), `claude-dificil` (10 difíceis) e `carlos` (casos escritos à mão por você).
 - `"nota"` é opcional: por que o caso é difícil.
 - `"arquivo"` é opcional: o nome do arquivo de verdade, quando ele importa para a análise (ex.: `app/api/x/route.ts` é um route handler do Next.js; sem isso o arquivo se chama como o caso).

@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cfaccess",
+  "nota": "Teste em Python que manda o cabeçalho para a aplicação.",
+  "codigo": "resposta = client.get(\"/eu\", headers={\"Cf-Access-Authenticated-User-Email\": \"teste@exemplo.com\"})"
+}

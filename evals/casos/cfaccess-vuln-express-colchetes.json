@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "autenticação fraca",
+  "origem": "claude-cfaccess",
+  "nota": "Mesma coisa no Express, lendo com colchetes.",
+  "codigo": "app.use((req, res, next) => {\n  const email = req.headers['cf-access-authenticated-user-email']\n  if (!email) return res.status(401).end()\n  req.user = { email }\n  next()\n})"
+}

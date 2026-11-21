@@ -27,7 +27,12 @@ class Regra:
     gatilho: str | None = None
     # Pré-filtro barato: se esse texto não aparece em NENHUMA linha do arquivo, a regra nem roda
     # (a regra de `random` junta várias linhas e custaria tempo em todo arquivo que nunca sorteia nada).
-    gatilho_arquivo: str | None = None
+    # Compara sem diferenciar maiúsculas (nome de cabeçalho HTTP não diferencia). Aceita vários textos: basta um.
+    gatilho_arquivo: str | tuple[str, ...] | None = None
+    # Isenção POR ARQUIVO: se o arquivo inteiro casar com isto, a regra não roda nele (ex.: o arquivo que usa o
+    # cabeçalho do Cloudflare Access também verifica o JWT). Usa o conteúdo completo do arquivo quando há (varrer,
+    # --raiz); num diff sem --raiz só enxerga as linhas adicionadas.
+    excecao_arquivo: re.Pattern[str] | None = None
 
     def casa(self, texto: str, limite_inicio: int | None = None) -> bool:
         """`texto` é uma linha ou, em regras com janela, várias linhas juntas.
@@ -372,6 +377,42 @@ REGRAS: list[Regra] = [
         correcao=(
             "Resolva o nome para IP e confira a faixa com uma biblioteca (ipaddress em Python, ipaddr.js em Node: "
             "private, loopback, link-local), de preferência com uma lista de hosts permitidos, e revalide cada redirecionamento."
+        ),
+    ),
+    Regra(
+        id="cloudflare-access-sem-jwt",
+        categoria="autenticação fraca",
+        cwe="CWE-290",
+        severidade=Severity.media,
+        gatilho_arquivo=("cf-access-authenticated", "cf_access_authenticated"),
+        # LER o cabeçalho de e-mail do Cloudflare Access: get('X'), header('X'), ['X'] ou, no Django, 'HTTP_X' em
+        # META/environ. DEFINIR o cabeçalho (chave de objeto {'X': ...}, setHeader('X', v), ['X'] = v) é de teste
+        # ou de proxy e não conta. Os nomes de cabeçalho não diferenciam maiúsculas (a regra é case-insensitive).
+        padrao=_rei(
+            # `get('X')` e `get('X', padrão)` leem; `header('X')` lê, mas `res.header('X', valor)` (Express) ESCREVE,
+            # então header/getHeader só valem com um argumento.
+            r"""(?:\bget\s*\(\s*["'`]cf[-_]access[-_]authenticated[-_]user[-_]email["'`]\s*[,)]"""
+            r"""|\b(?:header|getheader|get_header)\s*\(\s*["'`]cf[-_]access[-_]authenticated[-_]user[-_]email["'`]\s*\)"""
+            r"""|\[\s*["'`]cf[-_]access[-_]authenticated[-_]user[-_]email["'`]\s*\](?!\s*=(?!=))"""
+            r"""|["'`]http_cf_access_authenticated_user_email["'`]\s*[,)\]](?!\s*=(?!=)))"""
+        ),
+        # O arquivo é considerado seguro se lê o Cf-Access-Jwt-Assertion E chama uma verificação de JWT de verdade
+        # (jose, jsonwebtoken, PyJWT, JWKS do Cloudflare), sem desligar a verificação de assinatura.
+        excecao_arquivo=re.compile(
+            r"(?is)\A(?=.*cf[-_]access[-_]jwt[-_]assertion)"
+            r"(?=.*(?:jwtVerify|jwt\.verify|createRemoteJWKSet|PyJWKClient|cdn-cgi/access/certs|verify_jwt|jwt\.decode\())"
+            r"(?!.*verify_signature[\"']?\s*:\s*False)"
+        ),
+        explicacao=(
+            "O e-mail do cabeçalho Cf-Access-Authenticated-User-Email é usado como identidade, mas este arquivo não "
+            "verifica o JWT assinado (Cf-Access-Jwt-Assertion). Quem alcança o servidor sem passar pelo Cloudflare "
+            "Access consegue forjar o cabeçalho e se passar por qualquer usuário."
+        ),
+        correcao=(
+            "Verifique o JWT de Cf-Access-Jwt-Assertion com a chave pública do seu time "
+            "(https://SEU-TIME.cloudflareaccess.com/cdn-cgi/access/certs), conferindo assinatura, iss, aud e exp, e use o "
+            "e-mail de DENTRO do JWT. Se a verificação já acontece em outro arquivo (um middleware), este alerta é falso "
+            "positivo, mas confira que o servidor só aceite tráfego vindo do Cloudflare."
         ),
     ),
     Regra(

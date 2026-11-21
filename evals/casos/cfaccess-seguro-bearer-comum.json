@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cfaccess",
+  "nota": "Autenticação normal por token Bearer verificado, sem cabeçalho do Cloudflare.",
+  "codigo": "const token = req.headers.get('authorization')?.replace('Bearer ', '')\nconst { payload } = await jwtVerify(token!, SEGREDO)"
+}

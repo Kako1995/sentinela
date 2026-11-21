@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cfaccess",
+  "nota": "Um proxy de desenvolvimento ESCREVE o cabeçalho para simular o Access.",
+  "codigo": "proxyReq.setHeader('cf-access-authenticated-user-email', process.env.DEV_EMAIL)"
+}

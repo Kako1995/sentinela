@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "autenticação fraca",
+  "origem": "claude-cfaccess",
+  "nota": "Django expõe o cabeçalho em request.META com o prefixo HTTP_.",
+  "codigo": "def usuario_atual(request):\n    email = request.META.get(\"HTTP_CF_ACCESS_AUTHENTICATED_USER_EMAIL\")\n    return Usuario.objects.get(email=email)"
+}

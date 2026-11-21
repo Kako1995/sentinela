@@ -99,3 +99,22 @@ def test_regra_de_ssrf_por_prefixo_nao_trava_com_muitos_enderecos_na_mesma_linha
     duracao = time.perf_counter() - inicio
 
     assert duracao < LIMITE_SEGUNDOS, f"demorou {duracao:.2f}s"
+
+
+def test_isencao_por_arquivo_do_cloudflare_access_nao_trava_em_arquivo_grande():
+    """A isenção usa lookahead com `.*` sobre o arquivo inteiro: o pior caso é um arquivo grande que menciona o
+    cabeçalho de e-mail, tem muitos 'cf-access-jwt' soltos e nenhuma verificação."""
+    corpo = "x = 1  # cf-access-jwt-assertion\n" * 25_000  # ~800 KB, abaixo do TAMANHO_MAXIMO de arquivo
+    linhas = ["email = req.headers.get('cf-access-authenticated-user-email')"] + corpo.splitlines()
+    trecho = TrechoArquivo(
+        arquivo="a.py",
+        linhas_adicionadas=[LinhaAdicionada(i + 1, t) for i, t in enumerate(linhas)],
+        fonte="\n".join(linhas),
+    )
+
+    inicio = time.perf_counter()
+    achados = analisar([trecho])
+    duracao = time.perf_counter() - inicio
+
+    assert duracao < 5 * LIMITE_SEGUNDOS, f"demorou {duracao:.2f}s num arquivo de {len(trecho.fonte)} caracteres"
+    assert [a.regra for a in achados if a.regra == "cloudflare-access-sem-jwt"] == ["cloudflare-access-sem-jwt"]

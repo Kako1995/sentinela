@@ -462,3 +462,84 @@ def test_ssrf_trava_por_prefixo_dispara(linha):
 )
 def test_ssrf_trava_por_prefixo_nao_dispara_em_uso_inocente(linha):
     assert "ssrf-trava-por-prefixo" not in regras_que_casam(linha)
+
+
+# --- Cloudflare Access: usar o e-mail do cabeçalho sem verificar o JWT ---
+
+
+def _achados_cf(*linhas: str, fonte: str | None = None) -> list[str]:
+    t = trecho(*linhas)
+    t.fonte = fonte
+    return [a.regra for a in analisar([t]) if a.regra == "cloudflare-access-sem-jwt"]
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "const email = req.headers.get('cf-access-authenticated-user-email')",
+        "const email = req.headers['Cf-Access-Authenticated-User-Email']",
+        'email = request.headers.get("Cf-Access-Authenticated-User-Email", "")',
+        'email = request.META.get("HTTP_CF_ACCESS_AUTHENTICATED_USER_EMAIL")',
+        'email = request.META["HTTP_CF_ACCESS_AUTHENTICATED_USER_EMAIL"]',
+        "const quem = req.header('CF-Access-Authenticated-User-Email')",
+        'email := r.Header.Get("Cf-Access-Authenticated-User-Email")',
+        "const e = req.headers.get('CF-ACCESS-AUTHENTICATED-USER-EMAIL')",  # a caixa não importa
+    ],
+)
+def test_cloudflare_access_le_o_email_sem_verificar_jwt_alerta(linha):
+    assert _achados_cf(linha) == ["cloudflare-access-sem-jwt"]
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "headers: { 'cf-access-authenticated-user-email': 'teste@exemplo.com' },",  # define (teste)
+        'client.get("/eu", headers={"Cf-Access-Authenticated-User-Email": "a@b.c"})',
+        "proxyReq.setHeader('cf-access-authenticated-user-email', process.env.DEV_EMAIL)",
+        "res.header('cf-access-authenticated-user-email', 'a@b.c')",  # Express: com 2 argumentos ESCREVE
+        "req.headers['cf-access-authenticated-user-email'] = 'dev@exemplo.com'",
+        "headers.set('cf-access-authenticated-user-email', valor)",
+        "const ip = req.headers.get('cf-connecting-ip')",  # outro cabeçalho
+        "// const email = req.headers.get('cf-access-authenticated-user-email')",  # comentário
+    ],
+)
+def test_cloudflare_access_definir_o_cabecalho_ou_outro_assunto_nao_alerta(linha):
+    assert _achados_cf(linha) == []
+
+
+def test_cloudflare_access_arquivo_que_verifica_o_jwt_nao_alerta():
+    assert _achados_cf(
+        "const email = req.headers.get('cf-access-authenticated-user-email')",
+        "const token = req.headers.get('cf-access-jwt-assertion')",
+        "const { payload } = await jwtVerify(token, JWKS, { issuer: ISSUER, audience: AUD })",
+    ) == []
+
+
+@pytest.mark.parametrize(
+    "linhas",
+    [
+        # só confere que o JWT existe, nunca verifica
+        ["const email = req.headers.get('cf-access-authenticated-user-email')", "const jwt = req.headers.get('cf-access-jwt-assertion')", "if (!jwt) return deny()"],
+        # chama jwtVerify, mas de outro token (não leu o Cf-Access-Jwt-Assertion)
+        ["const email = req.headers.get('cf-access-authenticated-user-email')", "await jwtVerify(outroToken, SEGREDO)"],
+        # lê o assertion mas decodifica com a verificação de assinatura DESLIGADA
+        ["email = request.headers.get('Cf-Access-Authenticated-User-Email')", "t = request.headers.get('Cf-Access-Jwt-Assertion')", "d = jwt.decode(t, options={'verify_signature': False})"],
+    ],
+)
+def test_cloudflare_access_jwt_lido_mas_nao_verificado_continua_alertando(linhas):
+    assert _achados_cf(*linhas) == ["cloudflare-access-sem-jwt"]
+
+
+def test_cloudflare_access_usa_o_arquivo_inteiro_quando_o_diff_so_traz_a_linha_nova():
+    """Num diff com --raiz o scanner recebe o arquivo completo em `fonte`: a verificação do JWT que já existia no
+    arquivo (e não está nas linhas adicionadas) tem que valer."""
+    arquivo = (
+        "import { jwtVerify } from 'jose'\n"
+        "const token = req.headers.get('cf-access-jwt-assertion')\n"
+        "await jwtVerify(token, JWKS, { issuer: ISSUER, audience: AUD })\n"
+        "const email = req.headers.get('cf-access-authenticated-user-email')\n"
+    )
+    linha_nova = "const email = req.headers.get('cf-access-authenticated-user-email')"
+
+    assert _achados_cf(linha_nova, fonte=arquivo) == []
+    assert _achados_cf(linha_nova, fonte=None) == ["cloudflare-access-sem-jwt"]  # sem o arquivo, só vê a linha

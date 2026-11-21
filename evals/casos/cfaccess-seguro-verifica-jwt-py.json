@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cfaccess",
+  "nota": "Python: valida o JWT com PyJWKClient antes de usar o e-mail.",
+  "codigo": "import jwt\nfrom jwt import PyJWKClient\n\nCERTS = PyJWKClient(f\"https://{TIME}.cloudflareaccess.com/cdn-cgi/access/certs\")\n\ndef usuario_do_access(request):\n    email = request.headers.get(\"Cf-Access-Authenticated-User-Email\")\n    token = request.headers.get(\"Cf-Access-Jwt-Assertion\")\n    chave = CERTS.get_signing_key_from_jwt(token)\n    dados = jwt.decode(token, chave.key, algorithms=[\"RS256\"], audience=AUD, issuer=ISSUER)\n    return email if dados[\"email\"] == email else None"
+}

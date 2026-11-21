@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cfaccess",
+  "nota": "Outro cabeçalho do Cloudflare (IP do cliente), que é assunto de outra regra.",
+  "codigo": "const ip = req.headers.get('cf-connecting-ip')"
+}
