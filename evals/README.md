@@ -38,3 +38,20 @@ Por caso, não por linha. Vulnerável é a classe positiva.
 - **FP:** caso seguro em que ele achou algo.
 - **TN:** caso seguro sem achados.
 - **Precisão** = TP / (TP + FP). **Recall** = TP / (TP + FN).
+
+## Trava de regressão (baseline)
+
+`baseline.json` guarda o veredito (TP, TN, FP ou FN) de cada caso. O CI e o `pytest` comparam a rodada de agora com ele:
+
+```bash
+python evals/run_evals.py --verificar            # compara com a baseline
+python evals/run_evals.py --atualizar-baseline   # grava a rodada de agora como a nova baseline
+```
+
+| Código de saída | Significa | Reprova o CI? |
+|---|---|---|
+| 0 | Nenhum caso mudou. | não |
+| 1 | **Regressão**: um acerto (TP/TN) virou erro (FN/FP), ou um caso sumiu (apagado ou renomeado). | **sim** |
+| 2 | Nada piorou, mas a baseline está **desatualizada**: melhorias (erro que virou acerto), casos novos, ou rótulo que mudou. | **sim** |
+
+O código 2 reprova de propósito: assim `baseline.json` é sempre a fotografia de hoje, e o diff dela em cada PR mostra exatamente quais casos mudaram de veredito. Um caso que já era erro e continua erro (uma fraqueza conhecida e documentada) **não** reprova. Quando uma mudança de regra piora um caso de propósito, justifique no PR e atualize a baseline.

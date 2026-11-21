@@ -274,7 +274,10 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pytest
 python evals/run_evals.py --rotulo minha-rodada   # mede precisão e recall (veja evals/README.md)
+python evals/run_evals.py --verificar             # a trava de regressão do CI, rodando na sua máquina
 ```
+
+**CI (`.github/workflows/testes.yml`).** Todo pull request e todo push na `main` rodam o `pytest` (em Python 3.10 e 3.12) e os evals com uma **trava de regressão**: cada um dos casos é comparado com o veredito que tinha em `evals/baseline.json`, e **um acerto que vira erro, ou um caso que some, reprova o PR**. Casos novos e melhorias também pedem para atualizar a baseline (`python evals/run_evals.py --atualizar-baseline`), de modo que o diff dela mostre, caso a caso, o que a mudança fez com as métricas. É a regra "nenhum acerto anterior pode se perder", que antes dependia de eu lembrar de conferir, agora automática.
 
 Estrutura: `src/sentinela/` (`diff.py` lê o diff, `varredura.py` percorre pastas, `regras.py` define as regras por linha, `ast_python.py` e `ast_js.py` fazem a análise por AST, `scanner.py` junta tudo, `report.py` formata a saída, `avaliacao.py` calcula as métricas), `tests/`, `evals/` e `action.yml`.
 

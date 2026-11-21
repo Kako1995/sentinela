@@ -13,7 +13,7 @@ Como os números são definidos (nível de caso, não de linha):
 
 import json
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
@@ -116,3 +116,70 @@ def recall_por_categoria(resultados: list[ResultadoCaso]) -> dict[str, tuple[int
             tabela[r.caso.categoria_esperada][1] += 1
             tabela[r.caso.categoria_esperada][0] += r.veredito == "TP"
     return {categoria: (acertos, total) for categoria, (acertos, total) in sorted(tabela.items())}
+
+
+# --- trava de regressão: cada caso é comparado com o veredito que ele tinha na baseline versionada ---
+
+ACERTOS = {"TP", "TN"}
+
+
+def veredito_por_caso(resultados: list[ResultadoCaso]) -> dict[str, str]:
+    return {r.caso.id: r.veredito for r in resultados}
+
+
+@dataclass
+class DiferencaBaseline:
+    """O que mudou entre a baseline (evals/baseline.json) e a rodada de agora, caso a caso."""
+
+    regressoes: list[tuple[str, str, str]] = field(default_factory=list)  # (id, antes, agora): acerto virou erro
+    removidos: list[str] = field(default_factory=list)  # estava na baseline e sumiu (apagado ou renomeado)
+    melhorias: list[tuple[str, str, str]] = field(default_factory=list)  # erro virou acerto
+    novos: list[tuple[str, str]] = field(default_factory=list)  # caso que ainda não estava na baseline
+    outras: list[tuple[str, str, str]] = field(default_factory=list)  # acerto <-> acerto (ex.: rótulo mudou)
+
+    @property
+    def quebrou(self) -> bool:
+        """Piorou algo que já funcionava. É o que reprova o CI."""
+        return bool(self.regressoes or self.removidos)
+
+    @property
+    def desatualizada(self) -> bool:
+        """Nada piorou, mas a baseline não reflete a rodada: melhorias, casos novos ou rótulos que mudaram.
+        Também reprova o CI, para que a baseline seja sempre a fotografia de hoje e a mudança apareça no diff."""
+        return bool(self.melhorias or self.novos or self.outras)
+
+
+def comparar_com_baseline(baseline: dict[str, str], atual: dict[str, str]) -> DiferencaBaseline:
+    d = DiferencaBaseline()
+    for id_ in sorted(baseline):
+        antes = baseline[id_]
+        if id_ not in atual:
+            d.removidos.append(id_)
+            continue
+        agora = atual[id_]
+        if antes == agora:
+            continue
+        if antes in ACERTOS and agora not in ACERTOS:
+            d.regressoes.append((id_, antes, agora))
+        elif antes not in ACERTOS and agora in ACERTOS:
+            d.melhorias.append((id_, antes, agora))
+        else:
+            d.outras.append((id_, antes, agora))
+    d.novos = [(id_, atual[id_]) for id_ in sorted(atual) if id_ not in baseline]
+    return d
+
+
+def serializar_baseline(resultados: list[ResultadoCaso]) -> str:
+    """Texto de evals/baseline.json: só o veredito de cada caso, ordenado por id e SEM data nem commit, para que
+    o diff entre duas versões mostre apenas o que mudou de verdade."""
+    m = calcular_metricas(resultados)
+    corpo = {
+        "aviso": "Gerado por `python evals/run_evals.py --atualizar-baseline`. Não edite à mão.",
+        "metricas": {"casos": len(resultados), "tp": m.tp, "fp": m.fp, "fn": m.fn, "tn": m.tn},
+        "casos": dict(sorted(veredito_por_caso(resultados).items())),
+    }
+    return json.dumps(corpo, ensure_ascii=False, indent=2) + "\n"
+
+
+def ler_baseline(texto: str) -> dict[str, str]:
+    return dict(json.loads(texto)["casos"])
