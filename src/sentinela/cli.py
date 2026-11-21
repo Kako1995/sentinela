@@ -12,6 +12,7 @@ from sentinela.report import (
     Formato,
     formatar_json,
     formatar_markdown,
+    formatar_sarif,
     imprimir_terminal,
     tem_bloqueante,
 )
@@ -21,7 +22,10 @@ from sentinela.varredura import varrer as varrer_pasta
 
 app = typer.Typer(help="Sentinela: revisor de segurança para diffs de código.")
 
-OPCAO_FORMATO = typer.Option(Formato.terminal, "--formato", "-f", help="Formato do relatório.")
+OPCAO_FORMATO = typer.Option(
+    Formato.terminal, "--formato", "-f",
+    help="Formato do relatório: terminal, markdown, json ou sarif (pra GitHub Code Scanning).",
+)
 OPCAO_NOTA = typer.Option(
     False, "--nota",
     help="Mostra uma nota de 0 a 10, com a fórmula e o aviso de limitação junto (não é nota de segurança).",
@@ -60,6 +64,8 @@ def _emitir(achados: list[Finding], formato: Formato, nota: bool = False) -> Non
         typer.echo(formatar_json(achados, nota))
     elif formato is Formato.markdown:
         typer.echo(formatar_markdown(achados, nota))
+    elif formato is Formato.sarif:
+        typer.echo(formatar_sarif(achados))  # --nota não se aplica: SARIF é lido por ferramenta, não por gente
     else:
         imprimir_terminal(achados, Console(), nota)
 

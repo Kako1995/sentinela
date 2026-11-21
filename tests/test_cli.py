@@ -149,3 +149,50 @@ def test_nota_markdown_sem_achados_tambem_mostra():
     resultado = revisar("-", "--formato", "markdown", "--nota", entrada=DIFF_SEGURO)
 
     assert "**Nota do Sentinela: 10.0/10**" in resultado.output
+
+
+# ---------- --formato sarif ----------
+
+
+def test_sarif_e_json_valido_no_schema_2_1_0():
+    resultado = revisar(str(EXEMPLOS / "multiplos.diff"), "--formato", "sarif")
+
+    sarif = json.loads(resultado.output)
+    assert sarif["version"] == "2.1.0"
+    assert sarif["$schema"].endswith("sarif-schema-2.1.0.json")
+    assert resultado.exit_code == 1  # tem achado alto: mesmo código de saída dos outros formatos
+
+
+def test_sarif_tem_um_result_por_achado_com_local_e_nivel():
+    resultado = revisar(str(EXEMPLOS / "multiplos.diff"), "--formato", "sarif")
+
+    results = json.loads(resultado.output)["runs"][0]["results"]
+    assert len(results) == 2
+    alta = next(r for r in results if r["ruleId"] == "segredo-atribuicao")
+    assert alta["level"] == "error"  # severidade alta
+    assert alta["locations"][0]["physicalLocation"]["artifactLocation"]["uri"] == "config.py"
+    assert alta["locations"][0]["physicalLocation"]["region"]["startLine"] == 2
+    media = next(r for r in results if r["ruleId"] == "xss-saida-sem-escape")
+    assert media["level"] == "warning"  # severidade média
+
+
+def test_sarif_lista_cada_regra_uma_vez_so_nas_rules():
+    resultado = revisar(str(EXEMPLOS / "multiplos.diff"), "--formato", "sarif")
+
+    regras = json.loads(resultado.output)["runs"][0]["tool"]["driver"]["rules"]
+    assert len(regras) == 2
+    assert {r["id"] for r in regras} == {"segredo-atribuicao", "xss-saida-sem-escape"}
+
+
+def test_sarif_sem_achados_e_valido_e_vazio():
+    resultado = revisar("-", "--formato", "sarif", entrada=DIFF_SEGURO)
+
+    sarif = json.loads(resultado.output)
+    assert sarif["runs"][0]["results"] == []
+    assert resultado.exit_code == 0
+
+
+def test_sarif_ignora_a_flag_nota():
+    resultado = revisar("-", "--formato", "sarif", "--nota", entrada=DIFF_SEGURO)
+
+    assert "nota" not in json.loads(resultado.output)  # SARIF é pra ferramenta, não pra gente ler
