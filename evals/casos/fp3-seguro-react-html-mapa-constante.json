@@ -1,0 +1,8 @@
+{
+  "linguagem": "tsx",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-fp3",
+  "nota": "O __html vem de um mapa FIXO de SVGs do próprio código: quem escolhe a chave só escolhe entre constantes.",
+  "codigo": "const ICONES: Record<string, string> = {\n  casa: '<svg viewBox=\"0 0 8 8\"><path d=\"M0 4l4-4 4 4\"/></svg>',\n  lupa: '<svg viewBox=\"0 0 8 8\"><circle cx=\"3\" cy=\"3\" r=\"3\"/></svg>',\n}\nexport function Icone({ nome }: { nome: string }) {\n  return <span dangerouslySetInnerHTML={{ __html: ICONES[nome] }} />\n}"
+}

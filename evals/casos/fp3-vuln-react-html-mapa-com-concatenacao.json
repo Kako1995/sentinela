@@ -1,0 +1,8 @@
+{
+  "linguagem": "tsx",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-fp3",
+  "nota": "O mapa é fixo, mas a bio do usuário é concatenada ao HTML.",
+  "codigo": "const ICONES: Record<string, string> = {\n  casa: '<svg viewBox=\"0 0 8 8\"><path d=\"M0 4l4-4 4 4\"/></svg>',\n  lupa: '<svg viewBox=\"0 0 8 8\"><circle cx=\"3\" cy=\"3\" r=\"3\"/></svg>',\n}\nexport function Icone({ nome, usuario }: any) {\n  return <div dangerouslySetInnerHTML={{ __html: ICONES[nome] + usuario.bio }} />\n}"
+}

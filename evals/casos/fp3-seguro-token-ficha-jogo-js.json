@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-fp3",
+  "nota": "'token' aqui é a ficha de um jogo de tabuleiro, não uma credencial.",
+  "codigo": "const jogador = { nome: 'Ana', token: 'vermelho' }"
+}

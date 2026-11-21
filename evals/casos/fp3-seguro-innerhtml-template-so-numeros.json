@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-fp3",
+  "nota": "Texto fixo no template e só números formatados nos ${}.",
+  "codigo": "el.innerHTML = `<b>${preco.toFixed(2)}</b> de ${Math.round(maximo)}`"
+}

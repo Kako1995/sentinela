@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-fp3",
+  "nota": "Intl.NumberFormat().format() devolve número formatado (NaN se não for número).",
+  "codigo": "el.innerHTML = new Intl.NumberFormat('pt-BR').format(total)"
+}

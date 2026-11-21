@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-fp3",
+  "nota": "O receptor é explicitamente um Number(...), então toLocaleString devolve número formatado.",
+  "codigo": "el.innerHTML = Number(total).toLocaleString('pt-BR')"
+}

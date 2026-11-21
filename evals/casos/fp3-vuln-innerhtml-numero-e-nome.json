@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "XSS",
+  "origem": "claude-fp3",
+  "nota": "O número é inofensivo, mas o nome do usuário no mesmo template não é.",
+  "codigo": "el.innerHTML = `${n.toFixed(1)}% de ${usuario.nome}`"
+}

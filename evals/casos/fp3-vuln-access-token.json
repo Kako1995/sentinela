@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-fp3",
+  "nota": "O nome access_token é de credencial, mesmo com o valor só em minúsculas.",
+  "codigo": "const access_token = 'kjhgfdsapoiuytre'"
+}
