@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto",
+  "nota": "MD5 é rápido demais e sem sal: não serve para guardar senha.",
+  "codigo": "senha_hash = hashlib.md5(senha.encode()).hexdigest()\nusuario.senha = senha_hash"
+}

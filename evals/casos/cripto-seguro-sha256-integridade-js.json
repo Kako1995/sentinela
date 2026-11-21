@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cripto",
+  "nota": "SHA-256 para conferir integridade de arquivo não é o problema (não é senha).",
+  "codigo": "const digest = crypto.createHash('sha256').update(arquivo).digest('hex')\nreturn digest === esperado"
+}

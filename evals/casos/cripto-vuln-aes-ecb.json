@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto",
+  "nota": "Modo ECB cifra blocos iguais de forma igual e vaza o padrão dos dados.",
+  "codigo": "cipher = AES.new(chave, AES.MODE_ECB)\nreturn cipher.encrypt(pad(dados, 16))"
+}

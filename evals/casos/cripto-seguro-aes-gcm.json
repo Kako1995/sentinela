@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cripto",
+  "nota": "AES em modo GCM é cifra autenticada, o modo recomendado.",
+  "codigo": "cipher = AES.new(chave, AES.MODE_GCM)\ntexto_cifrado, tag = cipher.encrypt_and_digest(dados)"
+}

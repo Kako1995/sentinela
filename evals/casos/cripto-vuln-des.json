@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto",
+  "nota": "DES tem chave de 56 bits, quebrável por força bruta.",
+  "codigo": "from Crypto.Cipher import DES\ncipher = DES.new(chave, DES.MODE_CBC, iv)\ntexto_cifrado = cipher.encrypt(pad(dados, 8))"
+}

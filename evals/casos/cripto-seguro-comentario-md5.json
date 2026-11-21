@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cripto",
+  "nota": "A palavra md5 aparece só num comentário; o código usa argon2.",
+  "codigo": "# TODO: migrar o que sobrou de md5 para argon2\nsenha_hash = argon2.hash(senha)"
+}

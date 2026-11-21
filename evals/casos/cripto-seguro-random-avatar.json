@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cripto",
+  "nota": "`random` para escolher cor de avatar: não é segredo, então não é problema.",
+  "codigo": "import random\n\ndef cor_do_avatar():\n    return random.choice(CORES)"
+}
