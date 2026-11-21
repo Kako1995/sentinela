@@ -95,6 +95,20 @@ def test_scanner_ignora_comentarios():
     assert analisar([trecho("# h = hashlib.md5(a)", "// eval(x)", " * pickle.loads(x)")]) == []
 
 
+def test_comentario_sentinela_ignore_silencia_so_aquela_linha():
+    achados = analisar([trecho(
+        "h = hashlib.md5(a)  # sentinela: ignore",
+        "h2 = hashlib.md5(b)",
+    )])
+
+    assert len(achados) == 1
+    assert achados[0].linha == 2
+
+
+def test_comentario_sentinela_ignore_em_js_e_sem_distinguir_caixa():
+    assert analisar([trecho("eval(x)  // Sentinela: Ignore")]) == []
+
+
 def test_mesma_linha_pode_disparar_regras_diferentes():
     achados = analisar([trecho('os.system("curl " + url); requests.get(url, verify=False)')])
 

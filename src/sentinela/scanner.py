@@ -10,6 +10,9 @@ from sentinela.models import Finding
 from sentinela.regras import ABRE_TEMPLATE_SQL, REGRAS, Regra
 
 COMENTARIO = re.compile(r"^\s*(#|//|/\*|\*)")
+# Comentário na PRÓPRIA linha do achado (igual # noqa, // eslint-disable-line): silencia só ali,
+# sem precisar desativar a regra no projeto inteiro (isso é o .sentinela.toml, ver config.py).
+IGNORAR_LINHA = re.compile(r"(?:#|//)\s*sentinela\s*:\s*ignore\b", re.IGNORECASE)
 
 # Em arquivos Python/JS que a AST conseguiu analisar, estas regras por linha são dispensadas:
 # a AST cobre os mesmos casos com menos falsos positivos (sabe de onde vem o dado).
@@ -89,6 +92,7 @@ def analisar(
         adicionadas = {l.numero for l in trecho.linhas_adicionadas}
         linhas = trecho.linhas_adicionadas
         em_template_sql = _linhas_em_template_sql(linhas)
+        ignoradas = {l.numero for l in linhas if IGNORAR_LINHA.search(l.texto)}
         do_trecho: list[Finding] = []
 
         for i, linha in enumerate(linhas):
@@ -122,7 +126,7 @@ def analisar(
         do_trecho += [a for a in (resultado.achados if resultado else []) if a.linha in adicionadas]
         vistos: set[tuple[int, str]] = set()
         for a in sorted(do_trecho, key=lambda f: f.linha):  # sorted é estável: regras antes da AST
-            if (a.linha, a.categoria) not in vistos:
+            if a.linha not in ignoradas and (a.linha, a.categoria) not in vistos:
                 vistos.add((a.linha, a.categoria))
                 achados.append(a)
     if desativadas:
