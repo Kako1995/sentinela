@@ -60,6 +60,18 @@ def _rei(padrao: str) -> re.Pattern[str]:
     return re.compile(padrao, re.IGNORECASE)
 
 
+# Expressão JS que só pode produzir NÚMERO formatado, então não leva HTML para a página. Só entra o que
+# não existe em texto: toFixed/toPrecision/toExponential (só Number), Intl.NumberFormat().format() e
+# Math.*. toLocaleString() sozinho NÃO entra: numa string ele devolve a própria string, sem limpar nada
+# (só vale com receptor explicitamente numérico: Number(x).toLocaleString()).
+_NUMERO_JS = (
+    r"(?:(?:\w[\w.]*|\([^()]*\))\.(?:toFixed|toPrecision|toExponential)\([^()]*\)"
+    r"|new\s+Intl\.NumberFormat\([^()]*\)\.format\([^()]*\)"
+    r"|(?:Number|Math\.\w+)\([^()]*\)\.toLocaleString\([^()]*\)"
+    r"|(?:Number|parseInt|parseFloat|Math\.\w+)\([^()]*\))"
+)
+
+
 # Sinais de que uma string está sendo montada com valores de fora.
 # Constantes em MAIÚSCULAS (CAMPOS, TEMPO_LIMITE) não contam: são do próprio código, não do usuário.
 _INTERPOLACAO = (
@@ -99,6 +111,11 @@ REGRAS: list[Regra] = [
             # aqui o sinal é a forma de identificador, não a caixa da letra); (?-i:) porque isto
             # precisa ser estritamente minúsculo mesmo com o resto da regra sendo case-insensitive
             r"""|[:=]\s*["'](?-i:[a-z]+(?:[_:\-/.][a-z]+)+)["']\s*[;,)]?\s*$"""
+            # `token` COMEÇANDO o nome (token: 'vermelho', {"token": "azul"}) com valor só de letras minúsculas:
+            # é uma palavra (ficha de jogo, tipo de token), não uma credencial, que mistura maiúscula, número
+            # e símbolo. NÃO vale para api_token/access_token (o `_` antes de token quebra o (?<!\w)) nem para
+            # password/secret/senha, onde uma senha literal em minúsculas continua sendo um problema real.
+            r"""|(?<!\w)(?-i:token)\w*["']?\s*[:=]\s*["'](?-i:[a-z]{8,16})["']"""
         ),
         explicacao="Um valor que parece segredo (chave, token ou senha) está escrito direto no código.",
         correcao="Leia o valor de uma variável de ambiente ou de um gerenciador de segredos e revogue a chave exposta.",
@@ -160,6 +177,9 @@ REGRAS: list[Regra] = [
             r"""\b(escape|sanitize|bleach|DOMPurify)\b"""
             # innerHTML recebendo só um texto fixo (sem +, ${ ou {): não há dado variável
             r"""|\.innerHTML\s*\+?=\s*(?:"[^"$+{]*"|'[^'$+{]*'|`[^`$]*`)\s*;?\s*$"""
+            # innerHTML recebendo só número formatado: direto, ou num template em que TODO ${...} é número
+            rf"""|\.innerHTML\s*\+?=\s*{_NUMERO_JS}\s*;?\s*$"""
+            rf"""|\.innerHTML\s*\+?=\s*`(?:[^`$]|\$\{{\s*{_NUMERO_JS}\s*\}})*`\s*;?\s*$"""
         ),
         explicacao="HTML é montado ou inserido com valor variável sem escapar, abrindo espaço para script injetado.",
         correcao="Escape a saída (ou use textContent / template com autoescape) em vez de concatenar HTML.",
@@ -182,7 +202,9 @@ REGRAS: list[Regra] = [
             # __html: CONSTANTE (maiúsculas, sem mais nada antes do fechamento): é o mesmo raciocínio
             # de ${CONSTANTE} em sql-concatenacao. Case-sensitive de propósito: variável minúscula
             # (perfilCss) continua sendo tratada como possível dado do usuário.
-            r"|__html\s*:\s*[A-Z][A-Z0-9_]*\s*\}"
+            # Também vale pesquisar nessa constante por uma chave (ICONES[nome]): quem controla a chave só escolhe
+            # entre valores fixos. Com qualquer coisa depois (ICONES[nome] + bio), deixa de valer e alerta.
+            r"|__html\s*:\s*[A-Z][A-Z0-9_]*(?:\[[^\]\n]*\])?\s*\}"
         ),
         explicacao="dangerouslySetInnerHTML recebe conteúdo variável sem sanitizar, abrindo espaço para script injetado.",
         correcao="Sanitize com uma biblioteca (DOMPurify) ou renderize como texto/JSX em vez de HTML bruto.",
