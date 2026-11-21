@@ -161,17 +161,28 @@ def test_cli_varrer_le_sentinela_toml_desativa_regra_e_ignora_caminho(tmp_path):
         {
             "app/db.py": VULNERAVEL,
             "migrations/antiga.py": VULNERAVEL,
-            ".sentinela.toml": '[regras]\ndesativar = ["sql-concatenacao"]\n\n[varrer]\nignorar = ["migrations/"]\n',
+            ".sentinela.toml": '[regras]\ndesativar = ["sql-concatenacao", "ast-sql-concatenacao"]\n\n[varrer]\nignorar = ["migrations/"]\n',
         },
     )
 
     r = runner.invoke(app, ["varrer", str(tmp_path), "-f", "json"])
 
     dados = json.loads(r.stdout)
-    assert dados["achados"] == []  # a única regra que pegaria VULNERAVEL está desativada
+    assert dados["achados"] == []  # as DUAS regras que pegam VULNERAVEL (por linha e AST) estão desativadas
     assert r.exit_code == 0
     # migrations/ ficou fora da contagem de arquivos analisados (1, não 2)
     assert "1 arquivo(s) analisado(s)." in r.output
+
+
+def test_cli_varrer_desativar_so_uma_das_duas_regras_nao_esconde_o_achado_da_outra(tmp_path):
+    """Desativar uma regra desliga SÓ ela. O código VULNERAVEL é pego por `sql-concatenacao` (por linha) e por
+    `ast-sql-concatenacao` (AST); antes, desativar a primeira apagava também o achado da segunda por acidente
+    (a deduplicação vinha antes da desativação), e agora o alerta da regra que continua ligada aparece."""
+    criar(tmp_path, {"app/db.py": VULNERAVEL, ".sentinela.toml": '[regras]\ndesativar = ["sql-concatenacao"]\n'})
+
+    r = runner.invoke(app, ["varrer", str(tmp_path), "-f", "json"])
+
+    assert [a["regra"] for a in json.loads(r.stdout)["achados"]] == ["ast-sql-concatenacao"]
 
 
 def test_cli_varrer_sentinela_toml_invalido_avisa_e_roda_com_padrao(tmp_path):

@@ -10,6 +10,9 @@ class Severity(str, Enum):
     critica = "critica"
 
 
+# Da menos para a mais grave: quando duas regras casam a mesma linha e categoria, vale a de maior posição aqui.
+ORDEM_SEVERIDADE = {Severity.baixa: 0, Severity.media: 1, Severity.alta: 2, Severity.critica: 3}
+
 # Achados nessas severidades fazem o comando sair com código 1 (e falhar o CI).
 BLOQUEANTES = {Severity.alta, Severity.critica}
 

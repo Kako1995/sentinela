@@ -116,6 +116,8 @@ ignorar = ["migrations/", "*.generated.ts"]
 
 Sem o arquivo, ou com algum problema nele (sintaxe inválida, campo no formato errado), o Sentinela roda do jeito de sempre — nada fica desativado — e avisa o motivo no terminal. O próprio arquivo `.sentinela.toml` não entra na varredura.
 
+**Desativar uma regra desliga só ela.** Algumas situações são pegas por duas regras ao mesmo tempo (por exemplo, SQL montado por concatenação em Python é pego por `sql-concatenacao`, por linha, e por `ast-sql-concatenacao`, pela AST), e o relatório mostra um alerta só. Se você desativar só uma das duas, o alerta da outra, que continua ligada, aparece, com o id dela. Para silenciar o assunto inteiro, desative as duas.
+
 Pra silenciar só **uma linha** (em vez da regra inteira no projeto), um comentário nela mesma, igual `# noqa` ou `// eslint-disable-line`:
 
 ```python
