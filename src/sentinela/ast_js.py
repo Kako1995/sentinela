@@ -55,7 +55,7 @@ OBJETOS_ROTEADOR = {"app", "router", "server", "api", "routes"}
 TAG_HTML = re.compile(r"<(?:a|b|i|p|br|div|span|h[1-6]|ul|ol|li|table|tr|td|th|img|input|form|script|style|button|label|strong|em|pre|code|iframe|body|html|head|title)\b")
 HOST_FIXO = re.compile(r"^https?://[^/?#${}\s]+[/?#]")
 AUTENTICACAO = re.compile(
-    # requireMaster(), assertAdmin(), ensureLoggedIn(): helpers que exigem login/permissão (maiúscula depois do prefixo,
+    # requireLogin(), assertAdmin(), ensureLoggedIn(): helpers que exigem login/permissão (maiúscula depois do prefixo,
     # para não casar `required` nem `requestInvoice`)
     r"(?-i:\b(?:require|assert|ensure)[A-Z]\w*)|(?i:\bauth\b|\bauth\(|authenticat|authoriz|isauth|requireauth|withauth|getauth|session|getuser|currentuser"
     r"|requireuser|passport|jwt|verifytoken|\btoken\b|login|permission|\broles?\b|guard|protect|createclient"

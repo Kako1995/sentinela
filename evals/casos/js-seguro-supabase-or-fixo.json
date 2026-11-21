@@ -4,5 +4,5 @@
   "categoria_esperada": null,
   "origem": "claude-js",
   "nota": "O filtro do .or() é um texto fixo.",
-  "codigo": "const { data } = await supabase.from('consultas').select('*').or('status.eq.ativa,status.eq.pendente')"
+  "codigo": "const { data } = await supabase.from('pedidos').select('*').or('status.eq.ativa,status.eq.pendente')"
 }
