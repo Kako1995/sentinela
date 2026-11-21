@@ -53,7 +53,31 @@ Este item era o oposto dos anteriores (aumentar detecção em vez de cortar alar
 
 ## Recall por categoria (atual)
 
-Recall por categoria (255 casos): SQL injection 100%, SSRF 100%, autenticação fraca 100%, XSS 100%, injeção de comando 100%, exposição de rede 100%, criptografia fraca 100%, falta de autorização 92%, path traversal 94%, segredo no código 93%, desserialização 75%.
+Recall por categoria (276 casos): SQL injection 100%, SSRF 100%, autenticação fraca 100%, XSS 100%, injeção de comando 100%, exposição de rede 100%, criptografia fraca 100%, segredo no código 94%, path traversal 94%, falta de autorização 92%, desserialização 75%.
+
+## Evidência independente 5: cinco projetos públicos de JavaScript e TypeScript (em andamento)
+
+Depois da v0.2.0, rodei o Sentinela em 5 projetos públicos, lendo cada alerta, em duas famílias: **apps feitos de propósito vulneráveis** (para ter um gabarito do que ele deveria achar) e **apps normais** (para medir a precisão). Só leitura, nada foi enviado aos repositórios.
+
+| Projeto | Tipo | Alertas |
+|---|---|---:|
+| OWASP NodeGoat (JS) | vulnerável de propósito | 10 |
+| Juice Shop (TS) | vulnerável de propósito | 176 |
+| hackathon-starter (JS, Express) | app real | 10 |
+| nextjs-subscription-payments (TS) | app real | 0 |
+| next-learn (TS, tutorial do Next.js) | app real | 10 |
+
+**Precisão: pior do que os evals.** Nos 3 apps reais (20 alertas): 9 falsos positivos claros, 6 de baixo risco em contexto e 5 válidos (3 server actions sem verificação de autorização e 2 senhas de dados de exemplo). Entre os alertas de severidade alta e crítica, **só 2 de 11 eram válidos**. No Juice Shop, **115 dos 176 alertas (65%) vinham de testes (`*.spec.ts`) e de JSON de tradução**.
+
+**Recall: o que ele deixa passar.** No Juice Shop, das falhas que verifiquei no código ele achou 8 (SQL injection no login e na busca, `eval`, SSRF, leitura de arquivo, MD5 e chave privada do JWT, `yaml.load`) e **perdeu cerca de 10 lugares**: `$where` do MongoDB com dado do usuário (3), `bypassSecurityTrustHtml` do Angular (5 arquivos), redirecionamento aberto e execução de código em `vm`. No NodeGoat perdeu uma SSRF por não reconhecer a biblioteca `needle`. A maioria das falhas do NodeGoat é de categorias que o Sentinela **não tem** (CSRF, configuração insegura, autenticação, IDOR). A amostra de falhas foi escolhida por mim, não é um gabarito completo.
+
+**O que já foi corrigido por causa disso**
+- `varrer` passou a ignorar por padrão **testes e arquivos de tradução** (PR #26). Em 13 alvos reais: 1976 → 1619 alertas; 357 sumiram, todos em teste ou tradução, e nenhum apareceu. Juice Shop: 342 → 61.
+- **Seis falsos positivos de regra** (este conjunto de mudanças): `tokenURL: 'https://...'` do OAuth lido como token; `#{chave}` e `{{chave}}` de template; `sql<User[]>` com o tipo do TypeScript; `innerHTML === valor`, uma comparação lida como atribuição (**erro real na expressão da regra**); lista de redes em CIDR (Terraform) lida como trava de SSRF; `sk-xxxx` de `.env.example`; e endereço de contrato de blockchain. Escrevi 21 casos antes (13 que reproduziam o problema, 8 que precisam continuar alertando, como um webhook com segredo no caminho e uma chave privada `0x` de 64 hex). Precisão dos casos novos: 89,9% antes, **99,2% depois**; 13 falsos positivos viraram acerto, nenhum acerto antigo se perdeu. Em código real: **14 alertas sumiram, 0 apareceram**; li os 14 e todos eram falsos positivos.
+
+**Ainda aberto:** regras novas com evidência real (Angular `bypassSecurityTrustHtml`, MongoDB `$where`, redirecionamento aberto, mais bibliotecas HTTP na regra de SSRF) e documentar que `yaml.load` em JavaScript só é perigoso em `js-yaml` 3.x (no Juice Shop é 3.x, então os alertas fazem sentido lá).
+
+**Erro meu pego no processo:** 3 dos meus 21 casos novos não reproduziam o problema (usei o domínio `exemplo.com`, que a regra de segredo já trata como placeholder; `{{ chave }}` com espaços, que ela já ignora). Só descobri porque medi o "antes" antes de corrigir.
 
 ## Como ler esses números com cuidado
 - **O ganho é, em parte, ajuste ao teste.** Escrevi a AST conhecendo os casos, e depois corrigi o que o segundo conjunto errou. Por isso as três rodadas seguintes de casos não são independentes entre si. A tentativa de manter alguma honestidade foi escrever cada conjunto *antes* de implementar o que ele mede e guardar as medições de cada versão em [`evals/resultados/`](../evals/resultados/).

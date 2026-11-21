@@ -543,3 +543,159 @@ def test_cloudflare_access_usa_o_arquivo_inteiro_quando_o_diff_so_traz_a_linha_n
 
     assert _achados_cf(linha_nova, fonte=arquivo) == []
     assert _achados_cf(linha_nova, fonte=None) == ["cloudflare-access-sem-jwt"]  # sem o arquivo, só vê a linha
+
+
+# --- falsos positivos achados em projetos públicos de JS/TS (Juice Shop, hackathon-starter, next-learn) ---
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "tokenURL: 'https://oauth.provedor.net/oauth2/v1/token',",
+        "requestTokenURL: 'https://oauth.provedor.net/oauth/request_token',",
+        'ACCESS_TOKEN_URL = "https://api.provedor.net/oauth/access_token"',
+        "const tokenEndpoint = 'https://login.provedor.net/common/oauth2/v2.0/token'",
+        "secretUri = 'https://vault.provedor.net/v1/secret/data'",
+    ],
+)
+def test_nome_de_endereco_com_url_de_verdade_nao_e_segredo(linha):
+    assert "segredo-atribuicao" not in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "const webhookSecretUrl = 'https://hooks.provedor.net/services/T0000/B0000/AbCdEfGhIjKlMnOpQrStUvWx'",  # opaco de 24
+        "tokenURL: 'não-é-url-nenhuma-mesmo'",  # nome termina em URL, mas o valor não é um endereço
+        "const token = 'a8Fk2mQ9vR3nT7wZ1pB4xYzK'",  # nome sem url
+        "apiKeyUrl = 'ftp://x:segredo@host/arquivo-grande-demais'",  # não é http(s)
+    ],
+)
+def test_url_com_pedaco_opaco_ou_nome_sem_url_continua_alertando(linha):
+    assert "segredo-atribuicao" in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "apikey: '#{apikey}',",  # Pug
+        "window.config = { apiKey: '{{chave_publica_do_mapa}}' }",  # Mustache/Handlebars/Jinja
+        "const BeeTokenAddress = '0x36435796Ca9be2bf150CE0dECc2D8Fab5C4d6E13'",  # endereço público (0x + 40 hex)
+    ],
+)
+def test_interpolacao_de_template_e_endereco_de_blockchain_nao_sao_segredo(linha):
+    assert "segredo-atribuicao" not in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "const privateKey = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'",  # 0x + 64 hex
+        "const apiKey = 'sk-live-a8Fk2mQ9vR3nT7wZ1pB4xYz'",
+        "apiKey = 'a8Fk2mQ{9vR3nT7wZ1pB4'",  # tem { mas não é interpolação ({ sozinha não conta, só #{ ${ {{)
+    ],
+)
+def test_chave_privada_hex_e_valor_de_verdade_continuam_alertando(linha):
+    assert "segredo-atribuicao" in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "API_KEY=sk-your-key-goes-here-1234567890abcd",
+        "KEY=sk-************************",
+        "KEY=sk-placeholder-aaaaaaaaaaaaaaaaaaaa",
+    ],
+)
+def test_modelo_de_env_example_com_sk_nao_e_chave(linha):
+    assert "segredo-formato-conhecido" not in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "OPENAI_API_KEY=sk-proj-a8Fk2mQ9vR3nT7wZ1pB4xYzK0LmN5oP6",
+        'aws = "AKIAIOSFODNN7EXAMPLE"',  # a chave de exemplo da AWS é o caso de teste do formato: continua detectada
+        "-----BEGIN RSA PRIVATE KEY-----",
+    ],
+)
+def test_chave_com_formato_conhecido_continua_sendo_detectada(linha):
+    assert "segredo-formato-conhecido" in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "const user = await sql<User[]>`SELECT * FROM users WHERE email=${email}`",
+        "const n = await db.sql<number>`SELECT count(*) FROM t WHERE id = ${id}`",
+        "const r = await prisma.$queryRaw<Foo[]>`SELECT * FROM foo WHERE id = ${id}`",
+        "const x = await sql<{ id: number }[]>`SELECT id FROM t WHERE a = ${a}`",
+        "const user = await sql`SELECT * FROM users WHERE email=${email}`",  # sem genérico, já era isento
+    ],
+)
+def test_sql_com_tag_e_tipo_generico_e_parametrizado(linha):
+    assert "sql-concatenacao" not in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "const r = await db.query<User[]>(`SELECT * FROM users WHERE email = '${email}'`)",  # genérico, mas sem tag
+        "const r = sql.raw<User[]>(`SELECT * FROM t WHERE a = ${a}`)",  # sql.raw com parênteses não é a tag
+        "const x = a < b ? `SELECT * FROM t WHERE a = ${a}` : ''",  # < de comparação não vira genérico
+    ],
+)
+def test_sql_com_tipo_generico_mas_sem_tag_continua_alertando(linha):
+    assert "sql-concatenacao" in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "if (element && element.innerHTML === value) return true",
+        "while (el.innerHTML !== esperado) await esperar()",
+        "if (el.innerHTML == outro) paraDeTentar()",
+    ],
+)
+def test_innerhtml_comparado_nao_e_atribuicao(linha):
+    assert "xss-saida-sem-escape" not in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "container.innerHTML = props.html",
+        "el.innerHTML += item.nome",
+        "el.innerHTML=resposta.msg",  # sem espaços
+        "if (ok) el.innerHTML = x === y ? a : b",  # tem === depois, mas a ATRIBUIÇÃO é o primeiro =
+    ],
+)
+def test_innerhtml_atribuido_continua_alertando(linha):
+    assert "xss-saida-sem-escape" in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        'default = ["10.0.1.0/24", "10.0.2.0/24"]',
+        'cidr_blocks = ["0.0.0.0/0", "10.0.0.0/8"]',
+        'PRIVADAS = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]',
+        "const REDES = ['127.0.0.0/8', '169.254.0.0/16', '10.0.0.0/8']",
+    ],
+)
+def test_listas_de_faixas_em_notacao_cidr_nao_sao_trava_por_prefixo(linha):
+    assert "ssrf-trava-por-prefixo" not in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "const BLOQUEADOS = ['localhost', '10.0.0.1', '192.168.0.1']",  # IPs soltos, sem /NN
+        "const INTERNOS = ['localhost', '127.', '10.', '192.168.']",  # prefixos
+        "if (hostname.startsWith('10.')) return deny()",
+        "const L = ['10.0.0.0/8', '192.168.', '172.16.']",  # mistura: um CIDR não protege os prefixos soltos
+    ],
+)
+def test_trava_por_prefixo_sem_cidr_continua_alertando(linha):
+    assert "ssrf-trava-por-prefixo" in regras_que_casam(linha)

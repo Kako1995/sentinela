@@ -83,10 +83,16 @@ _NUMERO_JS = (
 # Um prefixo de IP termina em ponto ou continua com mais octetos ("10." ou "10.0.0.1"); "10.5" é um número decimal
 # (coordenada de SVG, versão), então 10. e 127. não podem ser seguidos de dígitos que acabam ali.
 _NAO_DECIMAL = r"(?!\d+(?![\d.]))"
+# Notação CIDR ("10.0.0.0/8", "0.0.0.0/0"): é a forma CERTA de falar de faixas (biblioteca de IP, Terraform, firewall),
+# não uma trava por prefixo de texto, então um endereço seguido de /NN não conta.
+_NAO_CIDR = r"(?![\d.]*/\d)"
 _FAIXA_PRIVADA = (
-    rf"(?:10\\?\.{_NAO_DECIMAL}|192\\?\.168(?!\d)|172\\?\.(?:1[6-9]|2\d|3[01])(?!\d)|169\\?\.254(?!\d))"
+    rf"(?:10\\?\.{_NAO_DECIMAL}{_NAO_CIDR}|192\\?\.168(?!\d){_NAO_CIDR}"
+    rf"|172\\?\.(?:1[6-9]|2\d|3[01])(?!\d){_NAO_CIDR}|169\\?\.254(?!\d){_NAO_CIDR})"
 )
-_ENDERECO_INTERNO = rf"(?:localhost|127\\?\.{_NAO_DECIMAL}|0\\?\.0\\?\.0\\?\.0|{_FAIXA_PRIVADA})"
+_ENDERECO_INTERNO = (
+    rf"(?:localhost|127\\?\.{_NAO_DECIMAL}{_NAO_CIDR}|0\\?\.0\\?\.0\\?\.0{_NAO_CIDR}|{_FAIXA_PRIVADA})"
+)
 _ABRE_TEXTO = r"""(?<=["'`^(|/])"""  # o endereço começa logo depois de aspa, ^, (, | ou / (texto ou regex)
 
 
@@ -107,7 +113,7 @@ _ENTRADA_EXTERNA = r"(request\.|req\.(params|query|body)|\binput\()"
 # Abertura de template com tag (sql`...`, prisma.$queryRaw`...`): a biblioteca troca cada ${x} por
 # parâmetro, não por texto. Usado na exceção de sql-concatenacao (tag e ${x} na mesma linha) e por
 # scanner.linhas_em_template_sql (tag numa linha, ${x} só numa linha seguinte: o caso comum na prática).
-ABRE_TEMPLATE_SQL = r"(?:\bsql|\.sql|\$queryRaw|\$executeRaw|\$queryRawTyped)\s*`"
+ABRE_TEMPLATE_SQL = r"(?:\bsql|\.sql|\$queryRaw|\$executeRaw|\$queryRawTyped)(?:<[^`\n]*>)?\s*`"
 
 REGRAS: list[Regra] = [
     Regra(
@@ -129,7 +135,7 @@ REGRAS: list[Regra] = [
             # placeholders ("changeme", "sua-chave-aqui", "troque...") e referências a variável de
             # ambiente (os.environ, process.env, env(NOME), ${NOME}), que não são o segredo em si
             r"changeme|example|exemplo|your[_-]|sua[-_ ]|seu[-_ ]|[-_]aqui|troque|insira|coloque|dummy|fake"
-            r"|redacted|<.+>|\$\{|x{4,}|\*{4,}|placeholder|os\.environ|getenv|process\.env|\benv\("
+            r"|redacted|<.+>|[$#]\{|\{\{|x{4,}|\*{4,}|placeholder|os\.environ|getenv|process\.env|\benv\("
             # valor minúsculo com separador (app:auth:token, total_input_tokens): é o NOME de uma
             # chave ou de um campo, não o segredo (mesmo raciocínio de MAIÚSCULAS = constante, mas
             # aqui o sinal é a forma de identificador, não a caixa da letra); (?-i:) porque isto
@@ -143,6 +149,14 @@ REGRAS: list[Regra] = [
             # valor em MAIÚSCULAS_COM_UNDERSCORE e só letras (DB_PASSWORD, GITHUB_TOKEN): é o NOME de uma variável de
             # ambiente (PASSWORD_ENV = "DB_PASSWORD"), não a senha. Com número (SK_LIVE_1234) continua alertando.
             r"""|[:=]\s*["'](?-i:[A-Z]+(?:_[A-Z]+)+)["']"""
+            # nome que TERMINA em url/uri/endpoint com um endereço https de verdade (tokenURL: 'https://.../token',
+            # ACCESS_TOKEN_URL): é o endereço do servidor OAuth, não o token. Um pedaço opaco de 20+ caracteres no
+            # caminho (webhook secreto: https://hooks.../T000/B000/AbCdEf...) NÃO é isento: aí o endereço é o segredo.
+            r"""|(?:token|secret|api[_-]?key|access[_-]?key|private[_-]?key|passw(?:or)?d|senha)\w*(?:url|uri|endpoint)["']?"""
+            r"""\s*[:=]\s*["']https?://(?![^"'\s]*[A-Za-z0-9_-]{20,})[^"'\s]*["']"""
+            # endereço público de blockchain (0x + 40 hex): identificador público, mesmo com "Token" no nome.
+            # 0x + 64 hex é CHAVE PRIVADA e continua alertando.
+            r"""|[:=]\s*["']0x[0-9a-fA-F]{40}["']"""
         ),
         explicacao="Um valor que parece segredo (chave, token ou senha) está escrito direto no código.",
         correcao="Leia o valor de uma variável de ambiente ou de um gerenciador de segredos e revogue a chave exposta.",
@@ -156,6 +170,9 @@ REGRAS: list[Regra] = [
             r"\bAKIA[0-9A-Z]{16}\b|\bghp_[A-Za-z0-9]{36}\b|\bsk-[A-Za-z0-9_-]{20,}"
             r"|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----"
         ),
+        # `sk-xxxxxxxx`, `sk-your-key...`: o modelo de um arquivo .env.example, não uma chave. (AKIA...EXAMPLE, a
+        # chave de exemplo da própria AWS, continua sendo detectada de propósito: é o caso de teste do formato.)
+        excecao=_rei(r"\bsk-(?:x{4,}|\*{4,}|\.{3}|your|placeholder|test-?key|example)"),
         explicacao="Há uma credencial em formato conhecido (AWS, GitHub, chave secreta ou chave privada).",
         correcao="Remova do código, revogue a credencial agora (ela já ficou no histórico do git) e use variável de ambiente.",
     ),
@@ -197,7 +214,7 @@ REGRAS: list[Regra] = [
         severidade=Severity.media,
         # Case-sensitive de propósito: Markup( é a classe do markupsafe; .markup( é outra coisa.
         padrao=_re(
-            r"""\.innerHTML\s*\+?=|\bdocument\.write\(|\|\s*safe\b|\bmark_safe\(|\bMarkup\("""
+            r"""\.innerHTML\s*\+?=(?!=)|\bdocument\.write\(|\|\s*safe\b|\bmark_safe\(|\bMarkup\("""
             rf"""|["']\s*</?{_TAG_HTML}\b[^"']*["']\s*\+|\+\s*["']\s*</?{_TAG_HTML}\b|\bf(["'])(?:(?!\1).)*<{_TAG_HTML}\b(?:(?!\1).)*\{{"""
         ),
         excecao=_rei(
@@ -367,7 +384,7 @@ REGRAS: list[Regra] = [
             r"(?i:\b\w*(?:host|url|uri|domain)\w*)\s*\??\.\s*(?:startsWith|startswith|includes)\(\s*\(?\s*[\"'`]"
             rf"{_ENDERECO_INTERNO}"
             rf"|{_ABRE_TEXTO}{_FAIXA_PRIVADA}[^\n]{{0,100}}?{_ABRE_TEXTO}{_ENDERECO_INTERNO}"
-            rf"|{_ABRE_TEXTO}(?:localhost|127\\?\.{_NAO_DECIMAL}|0\\?\.0\\?\.0\\?\.0)[^\n]{{0,100}}?{_ABRE_TEXTO}{_FAIXA_PRIVADA}"
+            rf"|{_ABRE_TEXTO}(?:localhost|127\\?\.{_NAO_DECIMAL}{_NAO_CIDR}|0\\?\.0\\?\.0\\?\.0{_NAO_CIDR})[^\n]{{0,100}}?{_ABRE_TEXTO}{_FAIXA_PRIVADA}"
         ),
         explicacao=(
             "Esta checagem tenta bloquear endereços internos comparando o começo do texto. Ela deixa passar formas "
