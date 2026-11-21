@@ -1,0 +1,8 @@
+{
+  "linguagem": "bash",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-real",
+  "nota": "Parece com o caso seguro (mesmo formato de URL), mas aqui a senha é um valor real, não um grupo de captura do sed.",
+  "codigo": "curl https://usuario:MinhaSenh4Real@api.exemplo.com/dados"
+}

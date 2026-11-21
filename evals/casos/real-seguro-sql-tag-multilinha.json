@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "sql`...` abre numa linha e o ${x} aparece só na linha seguinte; a tag ainda parametriza, só que o 'sql`' não está na mesma linha do SELECT.",
+  "codigo": "await db.execute(\n  sql`UPDATE sessions SET project_id = (\n        SELECT id FROM projects WHERE lower(name) = lower(${nome}) LIMIT 1\n      ) WHERE id = ${id}`\n);"
+}

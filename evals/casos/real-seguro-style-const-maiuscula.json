@@ -1,0 +1,8 @@
+{
+  "linguagem": "tsx",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "CV_CSS é uma constante do módulo (maiúsculas), não dado do usuário; mesma convenção já usada em sql-concatenacao para ${CONSTANTE}.",
+  "codigo": "<style dangerouslySetInnerHTML={{ __html: CV_CSS }} />"
+}
