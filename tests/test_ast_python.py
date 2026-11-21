@@ -193,6 +193,17 @@ def trecho(codigo: str, nome: str = "a.py", so_linhas: set[int] | None = None) -
     return TrechoArquivo(arquivo=nome, linhas_adicionadas=linhas, fonte=codigo)
 
 
+def test_comentario_sentinela_ignore_silencia_achado_da_ast_tambem():
+    codigo = (
+        '@app.get("/x")\n'
+        "def x():\n"
+        '    nome = request.args.get("a")\n'
+        "    caminho = os.path.join(PASTA, nome)\n"
+        "    return send_file(caminho)  # sentinela: ignore\n"
+    )
+    assert analisar([trecho(codigo)]) == []
+
+
 def test_ast_substitui_as_regras_por_linha_de_path_e_ssrf_em_python():
     # A regra por linha dispararia (há `request.` na linha), mas a URL é fixa: a AST sabe que é segura.
     codigo = '@app.get("/c")\ndef c():\n    return requests.get("https://api/x", params={"q": request.args["q"]}).text'

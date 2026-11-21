@@ -66,6 +66,7 @@ class Finding(BaseModel):
 - O comando `revisar` sai com código 1 se houver achado de severidade alta ou crítica, 0 caso contrário (Fase 3).
 - Nunca commitar segredos.
 - `--nota` (0 a 10, `report.py`) é opcional (`revisar`/`varrer`) e nunca chamada de "nota de segurança": a fórmula é simples e visível (cabe numa frase) e vem sempre com o aviso de que só cobre o que as regras e a AST enxergam.
+- `# sentinela: ignore` (ou `//`) numa linha silencia só aquela linha (`IGNORAR_LINHA`, `scanner.py`), igual `# noqa`; `.sentinela.toml` (`config.py`) silencia uma regra no projeto inteiro. São dois níveis de propósito: um pra exceção pontual, outro pra decisão de projeto.
 
 ## Comandos
 

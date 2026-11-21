@@ -102,6 +102,12 @@ ignorar = ["migrations/", "*.generated.ts"]
 
 Sem o arquivo, ou com algum problema nele (sintaxe inválida, campo no formato errado), o Sentinela roda do jeito de sempre — nada fica desativado — e avisa o motivo no terminal. O próprio arquivo `.sentinela.toml` não entra na varredura.
 
+Pra silenciar só **uma linha** (em vez da regra inteira no projeto), um comentário nela mesma, igual `# noqa` ou `// eslint-disable-line`:
+
+```python
+h = hashlib.md5(dados)  # sentinela: ignore (usado só como chave de cache, não senha)
+```
+
 ## Instalar a Action em outro repositório
 
 Crie `.github/workflows/sentinela.yml` no repositório que você quer proteger:
