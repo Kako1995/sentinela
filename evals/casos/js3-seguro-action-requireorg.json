@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "requireCurrentOrg() devolve a organização do usuário logado e falha se não houver sessão.",
+  "codigo": "'use server'\n\nexport async function cancelarAssinatura() {\n  const org = await requireCurrentOrg()\n  await db.assinatura.update({ where: { orgId: org.id }, data: { ativa: false } })\n}"
+}

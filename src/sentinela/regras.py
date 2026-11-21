@@ -91,7 +91,7 @@ REGRAS: list[Regra] = [
             # ambiente (os.environ, process.env, env(NOME), ${NOME}), que não são o segredo em si
             r"changeme|example|exemplo|your[_-]|sua[-_ ]|seu[-_ ]|[-_]aqui|troque|insira|coloque|dummy|fake"
             r"|redacted|<.+>|\$\{|x{4,}|\*{4,}|placeholder|os\.environ|getenv|process\.env|\benv\("
-            # valor minúsculo com separador (spira:auth:token, total_input_tokens): é o NOME de uma
+            # valor minúsculo com separador (app:auth:token, total_input_tokens): é o NOME de uma
             # chave ou de um campo, não o segredo (mesmo raciocínio de MAIÚSCULAS = constante, mas
             # aqui o sinal é a forma de identificador, não a caixa da letra); (?-i:) porque isto
             # precisa ser estritamente minúsculo mesmo com o resto da regra sendo case-insensitive

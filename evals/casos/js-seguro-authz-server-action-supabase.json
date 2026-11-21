@@ -4,5 +4,5 @@
   "categoria_esperada": null,
   "origem": "claude-js",
   "nota": "A server action usa o cliente do Supabase com a sessão do usuário e confere o login.",
-  "codigo": "'use server'\nimport { createClient } from '@/lib/supabase/server'\n\nexport async function apagarPaciente(id: string) {\n  const supabase = await createClient()\n  const { data: { user } } = await supabase.auth.getUser()\n  if (!user) throw new Error('não autenticado')\n  await supabase.from('pacientes').delete().eq('id', id)\n}"
+  "codigo": "'use server'\nimport { createClient } from '@/lib/supabase/server'\n\nexport async function apagarCliente(id: string) {\n  const supabase = await createClient()\n  const { data: { user } } = await supabase.auth.getUser()\n  if (!user) throw new Error('não autenticado')\n  await supabase.from('clientes').delete().eq('id', id)\n}"
 }

@@ -1,0 +1,8 @@
+{
+  "linguagem": "typescript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-real",
+  "nota": "A action começa exigindo o perfil de administrador com um helper requireAdmin().",
+  "codigo": "'use server'\n\nexport async function removerAdmin(id: string) {\n  await requireAdmin()\n  await db.admin.delete({ where: { id } })\n}"
+}

@@ -5,5 +5,5 @@
   "origem": "claude-js",
   "nota": "O .or() do Supabase recebe um filtro em texto: o termo do usuário pode injetar condições extras.",
   "arquivo": "app/api/js-vuln-sql-supabase-or/route.ts",
-  "codigo": "export async function POST(request: Request) {\n  const { termo } = await request.json()\n  const { data } = await supabase.from('pacientes').select('*').or(`nome.ilike.%${termo}%,email.ilike.%${termo}%`)\n  return Response.json(data)\n}"
+  "codigo": "export async function POST(request: Request) {\n  const { termo } = await request.json()\n  const { data } = await supabase.from('clientes').select('*').or(`nome.ilike.%${termo}%,email.ilike.%${termo}%`)\n  return Response.json(data)\n}"
 }

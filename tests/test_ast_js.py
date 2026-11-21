@@ -165,7 +165,7 @@ def test_xss_seguro(codigo):
         ("app.delete('/u/:id', async (req, res) => { await U.destroy({ where: { id: req.params.id } }); res.sendStatus(204); });", "a.js"),
         ("router.patch('/p/:id', async (req, res) => { await P.update(req.body); res.sendStatus(204); });", "a.js"),
         ("export async function DELETE(request, { params }) {\n await db.doc.delete({ where: { id: params.id } })\n return new Response(null)\n}", "app/api/d/route.ts"),
-        ("'use server'\nexport async function apagarPaciente(id: string) { await db.paciente.delete({ where: { id } }) }", "a.ts"),
+        ("'use server'\nexport async function apagarCliente(id: string) { await db.cliente.delete({ where: { id } }) }", "a.ts"),
         ("'use server'\nexport async function atualizarConsulta(id: string, d: any) { await db.c.update({ where: { id }, data: d }) }", "a.ts"),
     ],
 )
@@ -190,7 +190,7 @@ def test_rota_ou_action_com_autenticacao_ou_que_nao_altera(codigo, arquivo):
     assert not ({"ast-falta-autorizacao", "ast-falta-autorizacao-action"} & regras(codigo, arquivo))
 
 
-@pytest.mark.parametrize("helper", ["requireMaster", "requireCurrentClinic", "assertAdmin", "ensureLoggedIn"])
+@pytest.mark.parametrize("helper", ["requireAdmin", "requireCurrentOrg", "assertAdmin", "ensureLoggedIn"])
 def test_helpers_require_assert_ensure_contam_como_autenticacao(helper):
     codigo = f"'use server'\nexport async function removerAdmin(id: string) {{\n await {helper}()\n await db.admin.delete({{ where: {{ id }} }})\n}}"
 
