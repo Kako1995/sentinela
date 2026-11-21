@@ -699,3 +699,53 @@ def test_listas_de_faixas_em_notacao_cidr_nao_sao_trava_por_prefixo(linha):
 )
 def test_trava_por_prefixo_sem_cidr_continua_alertando(linha):
     assert "ssrf-trava-por-prefixo" in regras_que_casam(linha)
+
+
+# --- Angular: bypassSecurityTrust* desliga o sanitizador para um valor que não é fixo ---
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "this.captcha = this.sanitizer.bypassSecurityTrustHtml(data.image)",
+        "this.ip = this.sanitizer.bypassSecurityTrustHtml(`<small>${payload.ip}</small>`)",
+        "this.u = this.sanitizer.bypassSecurityTrustResourceUrl(this.route.snapshot.queryParams['url'])",
+        "this.u = this.sanitizer.bypassSecurityTrustUrl(endereco)",
+        "this.s = this.sanitizer.bypassSecurityTrustScript(codigo)",
+        "this.e = this.sanitizer.bypassSecurityTrustStyle(estilo)",
+        "feedbacks[i].comentario = this.sanitizer.bypassSecurityTrustHtml(",  # o argumento vem na linha de baixo
+        "this.x = this.sanitizer.bypassSecurityTrustHtml(queryParam)",  # identificador em minúsculas: NÃO é constante
+        "this.x = this.sanitizer.bypassSecurityTrustHtml(Icone)",  # Capitalizado, mas não é CONSTANTE_EM_MAIUSCULAS
+        "this.x = this.sanitizer.bypassSecurityTrustHtml('<b>' + nome + '</b>')",
+        "this.x = san.bypassSecurityTrustHtml (conteudo)",  # espaço antes do parêntese
+    ],
+)
+def test_angular_bypass_com_valor_variavel_alerta(linha):
+    assert "xss-angular-bypass-sanitizer" in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "this.a = this.sanitizer.bypassSecurityTrustHtml('<b>Bem-vindo</b>')",
+        'this.a = this.sanitizer.bypassSecurityTrustHtml("<b>Bem-vindo</b>")',
+        "this.a = this.sanitizer.bypassSecurityTrustHtml(`<svg viewBox=\"0 0 8 8\"></svg>`)",  # template sem ${}
+        "this.a = this.sanitizer.bypassSecurityTrustHtml(ICONE_SVG)",
+        "this.a = this.sanitizer.bypassSecurityTrustResourceUrl(URL_DO_VIDEO)",
+        "this.a = this.sanitizer.bypassSecurityTrustHtml(DOMPurify.sanitize(html))",
+        "this.a = this.sanitizer.bypassSecurityTrustHtml(sanitizeHtml(html))",
+        "this.a = this.sanitizer.sanitize(SecurityContext.HTML, valor)",  # a API certa
+        "explanation: 'Using bypassSecurityTrustResourceUrl() instead of bypassSecurityTrustHtml() changes the context.'",
+        "sanitizer.bypassSecurityTrustHtml = jasmine.createSpy('bypassSecurityTrustHtml')",  # atribuição de mock
+        "const x = this.sanitizer.bypassSecurityTrustHtml()",  # sem argumento
+        "o método bypassSecurityTrustHtml(valor) do Angular desliga o sanitizador",  # prosa, sem o ponto antes
+    ],
+)
+def test_angular_bypass_com_valor_fixo_saneado_ou_que_nao_e_chamada_nao_alerta(linha):
+    assert "xss-angular-bypass-sanitizer" not in regras_que_casam(linha)
+
+
+def test_angular_bypass_em_comentario_de_linha_nao_alerta():
+    achados = analisar([trecho("// this.sanitizer.bypassSecurityTrustHtml(dados.imagem)  <- era assim antes")])
+
+    assert [a.regra for a in achados if a.regra == "xss-angular-bypass-sanitizer"] == []

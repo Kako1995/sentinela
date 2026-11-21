@@ -32,7 +32,7 @@ No terminal a severidade vem colorida. Em pull requests, o mesmo relatório vira
 
 Duas camadas, cada achado com CWE, severidade, explicação e correção em português:
 
-1. **Regras por linha** (19 regras, qualquer linguagem): olham o texto de cada linha adicionada.
+1. **Regras por linha** (20 regras, qualquer linguagem): olham o texto de cada linha adicionada.
 2. **Análise por AST** (Python, JavaScript e TypeScript): leem o arquivo inteiro pela árvore sintática (`ast` para Python, `tree-sitter` para JS/TS/TSX). Conseguem ligar a *origem* de um dado (`request.args`, `req.query`, `request.json()`, argumentos de server actions do Next.js, parâmetros de rota) ao seu *uso* (`open`, `fs.readFile`, `requests.get`, `fetch`, `query`), mesmo em linhas diferentes, ver SQL montado em várias linhas e olhar a rota ou a função inteira.
 
 | Categoria | CWE | Severidade | Camada |
@@ -45,7 +45,7 @@ Duas camadas, cada achado com CWE, severidade, explicação e correção em port
 | SSRF | CWE-918 | alta | AST em Python/JS/TS, linha nas demais linguagens |
 | Trava de SSRF frágil (`host.startsWith('127.')`, regex de prefixos privados): bloqueia endereços internos comparando o começo do texto | CWE-918 | média | linha |
 | Segredo no código (atribuição, senha de 6+ caracteres com número ou símbolo, URL com senha) | CWE-798 | alta | linha |
-| XSS (`dangerouslySetInnerHTML`, `.html()` do jQuery, HTML na resposta do Express) | CWE-79 | média | linha + AST de JS |
+| XSS (`dangerouslySetInnerHTML`, `.html()` do jQuery, HTML na resposta do Express, `bypassSecurityTrustHtml` e irmãos do Angular com valor que não é fixo) | CWE-79 | média | linha + AST de JS |
 | Filtro em texto do Supabase/PostgREST (`.or()`) com dado do usuário | CWE-89 | média | AST de JS |
 | Criptografia fraca (MD5/SHA-1, modo ECB, DES, `random`/`Math.random()` gerando token ou senha) | CWE-327, CWE-338 | média | linha (a de `random` olha 4 linhas) |
 | Verificação TLS desativada | CWE-295 | média | linha |
@@ -179,13 +179,13 @@ Rodo o scanner em casos de código rotulados à mão (vulnerável ou seguro) e m
 - **Precisão:** dos alertas que ele deu, quantos eram reais. Baixa precisão = falso positivo, e falso positivo faz as pessoas ignorarem a ferramenta.
 - **Recall:** das vulnerabilidades que existem, quantas ele achou.
 
-**Hoje: 296 casos, precisão 99% e recall 96%** (140 vulneráveis, dos quais 135 achados e 5 perdidos; 156 seguros, dos quais 155 passaram e 1 deu falso positivo).
+**Hoje: 311 casos, precisão 99% e recall 97%** (148 vulneráveis, dos quais 143 achados e 5 perdidos; 163 seguros, dos quais 162 passaram e 1 deu falso positivo).
 
 | Categoria | Achados | Recall |
 |---|---:|---:|
 | SQL injection | 16/16 | 100% |
 | SSRF | 26/27 | 96% |
-| XSS | 17/17 | 100% |
+| XSS | 25/25 | 100% |
 | Criptografia fraca | 12/12 | 100% |
 | Autenticação fraca | 7/7 | 100% |
 | Injeção de comando | 7/7 | 100% |
@@ -200,7 +200,7 @@ Rodo o scanner em casos de código rotulados à mão (vulnerável ou seguro) e m
 - **Quase todos os casos foram escritos pelo mesmo autor (eu, com IA) que escreveu as regras.** Casos escritos por outra pessoa, sem olhar as regras, seriam o teste mais forte, e ainda faltam.
 - **O ganho é, em parte, ajuste ao teste.** A tentativa de manter alguma honestidade foi escrever cada conjunto de casos *antes* de implementar o que ele mede e guardar a medição de cada versão em [`evals/resultados/`](evals/resultados/). Mesmo assim, os conjuntos não são independentes entre si.
 - **A validação que mais pesou foi rodar em código real.** A primeira varredura em 7 repositórios reais de terceiros deu **zero acertos entre os alertas de severidade alta e crítica** (na minha leitura de cada um): foi o que mostrou que os números dos evals eram otimistas, e levou à maior parte das correções. Várias correções foram revalidadas varrendo de novo esses repositórios e 1685 arquivos de bibliotecas Python reais.
-- **Em código de projetos públicos a precisão é menor do que nos evals.** Num teste em 5 projetos públicos de JS/TS, os alertas de severidade alta e crítica dos apps "normais" eram válidos em só 2 de 11, e o Sentinela deixou passar cerca de 10 falhas conhecidas do Juice Shop (NoSQL `$where`, `bypassSecurityTrustHtml` do Angular, redirecionamento aberto...) e a SSRF do NodeGoat, por estar num arquivo que só exporta o handler `(req, res)`. O que já foi corrigido e o que falta está em [`docs/evals.md`](docs/evals.md).
+- **Em código de projetos públicos a precisão é menor do que nos evals.** Num teste em 5 projetos públicos de JS/TS, os alertas de severidade alta e crítica dos apps "normais" eram válidos em só 2 de 11, e o Sentinela deixou passar cerca de 10 falhas conhecidas do Juice Shop (NoSQL `$where`, redirecionamento aberto...; o `bypassSecurityTrustHtml` do Angular já foi corrigido) e a SSRF do NodeGoat, por estar num arquivo que só exporta o handler `(req, res)`. O que já foi corrigido e o que falta está em [`docs/evals.md`](docs/evals.md).
 - **Nenhum acerto anterior se perde sem aparecer:** um CI roda os evals em todo PR e compara cada caso com [`evals/baseline.json`](evals/baseline.json) (veja [Desenvolvimento](#desenvolvimento)).
 
 O histórico completo, rodada a rodada, com o que cada correção mudou e os erros meus que o processo pegou, está em **[`docs/evals.md`](docs/evals.md)**. Os casos e o método estão em [`evals/`](evals/README.md).
