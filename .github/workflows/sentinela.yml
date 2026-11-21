@@ -18,6 +18,6 @@ jobs:
 
       - uses: ./
         with:
-          # Estes arquivos contêm código vulnerável de propósito: testes, casos dos evals e
-          # as próprias regras (as regex descrevem os padrões que o Sentinela procura).
-          excluir: "tests evals/casos src/sentinela/regras.py"
+          # Estes arquivos contêm código vulnerável de propósito: testes, casos dos evals, a documentação
+          # (os exemplos de cada regra) e as próprias regras (as regex descrevem os padrões que o Sentinela procura).
+          excluir: "tests evals/casos docs src/sentinela/regras.py"
