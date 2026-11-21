@@ -58,6 +58,7 @@ class Finding(BaseModel):
 - Mensagens para o usuário, explicações dos achados e docs em **português**.
 - Funções pequenas e tipadas. Sem abstrações que ainda não são necessárias.
 - Cada regra em `regras.py` olha uma linha adicionada. Toda regra nova vem com testes: pelo menos um caso vulnerável que dispara e um seguro parecido que não dispara.
+- `evals/baseline.json` guarda o veredito de cada caso e o CI (e o pytest) reprovam se um acerto virar erro, se um caso sumir ou se a baseline ficar desatualizada: sempre commite a baseline junto com a mudança nos casos ou nas regras.
 - Regras novas ou alteradas devem ser medidas nos evals; guardar os resultados antes e depois, e conferir que nenhum acerto (TP) da versão anterior foi perdido.
 - A AST (Python e JS/TS) só lê arquivos dentro de `--raiz`, sem links simbólicos e só se baterem com o diff (o nome vem de um diff possivelmente malicioso).
 - Linha acima de `TAMANHO_MAXIMO_LINHA` (`scanner.py`) não passa pelas regras por linha: regex com lookahead (ex.: `sql-concatenacao`) tem custo quadrático numa linha sem quebra de verdade (SVG, bundle minificado), e isso já travou a varredura por minutos. A CLI avisa quantas linhas foram puladas.
@@ -82,6 +83,8 @@ git diff main | sentinela revisar - --raiz .   # com AST nos .py/.js/.ts do diff
 git diff main | sentinela revisar -
 sentinela revisar caminho/do.diff --nota   # nota de 0 a 10, com fórmula e aviso junto (ver report.py)
 python evals/run_evals.py
+python evals/run_evals.py --verificar            # trava de regressão (o CI roda isto)
+python evals/run_evals.py --atualizar-baseline   # depois de adicionar casos ou melhorar uma regra: commite evals/baseline.json
 ```
 
 ## Como trabalhar neste projeto
