@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-senha",
+  "nota": "O valor é o NOME de uma variável de ambiente (escrita em maiúsculas), não a senha.",
+  "codigo": "PASSWORD_ENV = \"DB_PASSWORD\""
+}

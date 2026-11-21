@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-senha",
+  "nota": "'password' como tipo de campo de formulário: o nome da propriedade é type.",
+  "codigo": "const campo = { type: 'password', name: 'senha' }"
+}

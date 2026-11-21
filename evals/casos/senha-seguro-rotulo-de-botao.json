@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-senha",
+  "nota": "Mapa de rótulos de botão: a chave tem 'senha' no nome e o valor é o texto do botão (6 letras), não uma senha.",
+  "codigo": "const rotulo = { criar: 'Criar conta', entrar: 'Entrar', 'nova-senha': 'Salvar' }[modo]"
+}

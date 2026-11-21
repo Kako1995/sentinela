@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-senha",
+  "nota": "Senha literal de 7 caracteres: abaixo do mínimo de 8 da regra atual.",
+  "codigo": "password = \"hunter2\"\nconn = conectar(host, user, password)"
+}

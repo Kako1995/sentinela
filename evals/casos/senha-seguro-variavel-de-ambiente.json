@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-senha",
+  "nota": "A senha vem do ambiente, não está escrita no código.",
+  "codigo": "password = os.environ[\"APP_PASSWORD\"]"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-senha",
+  "nota": "Exatamente 6 caracteres, o limite de baixo.",
+  "codigo": "const senha = 'abc123'\nawait login(usuario, senha)"
+}

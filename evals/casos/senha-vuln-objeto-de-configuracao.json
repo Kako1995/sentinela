@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-senha",
+  "nota": "A senha é uma chave de um objeto de configuração do banco.",
+  "codigo": "const db = { host: 'localhost', user: 'app', password: 'qwerty1' }"
+}
