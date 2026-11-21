@@ -6,7 +6,7 @@ from pathlib import PurePosixPath
 from sentinela.ast_js import EXTENSOES_JS, analisar_ast_js
 from sentinela.ast_python import ResultadoAst, analisar_ast
 from sentinela.diff import LinhaAdicionada, TrechoArquivo
-from sentinela.models import Finding
+from sentinela.models import ORDEM_SEVERIDADE, Finding
 from sentinela.regras import ABRE_TEMPLATE_SQL, REGRAS, Regra
 
 COMENTARIO = re.compile(r"^\s*(#|//|/\*|\*)")
@@ -88,7 +88,7 @@ def _resultado_ast(trecho: TrechoArquivo) -> ResultadoAst | None:
 def analisar(
     trechos: list[TrechoArquivo], regras: list[Regra] = REGRAS, desativadas: frozenset[str] = frozenset()
 ) -> list[Finding]:
-    """Devolve os achados na ordem dos arquivos e das linhas, sem repetir (linha, categoria).
+    """Devolve os achados na ordem dos arquivos e das linhas, sem repetir (linha, categoria), e com a maior severidade quando mais de uma regra casa.
 
     `desativadas` (de .sentinela.toml) filtra pelo id da regra DEPOIS de tudo calculado: vale tanto
     para as regras por linha quanto para as da AST (que não passam por `regras`), e não muda o
@@ -143,11 +143,20 @@ def analisar(
                     )
 
         do_trecho += [a for a in (resultado.achados if resultado else []) if a.linha in adicionadas]
-        vistos: set[tuple[int, str]] = set()
-        for a in sorted(do_trecho, key=lambda f: f.linha):  # sorted é estável: regras antes da AST
-            if a.linha not in ignoradas and (a.linha, a.categoria) not in vistos:
-                vistos.add((a.linha, a.categoria))
-                achados.append(a)
-    if desativadas:
-        achados = [a for a in achados if a.regra not in desativadas]
+        # Uma linha pode casar várias regras da MESMA categoria (a chave `sk-live-...` casa segredo-atribuicao, alta, e
+        # segredo-formato-conhecido, crítica): mostra-se um achado só, o de MAIOR severidade (no empate, o primeiro:
+        # sorted é estável e as regras vêm antes da AST). As regras desativadas saem ANTES disto, para que desativar a
+        # que venceria não deixe a linha sem alerta quando a outra regra ainda vale.
+        posicao: dict[tuple[int, str], int] = {}
+        do_arquivo: list[Finding] = []
+        for a in sorted(do_trecho, key=lambda f: f.linha):
+            if a.linha in ignoradas or a.regra in desativadas:
+                continue
+            chave = (a.linha, a.categoria)
+            if chave not in posicao:
+                posicao[chave] = len(do_arquivo)
+                do_arquivo.append(a)
+            elif ORDEM_SEVERIDADE[a.severidade] > ORDEM_SEVERIDADE[do_arquivo[posicao[chave]].severidade]:
+                do_arquivo[posicao[chave]] = a  # troca no lugar: a ordem do arquivo não muda
+        achados += do_arquivo
     return achados

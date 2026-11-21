@@ -801,3 +801,64 @@ def test_where_do_mongodb_constante_numerico_ou_que_nao_e_o_operador_nao_alerta(
 def test_where_com_conversao_numerica_so_em_parte_ainda_alerta():
     """Um Number() num pedaço não protege o outro: o texto concatenado sem conversão continua sendo injeção."""
     assert "nosql-where-dinamico" in regras_que_casam("db.i.find({ $where: 'this.a == ' + Number(a) + ' && this.b == ' + b })")
+
+
+# --- mesma linha, mesma categoria, várias regras: vale a de MAIOR severidade ---
+
+CHAVE = 'API_KEY = "sk-live-a8Fk2mQ9vR3nT7wZ1pB4xYzK0LmN5oP6"'  # casa segredo-atribuicao (alta) E segredo-formato-conhecido (crítica)
+
+
+def test_linha_que_casa_duas_regras_da_mesma_categoria_mostra_a_de_maior_severidade():
+    achados = analisar([trecho(CHAVE)])
+
+    assert len(achados) == 1  # continua sem repetir (linha, categoria)
+    assert achados[0].severidade is Severity.critica
+    assert achados[0].regra == "segredo-formato-conhecido"
+
+
+def test_a_ordem_das_regras_na_lista_nao_decide_a_severidade_mostrada():
+    """segredo-atribuicao vem antes de segredo-formato-conhecido em REGRAS, e antes a primeira ganhava."""
+    ordem = [r.id for r in REGRAS if r.id in {"segredo-atribuicao", "segredo-formato-conhecido"}]
+    assert ordem == ["segredo-atribuicao", "segredo-formato-conhecido"]  # o pressuposto deste teste
+
+    invertidas = [r for r in reversed(REGRAS)]
+    assert analisar([trecho(CHAVE)], regras=invertidas)[0].severidade is Severity.critica
+
+
+def test_empate_de_severidade_mantem_o_primeiro_achado():
+    # as duas regras de segredo em URL são da mesma categoria e severidade em linhas assim: nada muda no empate
+    achados = analisar([trecho('os.system("curl " + url); eval(url)')])
+
+    assert [a.regra for a in achados] == ["injecao-de-comando"]  # o primeiro da lista, mesmo com duas regras casando
+
+
+def test_categorias_diferentes_na_mesma_linha_continuam_separadas():
+    achados = analisar([trecho('os.system("curl " + url); requests.get(url, verify=False)')])
+
+    assert {a.regra for a in achados} == {"injecao-de-comando", "tls-sem-verificacao"}
+
+
+def test_achados_de_linhas_diferentes_mantem_a_ordem_do_arquivo():
+    achados = analisar([trecho("x = 1", CHAVE, "y = 2", 'h = hashlib.md5(a)')])
+
+    assert [(a.linha, a.severidade) for a in achados] == [(2, Severity.critica), (4, Severity.media)]
+
+
+def test_regra_desativada_nao_esconde_o_alerta_da_outra_regra_da_mesma_linha():
+    """Antes, a desativação era aplicada DEPOIS da deduplicação: desativar a regra que tinha sobrevivido deixava a
+    linha sem nenhum alerta, mesmo com a outra regra ainda valendo."""
+    sem_atribuicao = analisar([trecho(CHAVE)], desativadas=frozenset({"segredo-atribuicao"}))
+    sem_formato = analisar([trecho(CHAVE)], desativadas=frozenset({"segredo-formato-conhecido"}))
+    sem_as_duas = analisar([trecho(CHAVE)], desativadas=frozenset({"segredo-atribuicao", "segredo-formato-conhecido"}))
+
+    assert [a.regra for a in sem_atribuicao] == ["segredo-formato-conhecido"]
+    assert [a.regra for a in sem_formato] == ["segredo-atribuicao"]
+    assert sem_as_duas == []
+
+
+def test_o_codigo_de_saida_nao_depende_de_qual_das_duas_regras_sobrevive():
+    """Alta e crítica bloqueiam igual: a correção muda o rótulo, não quem reprova o CI."""
+    from sentinela.models import BLOQUEANTES
+
+    assert analisar([trecho(CHAVE)])[0].severidade in BLOQUEANTES
+    assert analisar([trecho(CHAVE)], desativadas=frozenset({"segredo-formato-conhecido"}))[0].severidade in BLOQUEANTES
