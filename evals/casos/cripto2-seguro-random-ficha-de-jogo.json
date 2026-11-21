@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cripto2",
+  "nota": "'token' aqui é uma ficha de tabuleiro, não uma credencial.",
+  "codigo": "def sortear_token_do_jogo():\n    return random.choice(FICHAS)"
+}

@@ -205,3 +205,77 @@ def test_janela_nao_junta_linhas_que_nao_sao_vizinhas():
     )])
 
     assert achados == []
+
+
+# --- criptografia fraca: ECB, DES e gerador `random` para segredo ---
+
+
+@pytest.mark.parametrize(
+    "linha, regra",
+    [
+        ("cipher = AES.new(chave, AES.MODE_ECB)", "cripto-modo-ecb"),
+        ("cipher = Cipher(algorithms.AES(chave), modes.ECB())", "cripto-modo-ecb"),
+        ("const c = crypto.createCipheriv('aes-256-ecb', chave, null)", "cripto-modo-ecb"),
+        ('Cipher c = Cipher.getInstance("AES/ECB/PKCS5Padding");', "cripto-modo-ecb"),
+        ("cipher = DES.new(chave, DES.MODE_CBC, iv)", "cripto-des"),
+        ("const c = crypto.createCipheriv('des-cbc', chave, iv)", "cripto-des"),
+    ],
+)
+def test_ecb_e_des_disparam(linha, regra):
+    assert regra in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "cipher = AES.new(chave, AES.MODE_GCM)",
+        "cipher = AES.new(chave, AES.MODE_CTR)",
+        "const c = crypto.createCipheriv('aes-256-gcm', chave, iv)",
+        "cipher = DES3.new(chave, DES3.MODE_CBC, iv)",  # 3DES é fraco, mas é outra decisão; não é o DES simples
+        "descricao = produto.DESCRICAO",
+        "const c = crypto.createCipheriv('des3', chave, iv)",
+    ],
+)
+def test_ecb_e_des_nao_disparam_em_modo_seguro(linha):
+    assert regras_que_casam(linha) & {"cripto-modo-ecb", "cripto-des"} == set()
+
+
+@pytest.mark.parametrize(
+    "linhas",
+    [
+        # a palavra de segredo na linha de cima, o sorteio na de baixo (janela)
+        ["def gerar_token_reset():", '    return "".join(random.choice(string.ascii_letters) for _ in range(32))'],
+        ["senha_temporaria = ''.join(random.choices(string.ascii_letters + string.digits, k=10))"],
+        ["session_id = random.getrandbits(128)"],
+        ["const token = Math.random().toString(36).slice(2)"],
+        ["const resetCode = Math.random().toString(16).substring(2, 10)"],
+    ],
+)
+def test_random_para_segredo_dispara(linhas):
+    achados = analisar([trecho(*linhas)])
+
+    assert [a.regra for a in achados] == ["cripto-random-token"]
+    assert achados[0].cwe == "CWE-338"
+    assert achados[0].linha == 1  # a linha em que a janela começa, sem repetir nas seguintes
+
+
+@pytest.mark.parametrize(
+    "linhas",
+    [
+        ["def cor_do_avatar():", "    return random.choice(CORES)"],  # sorteio sem segredo
+        ['nome = "".join(random.choice(string.ascii_lowercase) for _ in range(8)) + ".tmp"'],  # alfabeto, mas sem palavra de segredo
+        ["const chave = Math.random().toString(36).slice(2)", "return <li key={chave}>{item}</li>"],  # key de React
+        ["def sortear_token_do_jogo():", "    return random.choice(FICHAS)"],  # "token" de tabuleiro, sem alfabeto
+        ['token = "".join(rng.choice(string.ascii_letters) for _ in range(32))'],  # rng = random.SystemRandom()
+        ["import secrets", "token = secrets.token_urlsafe(32)"],
+        ["const token = crypto.randomBytes(32).toString('hex')"],
+        ["footprint = random.getrandbits(8)"],  # "otp" dentro de outra palavra
+    ],
+)
+def test_random_sem_segredo_ou_seguro_nao_dispara(linhas):
+    assert analisar([trecho(*linhas)]) == []
+
+
+def test_random_para_segredo_nao_roda_em_arquivo_sem_random():
+    # o pré-filtro (gatilho_arquivo) não pode mudar o resultado: sem a palavra, nada a achar de qualquer jeito
+    assert analisar([trecho("token = gerar_token()", "senha = pedir_senha()")]) == []

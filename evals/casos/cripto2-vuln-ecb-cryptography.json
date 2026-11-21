@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto2",
+  "nota": "Biblioteca `cryptography` em vez de pycryptodome: modo ECB do mesmo jeito.",
+  "codigo": "cipher = Cipher(algorithms.AES(chave), modes.ECB())\nencryptor = cipher.encryptor()"
+}

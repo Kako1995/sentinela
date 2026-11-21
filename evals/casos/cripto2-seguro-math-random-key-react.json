@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cripto2",
+  "nota": "Idioma Math.random().toString(36) como key de lista no React: não é segredo.",
+  "codigo": "const chave = Math.random().toString(36).slice(2)\nreturn <li key={chave}>{item}</li>"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "criptografia fraca",
+  "origem": "claude-cripto2",
+  "nota": "Código de redefinição de senha gerado com Math.random() em base 16.",
+  "codigo": "const resetCode = Math.random().toString(16).substring(2, 10)\nawait salvarCodigo(usuario.id, resetCode)"
+}

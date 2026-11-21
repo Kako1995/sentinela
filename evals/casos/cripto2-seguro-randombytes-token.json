@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-cripto2",
+  "nota": "crypto.randomBytes é a fonte criptográfica do Node.",
+  "codigo": "const token = crypto.randomBytes(32).toString('hex')\nawait salvarToken(usuario.id, token)"
+}

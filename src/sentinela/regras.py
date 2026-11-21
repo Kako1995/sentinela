@@ -25,6 +25,9 @@ class Regra:
     # O scanner junta até `janela` linhas seguidas, e só processa a regra se `gatilho` estiver na primeira.
     janela: int = 1
     gatilho: str | None = None
+    # Pré-filtro barato: se esse texto não aparece em NENHUMA linha do arquivo, a regra nem roda
+    # (a regra de `random` junta várias linhas e custaria tempo em todo arquivo que nunca sorteia nada).
+    gatilho_arquivo: str | None = None
 
     def casa(self, texto: str, limite_inicio: int | None = None) -> bool:
         """`texto` é uma linha ou, em regras com janela, várias linhas juntas.
@@ -257,6 +260,48 @@ REGRAS: list[Regra] = [
         excecao=_re(r"usedforsecurity\s*=\s*False"),  # uso declarado como não-segurança (cache, checksum)
         explicacao="MD5 e SHA-1 são quebrados e não servem para senhas nem para garantir integridade.",
         correcao="Use SHA-256 ou superior; para senhas, use bcrypt, scrypt ou argon2.",
+    ),
+    Regra(
+        id="cripto-modo-ecb",
+        categoria="criptografia fraca",
+        cwe="CWE-327",
+        severidade=Severity.media,
+        # pycryptodome (MODE_ECB), `cryptography` (modes.ECB), Node ('aes-256-ecb') e Java ("AES/ECB/...")
+        padrao=_re(r"""\bMODE_ECB\b|\bmodes\.ECB\b|["'][A-Za-z0-9]+(?:-[A-Za-z0-9]+)*-ecb["']|["'][A-Za-z0-9]+/ECB/"""),
+        explicacao="O modo ECB cifra blocos iguais de forma igual, e isso vaza o padrão dos dados.",
+        correcao="Use um modo autenticado, como AES-GCM (ou ChaCha20-Poly1305), com um nonce novo a cada mensagem.",
+    ),
+    Regra(
+        id="cripto-des",
+        categoria="criptografia fraca",
+        cwe="CWE-327",
+        severidade=Severity.media,
+        # DES simples (pycryptodome `DES.new`, Node `createCipheriv('des-...')`); TripleDES/DES3 não entram
+        padrao=_re(r"""\bDES\.new\(|\bcreate(?:De)?[Cc]ipher(?:iv)?\(\s*["']des(?:-[a-z]+)?["']"""),
+        explicacao="O DES tem chave de só 56 bits e pode ser quebrado por força bruta.",
+        correcao="Use AES-256 em modo GCM.",
+    ),
+    Regra(
+        id="cripto-random-token",
+        categoria="criptografia fraca",
+        cwe="CWE-338",
+        severidade=Severity.media,
+        # Duas coisas juntas: uma palavra de segredo (token, senha, sessão...) e uma forma típica de gerar
+        # segredo com o gerador comum (sorteio de caracteres de um alfabeto, getrandbits, Math.random().toString(36)).
+        # Só o gerador comum, sem a palavra de segredo, não alerta (cor de avatar, nome de arquivo, key de React).
+        # `rng.choice` com `rng = random.SystemRandom()` não casa de propósito: esse é seguro.
+        padrao=_re(
+            r"(?i:token(?!iz)|secret|segred|senha|passw|sess(?:ion|[aã]o)|(?<![a-z])otp(?![a-z])|csrf|api_?key"
+            r"|(?<![a-z])salt|nonce|reset_?cod\w*|reset_?code)"
+            r"[\s\S]{0,200}?"
+            r"(?:\brandom\.(?:choices?|sample)\(\s*(?:string\.\w+|[\w.]*(?:letters|digits|alphabet|chars|alfabeto|caracteres)\w*)"
+            r"|\brandom\.getrandbits\("
+            r"|\bMath\.random\(\)\.toString\(\s*(?:16|32|36)\s*\))"
+        ),
+        janela=4,
+        gatilho_arquivo="random",
+        explicacao="O gerador `random`/`Math.random` é previsível: quem vê alguns valores consegue adivinhar os próximos. Não serve para token, senha ou sessão.",
+        correcao="Use `secrets.token_urlsafe()` (Python) ou `crypto.randomBytes()` / `crypto.randomUUID()` (Node).",
     ),
     Regra(
         id="bind-todas-interfaces",
