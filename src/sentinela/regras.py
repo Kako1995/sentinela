@@ -72,6 +72,19 @@ _NUMERO_JS = (
 )
 
 
+# Endereços "internos" escritos como TEXTO numa checagem de SSRF. FAIXA = intervalos privados (10.x, 192.168.x,
+# 172.16-31.x, 169.254.x); localhost e 127. sozinhos aparecem também em lista de origens de CORS de desenvolvimento
+# e em config por ambiente, então só contam como trava junto de uma FAIXA. O `\\?` aceita o ponto escapado de regex.
+# Um prefixo de IP termina em ponto ou continua com mais octetos ("10." ou "10.0.0.1"); "10.5" é um número decimal
+# (coordenada de SVG, versão), então 10. e 127. não podem ser seguidos de dígitos que acabam ali.
+_NAO_DECIMAL = r"(?!\d+(?![\d.]))"
+_FAIXA_PRIVADA = (
+    rf"(?:10\\?\.{_NAO_DECIMAL}|192\\?\.168(?!\d)|172\\?\.(?:1[6-9]|2\d|3[01])(?!\d)|169\\?\.254(?!\d))"
+)
+_ENDERECO_INTERNO = rf"(?:localhost|127\\?\.{_NAO_DECIMAL}|0\\?\.0\\?\.0\\?\.0|{_FAIXA_PRIVADA})"
+_ABRE_TEXTO = r"""(?<=["'`^(|/])"""  # o endereço começa logo depois de aspa, ^, (, | ou / (texto ou regex)
+
+
 # Sinais de que uma string está sendo montada com valores de fora.
 # Constantes em MAIÚSCULAS (CAMPOS, TEMPO_LIMITE) não contam: são do próprio código, não do usuário.
 _INTERPOLACAO = (
@@ -333,6 +346,33 @@ REGRAS: list[Regra] = [
         gatilho_arquivo="random",
         explicacao="O gerador `random`/`Math.random` é previsível: quem vê alguns valores consegue adivinhar os próximos. Não serve para token, senha ou sessão.",
         correcao="Use `secrets.token_urlsafe()` (Python) ou `crypto.randomBytes()` / `crypto.randomUUID()` (Node).",
+    ),
+    Regra(
+        id="ssrf-trava-por-prefixo",
+        categoria="SSRF",
+        cwe="CWE-918",
+        severidade=Severity.media,
+        # Duas formas de reconhecer a trava frágil, ambas numa linha só:
+        #  1. método de texto em algo que parece host/URL: host.startsWith('127.'), url.includes('localhost'),
+        #     host.startswith(("10.", ...)). Não vale para `versao.startsWith('10.')` nem para `ip.startsWith('10.')`
+        #     (marcar tráfego interno em métrica não bloqueia nada).
+        #  2. dois ou mais endereços internos entre aspas/regex NA MESMA linha, sendo ao menos um de FAIXA
+        #     privada: lista ('localhost', '127.', '10.'), regex /^(127\\.|10\\.|192\\.168\\.)/.
+        padrao=_re(
+            r"(?i:\b\w*(?:host|url|uri|domain)\w*)\s*\??\.\s*(?:startsWith|startswith|includes)\(\s*\(?\s*[\"'`]"
+            rf"{_ENDERECO_INTERNO}"
+            rf"|{_ABRE_TEXTO}{_FAIXA_PRIVADA}[^\n]{{0,100}}?{_ABRE_TEXTO}{_ENDERECO_INTERNO}"
+            rf"|{_ABRE_TEXTO}(?:localhost|127\\?\.{_NAO_DECIMAL}|0\\?\.0\\?\.0\\?\.0)[^\n]{{0,100}}?{_ABRE_TEXTO}{_FAIXA_PRIVADA}"
+        ),
+        explicacao=(
+            "Esta checagem tenta bloquear endereços internos comparando o começo do texto. Ela deixa passar formas "
+            "equivalentes (172.16-31.x, 0.0.0.0, [::1], 100.64.x, IP em decimal ou hexadecimal, um nome que aponta "
+            "para IP interno, redirecionamento), e uma trava que parece proteger é pior do que nenhuma."
+        ),
+        correcao=(
+            "Resolva o nome para IP e confira a faixa com uma biblioteca (ipaddress em Python, ipaddr.js em Node: "
+            "private, loopback, link-local), de preferência com uma lista de hosts permitidos, e revalide cada redirecionamento."
+        ),
     ),
     Regra(
         id="bind-todas-interfaces",

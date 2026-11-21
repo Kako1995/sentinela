@@ -417,3 +417,48 @@ def test_quote_que_fecha_a_string_nao_conta_como_simbolo():
     a string fazia `'Salvar'` (6 letras) parecer uma senha com símbolo."""
     for valor in ("'Salvar'", '"Salvar"', "'trocar'", "'Entrar'"):
         assert "segredo-atribuicao" not in regras_que_casam(f"botao = {{ 'nova-senha': {valor} }}"), valor
+
+
+# --- trava de SSRF por prefixo/substring de texto (host.startsWith('127.'), regex de prefixos privados) ---
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "if (hostname.startsWith('127.')) return deny()",
+        "if (host.startsWith('10.') || host.startsWith('192.168.')) return false",
+        'if host.startswith("10."):',
+        'return not host.startswith(("localhost", "127.", "10.", "192.168."))',
+        "if (url.includes('localhost') || url.includes('127.0.0.1')) throw new Error('interno')",
+        "if (parsed.host.startsWith('172.16.')) return deny()",
+        "const PRIVADO = /^(localhost|127\\.|10\\.|192\\.168\\.)/",
+        'if re.match(r"^(127\\.|10\\.|192\\.168\\.)", host):',
+        "const INTERNOS = ['localhost', '127.', '10.', '192.168.']",
+        "if (/^(localhost|127\\.|10\\.|192\\.168\\.|169\\.254\\.)/.test(u.hostname)) return",  # o formato do achado real
+        "const BLOQ = ['169.254.', '0.0.0.0', 'localhost']",
+    ],
+)
+def test_ssrf_trava_por_prefixo_dispara(linha):
+    assert "ssrf-trava-por-prefixo" in regras_que_casam(linha)
+
+
+@pytest.mark.parametrize(
+    "linha",
+    [
+        "if (process.versions.node.startsWith('10.')) console.warn('node antigo')",
+        "if (versao.startsWith('10.')) usarFormatoAntigo()",
+        "if (ip.startsWith('10.')) etiqueta = 'rede interna'",  # receptor é um IP de métrica, não um host de destino
+        "const base = host === 'localhost' ? 'http://localhost:3000' : 'https://api.exemplo.com'",
+        "const API_INTERNA = 'http://10.0.0.5:8080/v1'",
+        "const ORIGENS_DE_DEV = ['http://localhost:3000', 'http://127.0.0.1:3000']",  # localhost + 127 sem faixa privada
+        "if (url.includes('utm_source')) limparParametros(url)",
+        "const PERMITIDOS = new Set(['api.exemplo.com', 'cdn.exemplo.com'])",
+        "ip = ipaddress.ip_address(socket.gethostbyname(host))",
+        # números decimais que começam com 10. ou 127. (coordenadas de SVG, versões): não são prefixo de IP
+        "busca: '<circle cx=\"10.5\" cy=\"10.5\" r=\"6.5\"/>'",
+        "const pontos = ['10.5', '127.25', '10.75']",
+        "versoes = ('10.5', '127.9')",
+    ],
+)
+def test_ssrf_trava_por_prefixo_nao_dispara_em_uso_inocente(linha):
+    assert "ssrf-trava-por-prefixo" not in regras_que_casam(linha)
