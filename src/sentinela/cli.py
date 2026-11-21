@@ -1,4 +1,5 @@
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Optional
 
@@ -18,6 +19,7 @@ from sentinela.report import (
 )
 from sentinela.scanner import TAMANHO_MAXIMO_LINHA, analisar
 from sentinela.varredura import anexar_fontes
+from sentinela.varredura import MOTIVO_MARKDOWN, MOTIVO_PASTA, Pulados
 from sentinela.varredura import varrer as varrer_pasta
 
 app = typer.Typer(help="Sentinela: revisor de segurança para diffs de código.")
@@ -37,16 +39,47 @@ def principal() -> None:
     """Mantém os comandos como subcomandos, mesmo quando há só um."""
 
 
+MAX_NOMES_NO_AVISO = 5  # quantos nomes mostrar por motivo antes de dizer "e mais N"
+
+
+def _nomes_curtos(nomes: list[str]) -> str:
+    """"a, b, c" ou "a, b, c, d, e e mais 7": o aviso diz QUAIS, sem virar uma parede de texto."""
+    mostrados = ", ".join(nomes[:MAX_NOMES_NO_AVISO])
+    resto = len(nomes) - MAX_NOMES_NO_AVISO
+    return f"{mostrados} e mais {resto}" if resto > 0 else mostrados
+
+
 def _avisar_linhas_longas(trechos: list[TrechoArquivo]) -> None:
     """Avisa quantas linhas passaram de TAMANHO_MAXIMO_LINHA e por isso não foram
-    checadas pelas regras por linha (scanner.py)."""
-    n = sum(1 for t in trechos for l in t.linhas_adicionadas if len(l.texto) > TAMANHO_MAXIMO_LINHA)
-    if n:
+    checadas pelas regras por linha (scanner.py), e em quais arquivos estão."""
+    por_arquivo = {
+        t.arquivo: n
+        for t in trechos
+        if (n := sum(1 for l in t.linhas_adicionadas if len(l.texto) > TAMANHO_MAXIMO_LINHA))
+    }
+    if por_arquivo:
+        onde = _nomes_curtos([f"{arquivo} ({n})" for arquivo, n in por_arquivo.items()])
         typer.echo(
-            f"{n} linha(s) com mais de {TAMANHO_MAXIMO_LINHA} caracteres não passaram pelas regras "
-            "por linha (SVG, bundle minificado ou dado numa linha só costumam ser a causa).",
+            f"{sum(por_arquivo.values())} linha(s) com mais de {TAMANHO_MAXIMO_LINHA} caracteres não passaram "
+            f"pelas regras por linha, em: {onde}. (SVG, bundle minificado ou dado numa linha só costumam ser a causa.)",
             err=True,
         )
+
+
+def _avisar_pulados(pulados: Pulados, incluir_markdown: bool) -> None:
+    """Diz o que o `varrer` deixou de analisar e por quê, para ninguém achar que "não deu alerta"
+    quando na verdade o arquivo nem foi lido."""
+    if not pulados.por_motivo:
+        return
+    typer.echo(f"Pulados ({pulados.total()}), não analisados:", err=True)
+    for motivo, nomes in pulados.por_motivo.items():
+        dica = " — use --incluir-md para analisar" if motivo == MOTIVO_MARKDOWN and not incluir_markdown else ""
+        total = len(nomes)
+        if motivo == MOTIVO_PASTA:
+            # 130 `__pycache__` espalhadas não ajudam em nada listadas uma a uma: agrupa pelo nome da pasta.
+            contagem = Counter(n.rsplit("/", 1)[-1] for n in nomes)
+            nomes = [nome if qtd == 1 else f"{nome} ×{qtd}" for nome, qtd in contagem.most_common()]
+        typer.echo(f"  - {motivo} ({total}): {_nomes_curtos(nomes)}{dica}", err=True)
 
 
 def _config(pasta: Path) -> Config:
@@ -122,20 +155,27 @@ def varrer(
         [], "--excluir", "-x", help="Caminho ou padrão a ignorar. Pode repetir a opção."
     ),
     nota: bool = OPCAO_NOTA,
+    incluir_markdown: bool = typer.Option(
+        False, "--incluir-md",
+        help="Analisa também os arquivos Markdown (.md/.mdx), que ficam de fora por padrão.",
+    ),
 ) -> None:
     """Analisa todos os arquivos de texto de uma pasta, não só um diff.
 
-    Pula dependências (node_modules, .venv...), binários e arquivos grandes. Tem mais
-    ruído que `revisar`: trate o resultado como uma lista para conferir. Mesmos códigos
-    de saída do `revisar`.
+    Pula dependências e builds (node_modules, .venv, .next...), Markdown, SVG, arquivos
+    minificados, binários e arquivos grandes, e avisa o que pulou. Tem mais ruído que
+    `revisar`: trate o resultado como uma lista para conferir. Mesmos códigos de saída
+    do `revisar`.
     """
     if not pasta.exists():
         typer.echo(f"Caminho não encontrado: {pasta}", err=True)
         raise typer.Exit(2)
 
     config = _config(pasta)
-    trechos = varrer_pasta(pasta, [*excluir, *config.ignorar])
+    pulados = Pulados()
+    trechos = varrer_pasta(pasta, [*excluir, *config.ignorar], incluir_markdown, pulados)
     # Fora da saída principal, para json e markdown continuarem sendo só o relatório.
     typer.echo(f"{len(trechos)} arquivo(s) analisado(s).", err=True)
+    _avisar_pulados(pulados, incluir_markdown)
     _avisar_linhas_longas(trechos)
     _emitir(analisar(trechos, desativadas=config.regras_desativadas), formato, nota)

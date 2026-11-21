@@ -84,9 +84,10 @@ Para um software que já existe, em vez de um diff:
 ```bash
 sentinela varrer caminho/do/projeto
 sentinela varrer . -x tests -x docs -f markdown   # -x ignora caminhos (pode repetir)
+sentinela varrer . --incluir-md                    # analisa também os .md/.mdx
 ```
 
-Ele lê todos os arquivos de texto (`.py`, `.js`, `.ts` e `.tsx` também passam pela análise por AST), pulando dependências (`node_modules`, `.venv`, `vendor`...), caches, binários, links simbólicos e arquivos com mais de 1 MB. Os mesmos formatos e códigos de saída do `revisar` valem aqui. Em projeto inteiro os falsos positivos se acumulam, então trate o resultado como uma **lista para conferir**, não como veredito. Só analise código seu ou que você tem permissão de analisar.
+Ele lê todos os arquivos de texto (`.py`, `.js`, `.ts` e `.tsx` também passam pela análise por AST), pulando dependências e builds (`node_modules`, `.venv`, `vendor`, `.next`, `_next`...), caches, arquivos minificados (`*.min.js`), SVG, binários, links simbólicos e arquivos com mais de 1 MB. **Markdown (`.md`/`.mdx`) também fica de fora** por padrão: README e docs têm HTML e código de exemplo de propósito e geravam alertas que não são do código (use `--incluir-md` para analisar mesmo assim). **Ele sempre diz o que pulou e por quê** (na saída de erro, então `-f json` continua sendo só o relatório): por motivo, com os nomes dos primeiros arquivos, e as linhas longas demais (acima de 2000 caracteres) com o arquivo em que estão. Assim, "nenhum alerta" nunca esconde um arquivo que nem foi lido. Os mesmos formatos e códigos de saída do `revisar` valem aqui. Em projeto inteiro os falsos positivos se acumulam, então trate o resultado como uma **lista para conferir**, não como veredito. Só analise código seu ou que você tem permissão de analisar.
 
 **Código de saída:** `1` se houver achado de severidade **alta ou crítica**, `0` caso contrário, `2` se o arquivo não existir. É isso que faz o CI falhar.
 
