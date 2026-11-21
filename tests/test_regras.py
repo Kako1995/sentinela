@@ -101,6 +101,14 @@ def test_mesma_linha_pode_disparar_regras_diferentes():
     assert {a.regra for a in achados} == {"injecao-de-comando", "tls-sem-verificacao"}
 
 
+def test_desativadas_filtra_por_id_da_regra():
+    linha = 'os.system("curl " + url); requests.get(url, verify=False)'
+
+    assert analisar([trecho(linha)], desativadas=frozenset({"tls-sem-verificacao"}))[0].regra == "injecao-de-comando"
+    assert analisar([trecho(linha)], desativadas=frozenset({"injecao-de-comando", "tls-sem-verificacao"})) == []
+    assert analisar([trecho(linha)]) != []  # sem desativadas, continua como sempre (nada muda por padrão)
+
+
 # ---------- v2: exceções gerais (precisão) sem perder detecções (recall) ----------
 
 

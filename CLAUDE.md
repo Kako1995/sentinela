@@ -28,6 +28,7 @@ src/sentinela/
   ast_python.py # análise por AST de Python: origem->uso do dado, SQL multilinha, autorização
   ast_js.py     # análise por AST de JS/TS (tree-sitter): Express, Next.js (route handlers, server actions), Supabase
   scanner.py    # aplica as regras às linhas adicionadas
+  config.py     # lê .sentinela.toml (regras desativadas, caminhos extras a ignorar)
   avaliacao.py  # lógica dos evals: casos, veredito, precisão e recall
   report.py     # (Fase 3) formatos terminal, markdown, json
 tests/

@@ -5,6 +5,7 @@ from typing import Optional
 import typer
 from rich.console import Console
 
+from sentinela.config import NOME_ARQUIVO, Config, carregar as carregar_config
 from sentinela.diff import TrechoArquivo, parse_diff
 from sentinela.models import Finding
 from sentinela.report import (
@@ -42,6 +43,15 @@ def _avisar_linhas_longas(trechos: list[TrechoArquivo]) -> None:
             "por linha (SVG, bundle minificado ou dado numa linha só costumam ser a causa).",
             err=True,
         )
+
+
+def _config(pasta: Path) -> Config:
+    """Lê .sentinela.toml em `pasta` (ou na pasta-mãe, se `pasta` for um arquivo) e avisa se ele
+    tiver algum problema — nunca impede a análise de rodar, só volta ao padrão (nada desativado)."""
+    config = carregar_config(pasta if pasta.is_dir() else pasta.parent)
+    if config.erro:
+        typer.echo(f"{NOME_ARQUIVO}: {config.erro} (rodando com o padrão: nada desativado).", err=True)
+    return config
 
 
 def _emitir(achados: list[Finding], formato: Formato, nota: bool = False) -> None:
@@ -84,6 +94,7 @@ def revisar(
         raise typer.Exit(2)
 
     trechos = parse_diff(texto)
+    config = Config()
     if raiz is not None:
         if not raiz.is_dir():
             typer.echo(f"Pasta não encontrada: {raiz}", err=True)
@@ -91,9 +102,10 @@ def revisar(
         sem_ast = anexar_fontes(trechos, raiz)
         if sem_ast:
             typer.echo(f"{sem_ast} arquivo(s) .py sem análise por AST (não encontrado em --raiz ou diferente do diff).", err=True)
+        config = _config(raiz)
     _avisar_linhas_longas(trechos)
     # Diff vazio ou sem linhas adicionadas é um relatório sem achados, no formato pedido.
-    _emitir(analisar(trechos), formato, nota)
+    _emitir(analisar(trechos, desativadas=config.regras_desativadas), formato, nota)
 
 
 @app.command()
@@ -115,8 +127,9 @@ def varrer(
         typer.echo(f"Caminho não encontrado: {pasta}", err=True)
         raise typer.Exit(2)
 
-    trechos = varrer_pasta(pasta, excluir)
+    config = _config(pasta)
+    trechos = varrer_pasta(pasta, [*excluir, *config.ignorar])
     # Fora da saída principal, para json e markdown continuarem sendo só o relatório.
     typer.echo(f"{len(trechos)} arquivo(s) analisado(s).", err=True)
     _avisar_linhas_longas(trechos)
-    _emitir(analisar(trechos), formato, nota)
+    _emitir(analisar(trechos, desativadas=config.regras_desativadas), formato, nota)

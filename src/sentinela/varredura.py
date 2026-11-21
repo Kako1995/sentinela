@@ -16,6 +16,7 @@ PASTAS_IGNORADAS = {
 }
 ARQUIVOS_IGNORADOS = [
     "*.min.js", "*.min.css", "*.map", "*.lock", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
+    ".sentinela.toml",  # configuração da própria ferramenta, não código do projeto
 ]
 TAMANHO_MAXIMO = 1_000_000  # bytes; arquivos maiores costumam ser dados ou código gerado
 
