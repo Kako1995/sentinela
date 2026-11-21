@@ -65,6 +65,15 @@ def _janela(linhas: list[LinhaAdicionada], inicio: int, tamanho: int) -> str:
     return "\n".join(textos)
 
 
+def _passa_pelo_gatilho(regra: Regra, texto_minusculo: str) -> bool:
+    """Pré-filtro por arquivo: a regra só roda se algum dos textos de `gatilho_arquivo` aparece nele."""
+    gatilho = regra.gatilho_arquivo
+    if gatilho is None:
+        return True
+    gatilhos = (gatilho,) if isinstance(gatilho, str) else gatilho
+    return any(g.lower() in texto_minusculo for g in gatilhos)
+
+
 def _resultado_ast(trecho: TrechoArquivo) -> ResultadoAst | None:
     """Análise por AST do arquivo, ou None se não foi possível (sem fonte, não é .py, erro de sintaxe)."""
     if trecho.fonte is None:
@@ -89,11 +98,15 @@ def analisar(
         resultado = _resultado_ast(trecho)
         linhas = trecho.linhas_adicionadas
         texto_do_trecho = "\n".join(l.texto for l in linhas)
+        minusculo = texto_do_trecho.lower()
+        # Conteúdo completo do arquivo, quando existe (varrer, --raiz); senão, só as linhas adicionadas.
+        texto_do_arquivo = trecho.fonte if trecho.fonte is not None else texto_do_trecho
         ativas = [
             r
             for r in regras
             if (resultado is None or r.id not in COBERTAS_PELA_AST)
-            and (r.gatilho_arquivo is None or r.gatilho_arquivo in texto_do_trecho)
+            and _passa_pelo_gatilho(r, minusculo)
+            and (r.excecao_arquivo is None or not r.excecao_arquivo.search(texto_do_arquivo))
         ]
         texto_solto = resultado.linhas_de_texto if resultado else set()
         adicionadas = {l.numero for l in trecho.linhas_adicionadas}
