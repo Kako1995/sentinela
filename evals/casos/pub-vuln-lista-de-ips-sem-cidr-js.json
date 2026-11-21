@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-publicos",
+  "nota": "Lista de prefixos/IPs soltos como texto (não CIDR): a trava frágil de sempre.",
+  "codigo": "const BLOQUEADOS = ['localhost', '10.0.0.1', '192.168.0.1']\nif (BLOQUEADOS.includes(hostname)) return deny()\nif (hostname.startsWith('10.')) return deny()"
+}

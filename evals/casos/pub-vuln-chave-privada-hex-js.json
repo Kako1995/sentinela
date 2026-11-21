@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-publicos",
+  "nota": "0x + 64 hex é uma CHAVE PRIVADA, não um endereço: continua alertando.",
+  "codigo": "const privateKey = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'"
+}

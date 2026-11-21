@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-publicos",
+  "nota": "Faixas privadas em CIDR comparadas com a biblioteca: é a forma CERTA de checar.",
+  "codigo": "import ipaddress\nPRIVADAS = [ipaddress.ip_network(n) for n in (\"10.0.0.0/8\", \"172.16.0.0/12\", \"192.168.0.0/16\")]"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-publicos",
+  "nota": "tokenURL é o ENDEREÇO do servidor OAuth, não um token.",
+  "codigo": "const provedor = {\n  authorizationURL: 'https://oauth.provedor.net/oauth2/authorize',\n  tokenURL: 'https://oauth.provedor.net/oauth2/v1/token',\n  requestTokenURL: 'https://oauth.provedor.net/oauth/request_token',\n}"
+}

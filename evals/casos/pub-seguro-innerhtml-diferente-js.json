@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-publicos",
+  "nota": "!== também compara.",
+  "codigo": "while (el.innerHTML !== esperado) await esperar()"
+}

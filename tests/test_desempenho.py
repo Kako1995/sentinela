@@ -118,3 +118,16 @@ def test_isencao_por_arquivo_do_cloudflare_access_nao_trava_em_arquivo_grande():
 
     assert duracao < 5 * LIMITE_SEGUNDOS, f"demorou {duracao:.2f}s num arquivo de {len(trecho.fonte)} caracteres"
     assert [a.regra for a in achados if a.regra == "cloudflare-access-sem-jwt"] == ["cloudflare-access-sem-jwt"]
+
+
+def test_tag_sql_com_generico_nao_trava_com_muitos_sql_na_mesma_linha():
+    """O genérico opcional da tag (`sql<...>`) varre até o fim da linha para achar o `>` e a crase: com muitos `sql<`
+    sem fechar, o pior caso é quadrático no tamanho da linha, que tem teto (TAMANHO_MAXIMO_LINHA)."""
+    linha = "x = " + "sql<" * 450  # perto do limite, nunca fecha nem tem crase
+    assert len(linha) < TAMANHO_MAXIMO_LINHA
+
+    inicio = time.perf_counter()
+    analisar([TrechoArquivo(arquivo="a.ts", linhas_adicionadas=[LinhaAdicionada(1, linha + " SELECT FROM ${x}")])])
+    duracao = time.perf_counter() - inicio
+
+    assert duracao < LIMITE_SEGUNDOS, f"demorou {duracao:.2f}s"

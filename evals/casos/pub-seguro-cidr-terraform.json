@@ -1,0 +1,8 @@
+{
+  "linguagem": "yaml",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-publicos",
+  "nota": "Lista de sub-redes em notação CIDR (Terraform): é configuração de rede, não trava de SSRF.",
+  "codigo": "variable \"subnets\" {\n  default = [\"10.0.1.0/24\", \"10.0.2.0/24\"]\n}"
+}

@@ -1,0 +1,8 @@
+{
+  "linguagem": "yaml",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-publicos",
+  "nota": "Arquivo .env.example com a chave trocada por xxxx.",
+  "codigo": "OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}

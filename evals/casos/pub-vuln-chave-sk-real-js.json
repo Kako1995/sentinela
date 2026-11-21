@@ -1,0 +1,8 @@
+{
+  "linguagem": "yaml",
+  "vulneravel": true,
+  "categoria_esperada": "segredo no código",
+  "origem": "claude-publicos",
+  "nota": "Chave com o mesmo prefixo, mas com cara de chave de verdade.",
+  "codigo": "OPENAI_API_KEY=sk-proj-a8Fk2mQ9vR3nT7wZ1pB4xYzK0LmN5oP6"
+}
