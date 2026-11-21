@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf3",
+  "nota": "cache.get(u) é um dicionário, não um cliente HTTP.",
+  "codigo": "from flask import Flask, request\nimport requests, httpx, aiohttp, urllib3\napp = Flask(__name__)\n@app.route('/p')\ndef p():\n    u = request.args.get('url')\n    cache = {}\n    return str(cache.get(u))"
+}

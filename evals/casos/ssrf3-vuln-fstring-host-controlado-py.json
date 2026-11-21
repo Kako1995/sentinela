@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ssrf3",
+  "nota": "O host é o próprio dado do usuário (https://{u}/...): sem host fixo, continua alertando.",
+  "codigo": "from flask import Flask, request\nimport requests, httpx, aiohttp, urllib3\napp = Flask(__name__)\n@app.route('/p')\ndef p():\n    u = request.args.get('url')\n    return requests.get(f'https://{u}/v1/x').text"
+}

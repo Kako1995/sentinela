@@ -290,3 +290,56 @@ def test_js_join_sozinho_ainda_e_reportado():
     resultado = analisar_ast_js("a.js", "app.get('/d', (req, res) => {\n const c = path.join(DIR, req.query.a);\n log(c);\n});")
 
     assert [a.regra for a in resultado.achados] == ["ast-path-traversal"]
+
+
+# ---------- SSRF: mais clientes HTTP (undici, ky como função, got.stream) ----------
+
+EXPRESS = "const express = require('express')\nconst app = express()\napp.get('/p', async (req, res) => {\n  const u = req.query.url\n"
+
+
+@pytest.mark.parametrize(
+    "chamada",
+    [
+        "await undici.request(u)",
+        "await undici.fetch(u)",
+        "await ky(u)",
+        "await ky.get(u)",
+        "got.stream(u).pipe(res)",
+        "await got(u)",
+        "await axios.get(u)",
+    ],
+)
+def test_ssrf_com_os_clientes_http_conhecidos(chamada):
+    assert "ast-ssrf" in regras(EXPRESS + "  " + chamada + "\n})")
+
+
+@pytest.mark.parametrize(
+    "chamada",
+    [
+        "await undici.request(`https://api.fixa.net/v1/${u}`)",
+        "await ky('https://api.fixa.net/status')",
+        "got.stream('https://cdn.fixa.net/arquivo.zip').pipe(res)",
+        "const m = new Map(); m.fetch(u)",  # não é um cliente HTTP
+        "res.stream(u)",  # `res` não está entre os clientes
+    ],
+)
+def test_ssrf_url_fixa_ou_objeto_que_nao_e_cliente_http_nao_alerta(chamada):
+    assert "ast-ssrf" not in regras(EXPRESS + "  " + chamada + "\n})")
+
+
+def test_handler_sem_import_de_framework_continua_sem_contexto_web_erro_conhecido():
+    """Documenta um erro conhecido: um arquivo que só exporta o handler (req, res), sem importar o Express nem declarar
+    rotas, não é tratado como aplicação web. Um protótipo que alargou isso deu 1 acerto contra 6 falsos positivos em
+    código real, então ficou assim de propósito (veja docs/limitacoes.md). Se este teste falhar porque o contexto foi
+    alargado, revise os falsos positivos antes de aceitar."""
+    codigo = (
+        "const needle = require('needle')\n"
+        "function Pesquisa() {\n"
+        "  this.exibir = (req, res) => {\n"
+        "    const url = req.query.url + req.query.simbolo\n"
+        "    return needle.get(url, (e, r, corpo) => res.send(corpo))\n"
+        "  }\n"
+        "}\n"
+    )
+
+    assert "ast-ssrf" not in regras(codigo)

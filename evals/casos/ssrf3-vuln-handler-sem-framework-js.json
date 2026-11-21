@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": true,
+  "categoria_esperada": "SSRF",
+  "origem": "claude-ssrf3",
+  "nota": "ERRO CONHECIDO: o arquivo só exporta o handler (req, res) e não importa o Express nem declara rotas (elas são registradas em outro arquivo), então a AST não trata req como entrada de fora. Alargar esse contexto deu 1 acerto contra 6 falsos positivos em código real; ver docs/limitacoes.md.",
+  "codigo": "const needle = require('needle')\n\nfunction PesquisaHandler() {\n  this.exibir = (req, res) => {\n    if (req.query.simbolo) {\n      const url = req.query.url + req.query.simbolo\n      return needle.get(url, (erro, resposta, corpo) => {\n        res.send(corpo)\n      })\n    }\n  }\n}\n\nmodule.exports = PesquisaHandler"
+}

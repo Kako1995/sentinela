@@ -1,0 +1,8 @@
+{
+  "linguagem": "python",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf3",
+  "nota": "Session com URL constante.",
+  "codigo": "from flask import Flask, request\nimport requests, httpx, aiohttp, urllib3\napp = Flask(__name__)\ns = requests.Session()\n@app.route('/p')\ndef p():\n    u = request.args.get('url')\n    return s.get('https://api.fixa.net/v1/status').text"
+}

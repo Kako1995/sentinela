@@ -53,6 +53,15 @@ SINKS_CAMINHO_PONTILHADOS = {
     "os.remove", "os.unlink", "os.rmdir", "os.listdir", "os.makedirs", "os.mkdir", "os.rename",
 }
 VERBOS_HTTP = {"get", "post", "put", "delete", "head", "patch", "options"}
+# Clientes HTTP guardados numa variável: `s = requests.Session(); s.get(url)` é o mesmo pedido que `requests.get(url)`.
+# Só entram construtores inconfundíveis: `Session()` ou `Client()` soltos NÃO, porque a Session do SQLAlchemy também
+# tem `.get()` (é banco de dados, não HTTP).
+CONSTRUTORES_CLIENTE_HTTP = {
+    "requests.Session", "httpx.Client", "httpx.AsyncClient", "aiohttp.ClientSession", "urllib3.PoolManager",
+    "ClientSession", "AsyncClient", "PoolManager",
+}
+# URL que COMEÇA com um host constante ("https://api.fixa.net/..."): o usuário só escolhe o caminho, não o destino.
+HOST_FIXO = re.compile(r"^https?://[^/?#{}%\s]+[/?#]")
 SINKS_DESSERIALIZACAO = {
     "pickle.load", "pickle.loads", "pd.read_pickle", "pandas.read_pickle", "read_pickle",
     "joblib.load", "torch.load", "marshal.loads",
@@ -309,7 +318,42 @@ def _contexto_web(arvore: ast.AST) -> bool:
     return False
 
 
-def _achados_por_sinks(arquivo: str, nos: list[ast.AST], taint: set[str], validados: set[str]) -> list[Finding]:
+def _clientes_http(arvore: ast.AST) -> frozenset[str]:
+    """Nomes de variáveis que guardam um cliente HTTP (`s = requests.Session()`, `with httpx.Client() as c`)."""
+    nomes: set[str] = set()
+    for no in ast.walk(arvore):
+        if isinstance(no, ast.Assign):
+            alvos, valor = no.targets, no.value
+        elif isinstance(no, ast.AnnAssign) and no.value is not None:
+            alvos, valor = [no.target], no.value
+        elif isinstance(no, (ast.With, ast.AsyncWith)):
+            for item in no.items:
+                if isinstance(item.optional_vars, ast.Name) and isinstance(item.context_expr, ast.Call):
+                    if _nome_pontilhado(item.context_expr.func) in CONSTRUTORES_CLIENTE_HTTP:
+                        nomes.add(item.optional_vars.id)
+            continue
+        else:
+            continue
+        if isinstance(valor, ast.Call) and _nome_pontilhado(valor.func) in CONSTRUTORES_CLIENTE_HTTP:
+            nomes.update(t.id for t in alvos if isinstance(t, ast.Name))
+    return frozenset(nomes)
+
+
+def _prefixo_literal(expr: ast.AST | None) -> str:
+    """O texto constante com que uma URL COMEÇA ('https://host/v1/' em 'https://host/v1/' + x, f'...{x}' ou '...%s' % x)."""
+    if isinstance(expr, ast.Constant) and isinstance(expr.value, str):
+        return expr.value
+    if isinstance(expr, ast.JoinedStr):
+        primeiro = expr.values[0] if expr.values else None
+        return primeiro.value if isinstance(primeiro, ast.Constant) and isinstance(primeiro.value, str) else ""
+    if isinstance(expr, ast.BinOp) and isinstance(expr.op, (ast.Add, ast.Mod)):
+        return _prefixo_literal(expr.left)
+    return ""
+
+
+def _achados_por_sinks(
+    arquivo: str, nos: list[ast.AST], taint: set[str], validados: set[str], clientes: frozenset[str] = frozenset()
+) -> list[Finding]:
     """Sinks (SQL, caminho de arquivo, desserialização, SSRF) alcançados a partir de `taint`, já com
     `validados` descontado. Separado de `_analisar_escopo` para ser reaproveitado tanto no escopo normal
     (dado vindo da própria rota) quanto no resumo por parâmetro de uma função ajudante (ver
@@ -352,13 +396,14 @@ def _achados_por_sinks(arquivo: str, nos: list[ast.AST], taint: set[str], valida
             achados.append(_achado("ast-desserializacao", arquivo, no.lineno))
         elif (
             (nome.split(".")[0] in {"requests", "httpx"} and ultimo in VERBOS_HTTP | {"request"})
+            or ("." in nome and nome.split(".")[0] in clientes and ultimo in VERBOS_HTTP | {"request"})
             or nome in {"urlopen", "urllib.request.urlopen"}
         ):
             posicao = 1 if ultimo == "request" else 0
             url = next((k.value for k in no.keywords if k.arg == "url"), None)
             if url is None and len(no.args) > posicao:
                 url = no.args[posicao]
-            if contaminado(url):
+            if contaminado(url) and not HOST_FIXO.match(_prefixo_literal(url)):
                 achados.append(_achado("ast-ssrf", arquivo, no.lineno))
 
     # O os.path.join com dado externo é um sinal fraco: se o resultado chega a uma operação de arquivo de verdade
@@ -374,6 +419,7 @@ def _analisar_escopo(
     web: bool,
     funcoes_topo: dict[str, ast.FunctionDef | ast.AsyncFunctionDef],
     resumos: dict[str, dict[str, list[Finding]]],
+    clientes: frozenset[str] = frozenset(),
 ) -> list[Finding]:
     nos = list(_nos_do_escopo(escopo))
     # `request` só é um dado de usuário em arquivos de aplicação web; em bibliotecas HTTP é outra coisa.
@@ -384,7 +430,7 @@ def _analisar_escopo(
     validados = _guardas_de_validacao(nos)
     _propagar(nos, taint, validados)
 
-    achados = _achados_por_sinks(arquivo, nos, taint, validados)
+    achados = _achados_por_sinks(arquivo, nos, taint, validados, clientes)
     achados += _chamadas_para_funcoes_ajudantes(nos, taint, validados, funcoes_topo, resumos)
 
     # --- rota que altera dados sem autenticação visível ---
@@ -405,7 +451,9 @@ def _parametros_simples(func: ast.FunctionDef | ast.AsyncFunctionDef) -> list[st
     return [a.arg for a in args if a.arg not in {"self", "cls"}]
 
 
-def _resumo_por_parametro(arquivo: str, func: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str, list[Finding]]:
+def _resumo_por_parametro(
+    arquivo: str, func: ast.FunctionDef | ast.AsyncFunctionDef, clientes: frozenset[str] = frozenset()
+) -> dict[str, list[Finding]]:
     """Para uma função de nível superior: se SÓ este parâmetro viesse contaminado (os outros não),
     quais achados o corpo dela produziria? Roda uma vez por parâmetro para saber exatamente qual é
     o perigoso — não é o mesmo que rodar com todos contaminados de uma vez, que não diria qual."""
@@ -415,7 +463,7 @@ def _resumo_por_parametro(arquivo: str, func: ast.FunctionDef | ast.AsyncFunctio
     for nome in _parametros_simples(func):
         taint = {nome}
         _propagar(nos, taint, validados)
-        resumo[nome] = _achados_por_sinks(arquivo, nos, taint, validados)
+        resumo[nome] = _achados_por_sinks(arquivo, nos, taint, validados, clientes)
     return resumo
 
 
@@ -513,10 +561,11 @@ def analisar_ast(arquivo: str, fonte: str) -> ResultadoAst | None:
         escopos = [arvore] + [n for n in ast.walk(arvore) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
         web = _contexto_web(arvore)
         funcoes_topo = _funcoes_de_nivel_superior(arvore)
-        resumos = {nome: _resumo_por_parametro(arquivo, f) for nome, f in funcoes_topo.items()}
+        clientes = _clientes_http(arvore)
+        resumos = {nome: _resumo_por_parametro(arquivo, f, clientes) for nome, f in funcoes_topo.items()}
         achados: list[Finding] = []
         for escopo in escopos:
-            achados += _analisar_escopo(arquivo, escopo, web, funcoes_topo, resumos)
+            achados += _analisar_escopo(arquivo, escopo, web, funcoes_topo, resumos, clientes)
         return ResultadoAst(achados, _linhas_de_texto(arvore))
     except (SyntaxError, ValueError, RecursionError, MemoryError):
         return None

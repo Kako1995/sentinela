@@ -1,0 +1,8 @@
+{
+  "linguagem": "javascript",
+  "vulneravel": false,
+  "categoria_esperada": null,
+  "origem": "claude-ssrf3",
+  "nota": "O host está fixo no começo; o usuário só escolhe o caminho.",
+  "codigo": "const express = require('express')\nconst app = express()\napp.get('/p', async (req, res) => {\n  const u = req.query.url\n  await undici.request(`https://api.fixa.net/v1/${u}`)\n  res.send('ok')\n})"
+}
