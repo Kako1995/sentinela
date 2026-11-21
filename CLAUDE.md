@@ -85,6 +85,6 @@ python evals/run_evals.py
 
 ## Como trabalhar neste projeto
 
-- Uma fase do `ROTEIRO.md` por vez. Não adiantar fases.
+- Uma fase do roteiro por vez (o roteiro fica fora do repositório, é anotação pessoal do Carlos). Não adiantar fases.
 - Depois de cada parte, explicar em poucas linhas o que foi feito e por quê, para o Carlos conseguir reexplicar.
 - Se algo for decisão de design (formato, nome, estrutura), propor e justificar antes de gerar muito código.
