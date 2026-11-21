@@ -1,0 +1,1 @@
+Arquivo descartavel para testar a protecao da main. Nao mesclar.
