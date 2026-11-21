@@ -1,6 +1,7 @@
 """Varre uma pasta inteira: cada arquivo de texto vira um trecho com todas as linhas "adicionadas"."""
 
 import os
+from dataclasses import dataclass, field
 from fnmatch import fnmatch
 from pathlib import Path
 from typing import Iterator
@@ -13,12 +14,42 @@ PASTAS_IGNORADAS = {
     ".git", ".hg", ".svn", "node_modules", ".venv", "venv", "env", "__pycache__",
     ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox", "dist", "build", ".next",
     ".nuxt", "target", "vendor", ".idea", ".vscode", "coverage",
+    "_next",  # build do Next.js servido como estático (public/_next/...): bundles, nunca código do projeto
 }
 ARQUIVOS_IGNORADOS = [
     "*.min.js", "*.min.css", "*.map", "*.lock", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
+    "*.svg",  # imagem vetorial: costuma ser uma linha enorme e não tem código
     ".sentinela.toml",  # configuração da própria ferramenta, não código do projeto
 ]
+# Markdown fica de fora por padrão (README e docs têm HTML e código de exemplo de propósito e geram alerta
+# que não é do código do projeto), mas dá para incluir com `varrer --incluir-md`.
+EXTENSOES_MARKDOWN = {".md", ".mdx"}
 TAMANHO_MAXIMO = 1_000_000  # bytes; arquivos maiores costumam ser dados ou código gerado
+
+# Por que um arquivo ou pasta não foi analisado (aparece na saída do `varrer`).
+MOTIVO_MARKDOWN = "Markdown (.md/.mdx)"
+MOTIVO_SVG = "SVG"
+MOTIVO_GERADO = "minificado, mapa ou lockfile"
+MOTIVO_PASTA = "pasta de dependências ou build"
+MOTIVO_EXCLUIDO = "excluído por -x ou pelo .sentinela.toml"
+MOTIVO_GRANDE = f"maior que {TAMANHO_MAXIMO // 1_000_000} MB"
+MOTIVO_BINARIO = "binário ou ilegível (não é texto UTF-8)"
+MOTIVO_LINK = "link simbólico"
+ARQUIVO_DE_CONFIGURACAO = ".sentinela.toml"  # pulado em silêncio: não é algo que o usuário "perdeu"
+PASTAS_SILENCIOSAS = {".git", ".hg", ".svn", ".idea", ".vscode"}  # controle de versão e editor: sempre ruído no aviso
+
+
+@dataclass
+class Pulados:
+    """O que o `varrer` não analisou, agrupado pelo motivo. Serve só para avisar o usuário."""
+
+    por_motivo: dict[str, list[str]] = field(default_factory=dict)
+
+    def adicionar(self, motivo: str, caminho: str) -> None:
+        self.por_motivo.setdefault(motivo, []).append(caminho)
+
+    def total(self) -> int:
+        return sum(len(v) for v in self.por_motivo.values())
 
 
 def _tem_ast(nome: str) -> bool:
@@ -34,8 +65,29 @@ def _excluido(relativo: str, padroes: list[str]) -> bool:
     )
 
 
-def listar_arquivos(raiz: Path, excluir: list[str] | None = None) -> Iterator[Path]:
-    """Percorre a pasta, pulando pastas de dependências, links simbólicos e caminhos excluídos."""
+def _motivo_de_pular_arquivo(rel: str, excluir: list[str], incluir_markdown: bool) -> str | None:
+    """Por que um arquivo não deve ser lido (None = deve ser lido)."""
+    if _excluido(rel, excluir):
+        return MOTIVO_EXCLUIDO
+    if not incluir_markdown and Path(rel).suffix.lower() in EXTENSOES_MARKDOWN:
+        return MOTIVO_MARKDOWN
+    if rel.rsplit("/", 1)[-1] == ARQUIVO_DE_CONFIGURACAO:
+        return ARQUIVO_DE_CONFIGURACAO  # só um marcador: quem chama não registra esse
+    if _excluido(rel, ARQUIVOS_IGNORADOS):
+        return MOTIVO_SVG if Path(rel).suffix.lower() == ".svg" else MOTIVO_GERADO
+    return None
+
+
+def listar_arquivos(
+    raiz: Path,
+    excluir: list[str] | None = None,
+    incluir_markdown: bool = False,
+    pulados: Pulados | None = None,
+) -> Iterator[Path]:
+    """Percorre a pasta, pulando pastas de dependências, links simbólicos e caminhos excluídos.
+
+    Se `pulados` for dado, anota nele o que foi deixado de fora e por quê.
+    """
     excluir = excluir or []
     if raiz.is_file():
         yield raiz
@@ -43,40 +95,60 @@ def listar_arquivos(raiz: Path, excluir: list[str] | None = None) -> Iterator[Pa
 
     for pasta, subpastas, arquivos in os.walk(raiz):
         relativa = Path(pasta).relative_to(raiz).as_posix()
+        mantidas = []
+        for s in sorted(subpastas):
+            rel_sub = s if relativa == "." else f"{relativa}/{s}"
+            if s in PASTAS_IGNORADAS:
+                motivo = MOTIVO_PASTA
+            elif _excluido(rel_sub, excluir):
+                motivo = MOTIVO_EXCLUIDO
+            else:
+                mantidas.append(s)
+                continue
+            if pulados is not None and s not in PASTAS_SILENCIOSAS:
+                pulados.adicionar(motivo, rel_sub)
         # Remove da lista in-place: o os.walk não desce nas pastas retiradas.
-        subpastas[:] = sorted(
-            s for s in subpastas
-            if s not in PASTAS_IGNORADAS
-            and not _excluido(s if relativa == "." else f"{relativa}/{s}", excluir)
-        )
+        subpastas[:] = mantidas
         for nome in sorted(arquivos):
             caminho = Path(pasta) / nome
             rel = caminho.relative_to(raiz).as_posix()
-            if caminho.is_symlink() or _excluido(rel, excluir + ARQUIVOS_IGNORADOS):
-                continue
-            yield caminho
+            motivo = MOTIVO_LINK if caminho.is_symlink() else _motivo_de_pular_arquivo(rel, excluir, incluir_markdown)
+            if motivo is None:
+                yield caminho
+            elif pulados is not None and motivo != ARQUIVO_DE_CONFIGURACAO:
+                pulados.adicionar(motivo, rel)
 
 
-def ler_como_trecho(caminho: Path, raiz: Path) -> TrechoArquivo | None:
+def ler_como_trecho(caminho: Path, raiz: Path, pulados: Pulados | None = None) -> TrechoArquivo | None:
     """Lê um arquivo de texto. Devolve None para binários, arquivos grandes ou ilegíveis."""
+    nome = caminho.name if raiz.is_file() else caminho.relative_to(raiz).as_posix()
     try:
         if caminho.stat().st_size > TAMANHO_MAXIMO:
+            if pulados is not None:
+                pulados.adicionar(MOTIVO_GRANDE, nome)
             return None
         dados = caminho.read_bytes()
-        if b"\0" in dados[:8000]:  # byte nulo: arquivo binário
-            return None
-        texto = dados.decode("utf-8")
+        # byte nulo: arquivo binário
+        texto = None if b"\0" in dados[:8000] else dados.decode("utf-8")
     except (OSError, UnicodeDecodeError):
+        texto = None
+    if texto is None:
+        if pulados is not None:
+            pulados.adicionar(MOTIVO_BINARIO, nome)
         return None
 
-    nome = caminho.name if raiz.is_file() else caminho.relative_to(raiz).as_posix()
     linhas = [LinhaAdicionada(i, t) for i, t in enumerate(texto.splitlines(), start=1)]
     fonte = texto if _tem_ast(nome) else None  # a análise por AST precisa do arquivo inteiro
     return TrechoArquivo(arquivo=nome, linhas_adicionadas=linhas, fonte=fonte)
 
 
-def varrer(raiz: Path, excluir: list[str] | None = None) -> list[TrechoArquivo]:
-    trechos = (ler_como_trecho(c, raiz) for c in listar_arquivos(raiz, excluir))
+def varrer(
+    raiz: Path,
+    excluir: list[str] | None = None,
+    incluir_markdown: bool = False,
+    pulados: Pulados | None = None,
+) -> list[TrechoArquivo]:
+    trechos = (ler_como_trecho(c, raiz, pulados) for c in listar_arquivos(raiz, excluir, incluir_markdown, pulados))
     return [t for t in trechos if t is not None]
 
 

@@ -22,7 +22,7 @@ O objetivo do projeto é aprendizado e portfólio: o Carlos precisa entender e c
 src/sentinela/
   cli.py        # comandos Typer (revisar, varrer)
   diff.py       # quebra diff unificado em trechos por arquivo
-  varredura.py  # percorre uma pasta e trata cada arquivo como trecho (comando varrer)
+  varredura.py  # percorre uma pasta e trata cada arquivo como trecho (comando varrer); registra o que pulou (Pulados)
   models.py     # Finding, Severity (Pydantic)
   regras.py     # regras por linha: regex por categoria de vulnerabilidade
   ast_python.py # análise por AST de Python: origem->uso do dado, SQL multilinha, autorização
@@ -77,6 +77,7 @@ pip install -e ".[dev]"
 pytest
 sentinela revisar caminho/do.diff
 sentinela varrer caminho/do/projeto -x tests
+sentinela varrer caminho/do/projeto --incluir-md   # .md/.mdx ficam de fora por padrão; o varrer sempre lista o que pulou
 git diff main | sentinela revisar - --raiz .   # com AST nos .py/.js/.ts do diff
 git diff main | sentinela revisar -
 sentinela revisar caminho/do.diff --nota   # nota de 0 a 10, com fórmula e aviso junto (ver report.py)

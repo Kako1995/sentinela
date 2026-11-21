@@ -4,7 +4,21 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from sentinela.cli import app
-from sentinela.varredura import ler_como_trecho, listar_arquivos, varrer
+from sentinela.varredura import (
+    MOTIVO_BINARIO,
+    MOTIVO_EXCLUIDO,
+    MOTIVO_GERADO,
+    MOTIVO_GRANDE,
+    MOTIVO_LINK,
+    MOTIVO_MARKDOWN,
+    MOTIVO_PASTA,
+    MOTIVO_SVG,
+    TAMANHO_MAXIMO,
+    Pulados,
+    ler_como_trecho,
+    listar_arquivos,
+    varrer,
+)
 
 runner = CliRunner()
 
@@ -164,3 +178,135 @@ def test_cli_varrer_sentinela_toml_invalido_avisa_e_roda_com_padrao(tmp_path):
     assert "sintaxe inválida" in r.output
     dados = json.loads(r.stdout)
     assert len(dados["achados"]) == 1  # sem a configuração, a regra continua ativa
+
+
+# --- menos ruído: Markdown, SVG e build do Next fora por padrão; e dizer o que foi pulado ---
+
+
+def test_markdown_e_svg_ficam_de_fora_por_padrao(tmp_path):
+    criar(tmp_path, {"a.py": "x\n", "README.md": "# oi\n", "docs/guia.mdx": "x", "logo.svg": "<svg/>"})
+
+    assert nomes(tmp_path) == ["a.py"]
+
+
+def test_incluir_markdown_traz_de_volta_so_o_markdown(tmp_path):
+    criar(tmp_path, {"a.py": "x\n", "README.md": "# oi\n", "logo.svg": "<svg/>"})
+
+    assert nomes(tmp_path, incluir_markdown=True) == ["README.md", "a.py"]
+
+
+def test_arquivo_markdown_passado_direto_e_analisado(tmp_path):
+    criar(tmp_path, {"README.md": "# oi\n"})
+
+    assert [t.arquivo for t in varrer(tmp_path / "README.md")] == ["README.md"]
+
+
+def test_pasta_next_de_build_fica_de_fora_em_qualquer_nivel(tmp_path):
+    criar(tmp_path, {"a.py": "x\n", "public/_next/static/chunk.js": "x", "app/_next/y.js": "y"})
+
+    assert nomes(tmp_path) == ["a.py"]
+
+
+def test_registra_o_que_foi_pulado_e_por_que(tmp_path):
+    criar(tmp_path, {
+        "ok.py": "x = 1\n",
+        "README.md": "# oi\n",
+        "docs/guia.mdx": "x",
+        "logo.svg": "<svg/>",
+        "app.min.js": "x",
+        "node_modules/l/a.js": "x",
+        "dist/b.js": "x",
+        "public/_next/c.js": "x",
+        "dado.bin": b"\x00\x01\x02",
+        "enorme.txt": "a" * (TAMANHO_MAXIMO + 1),
+        "gerado/x.py": "x = 1\n",
+        ".sentinela.toml": "[regras]\n",
+    })
+    (tmp_path / "atalho.py").symlink_to(tmp_path / "ok.py")
+    pulados = Pulados()
+
+    trechos = varrer(tmp_path, excluir=["gerado"], pulados=pulados)
+
+    assert [t.arquivo for t in trechos] == ["ok.py"]
+    assert sorted(pulados.por_motivo[MOTIVO_MARKDOWN]) == ["README.md", "docs/guia.mdx"]
+    assert pulados.por_motivo[MOTIVO_SVG] == ["logo.svg"]
+    assert pulados.por_motivo[MOTIVO_GERADO] == ["app.min.js"]
+    assert sorted(pulados.por_motivo[MOTIVO_PASTA]) == ["dist", "node_modules", "public/_next"]
+    assert pulados.por_motivo[MOTIVO_BINARIO] == ["dado.bin"]
+    assert pulados.por_motivo[MOTIVO_GRANDE] == ["enorme.txt"]
+    assert pulados.por_motivo[MOTIVO_EXCLUIDO] == ["gerado"]
+    assert pulados.por_motivo[MOTIVO_LINK] == ["atalho.py"]
+    # a configuração da própria ferramenta não é "algo que o usuário perdeu": não entra na lista
+    assert all(".sentinela.toml" not in nomes_ for nomes_ in pulados.por_motivo.values())
+
+
+def test_incluir_markdown_nao_registra_markdown_como_pulado(tmp_path):
+    criar(tmp_path, {"README.md": "# oi\n"})
+    pulados = Pulados()
+
+    varrer(tmp_path, incluir_markdown=True, pulados=pulados)
+
+    assert MOTIVO_MARKDOWN not in pulados.por_motivo
+
+
+def test_cli_varrer_lista_o_que_pulou_e_como_incluir_markdown(tmp_path):
+    criar(tmp_path, {"ok.py": "x = 1\n", "README.md": "h = hashlib.md5(senha.encode())\n", "logo.svg": "<svg/>"})
+
+    r = runner.invoke(app, ["varrer", str(tmp_path)])
+
+    assert "1 arquivo(s) analisado(s)." in r.output
+    assert "Pulados" in r.output and "README.md" in r.output and "logo.svg" in r.output
+    assert "--incluir-md" in r.output
+    assert "criptografia fraca" not in r.output  # o md não foi lido
+
+
+def test_cli_varrer_incluir_md_le_o_markdown(tmp_path):
+    criar(tmp_path, {"ok.py": "x = 1\n", "README.md": "h = hashlib.md5(senha.encode())\n"})
+
+    r = runner.invoke(app, ["varrer", str(tmp_path), "--incluir-md"])
+
+    assert "2 arquivo(s) analisado(s)." in r.output
+    assert "criptografia fraca" in r.output and "README.md:1" in r.output
+
+
+def test_cli_varrer_sem_nada_pulado_nao_imprime_secao_de_pulados(tmp_path):
+    criar(tmp_path, {"ok.py": "x = 1\n"})
+
+    r = runner.invoke(app, ["varrer", str(tmp_path)])
+
+    assert "Pulados" not in r.output
+
+
+def test_cli_varrer_nomeia_o_arquivo_das_linhas_longas_puladas(tmp_path):
+    criar(tmp_path, {"public/bundle.js": "var a = 1;" * 400 + "\n", "ok.py": "x = 1\n"})
+
+    r = runner.invoke(app, ["varrer", str(tmp_path)])
+
+    assert "public/bundle.js" in r.output and "1 linha(s)" in r.output
+
+
+def test_cli_varrer_agrupa_pastas_puladas_pelo_nome(tmp_path):
+    criar(tmp_path, {
+        "ok.py": "x = 1\n",
+        "a/__pycache__/x.py": "x",
+        "b/c/__pycache__/y.py": "y",
+        "d/__pycache__/z.py": "z",
+        "node_modules/l/w.js": "w",
+    })
+
+    r = runner.invoke(app, ["varrer", str(tmp_path)])
+
+    assert "pasta de dependências ou build (4):" in r.output  # o total é de pastas, não de nomes
+    assert "__pycache__ ×3" in r.output and "node_modules" in r.output
+    assert "b/c/__pycache__" not in r.output  # nada de listar caminho por caminho
+
+
+def test_pastas_de_controle_de_versao_e_editor_nao_entram_no_aviso(tmp_path):
+    criar(tmp_path, {"ok.py": "x = 1\n", ".git/config": "[core]\n", ".idea/w.xml": "x", ".vscode/s.json": "{}"})
+    pulados = Pulados()
+
+    varrer(tmp_path, pulados=pulados)
+
+    assert pulados.por_motivo == {}
+    r = runner.invoke(app, ["varrer", str(tmp_path)])
+    assert "Pulados" not in r.output
