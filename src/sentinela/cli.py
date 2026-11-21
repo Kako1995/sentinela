@@ -21,6 +21,10 @@ from sentinela.varredura import varrer as varrer_pasta
 app = typer.Typer(help="Sentinela: revisor de segurança para diffs de código.")
 
 OPCAO_FORMATO = typer.Option(Formato.terminal, "--formato", "-f", help="Formato do relatório.")
+OPCAO_NOTA = typer.Option(
+    False, "--nota",
+    help="Mostra uma nota de 0 a 10, com a fórmula e o aviso de limitação junto (não é nota de segurança).",
+)
 
 
 @app.callback()
@@ -40,14 +44,14 @@ def _avisar_linhas_longas(trechos: list[TrechoArquivo]) -> None:
         )
 
 
-def _emitir(achados: list[Finding], formato: Formato) -> None:
+def _emitir(achados: list[Finding], formato: Formato, nota: bool = False) -> None:
     """Imprime o relatório no formato pedido e sai com 1 se houver achado alto ou crítico."""
     if formato is Formato.json:
-        typer.echo(formatar_json(achados))
+        typer.echo(formatar_json(achados, nota))
     elif formato is Formato.markdown:
-        typer.echo(formatar_markdown(achados))
+        typer.echo(formatar_markdown(achados, nota))
     else:
-        imprimir_terminal(achados, Console())
+        imprimir_terminal(achados, Console(), nota)
 
     if tem_bloqueante(achados):
         raise typer.Exit(1)
@@ -64,6 +68,7 @@ def revisar(
         help="Pasta do repositório. Com ela, os arquivos .py do diff são lidos por inteiro e passam "
         "pela análise por AST (acha mais, com menos falsos positivos).",
     ),
+    nota: bool = OPCAO_NOTA,
 ) -> None:
     """Lê um diff unificado e aponta vulnerabilidades nas linhas adicionadas.
 
@@ -88,7 +93,7 @@ def revisar(
             typer.echo(f"{sem_ast} arquivo(s) .py sem análise por AST (não encontrado em --raiz ou diferente do diff).", err=True)
     _avisar_linhas_longas(trechos)
     # Diff vazio ou sem linhas adicionadas é um relatório sem achados, no formato pedido.
-    _emitir(analisar(trechos), formato)
+    _emitir(analisar(trechos), formato, nota)
 
 
 @app.command()
@@ -98,6 +103,7 @@ def varrer(
     excluir: list[str] = typer.Option(
         [], "--excluir", "-x", help="Caminho ou padrão a ignorar. Pode repetir a opção."
     ),
+    nota: bool = OPCAO_NOTA,
 ) -> None:
     """Analisa todos os arquivos de texto de uma pasta, não só um diff.
 
@@ -113,4 +119,4 @@ def varrer(
     # Fora da saída principal, para json e markdown continuarem sendo só o relatório.
     typer.echo(f"{len(trechos)} arquivo(s) analisado(s).", err=True)
     _avisar_linhas_longas(trechos)
-    _emitir(analisar(trechos), formato)
+    _emitir(analisar(trechos), formato, nota)

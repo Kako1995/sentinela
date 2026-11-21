@@ -105,3 +105,47 @@ def test_formato_invalido_e_rejeitado():
     resultado = revisar("-", "--formato", "xml", entrada="")
 
     assert resultado.exit_code == 2
+
+
+# ---------- --nota ----------
+
+
+def test_sem_nota_nao_aparece_nada_sobre_nota():
+    resultado = revisar(str(EXEMPLOS / "multiplos.diff"), "--formato", "json")
+
+    assert "nota" not in json.loads(resultado.output)
+
+
+def test_nota_no_json_com_formula_e_aviso():
+    # multiplos.diff: 1 alta (-2) + 1 media (-1) = 10 - 3 = 7.0
+    resultado = revisar(str(EXEMPLOS / "multiplos.diff"), "--formato", "json", "--nota")
+
+    nota = json.loads(resultado.output)["nota"]
+    assert nota["valor"] == 7.0
+    assert "crítico tira 3" in nota["formula"]
+    assert "não é uma nota de segurança" in nota["aviso"].lower()
+
+
+def test_nota_no_markdown():
+    resultado = revisar(str(EXEMPLOS / "multiplos.diff"), "--formato", "markdown", "--nota")
+
+    assert "**Nota do Sentinela: 7.0/10**" in resultado.output
+    assert "não é uma nota de segurança" in resultado.output.lower()
+
+
+def test_nota_no_terminal():
+    resultado = revisar(str(EXEMPLOS / "multiplos.diff"), "--nota")
+
+    assert "Nota do Sentinela: 7.0/10" in resultado.output
+
+
+def test_nota_sem_achados_e_10():
+    resultado = revisar("-", "-f", "json", "--nota", entrada="")
+
+    assert json.loads(resultado.output)["nota"]["valor"] == 10.0
+
+
+def test_nota_markdown_sem_achados_tambem_mostra():
+    resultado = revisar("-", "--formato", "markdown", "--nota", entrada=DIFF_SEGURO)
+
+    assert "**Nota do Sentinela: 10.0/10**" in resultado.output
