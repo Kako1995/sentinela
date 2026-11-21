@@ -1,0 +1,1550 @@
+{
+  "rotulo": "cripto-depois-do-conserto",
+  "data": "2026-11-21T11:32:37",
+  "commit": "bbc0af4",
+  "metricas": {
+    "tp": 91,
+    "fp": 1,
+    "fn": 4,
+    "tn": 97,
+    "precisao": 0.9891304347826086,
+    "recall": 0.9578947368421052
+  },
+  "casos": [
+    {
+      "id": "ast-seguro-authz-depends",
+      "origem": "claude-ast",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-seguro-authz-login-required",
+      "origem": "claude-ast",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-seguro-funcao-ajudante-chamada-com-constante",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-seguro-path-basename",
+      "origem": "claude-ast",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-seguro-path-secure-filename",
+      "origem": "claude-ast",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-seguro-path-via-funcao-ajudante-validado",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-seguro-segredo-url-sem-senha",
+      "origem": "claude-ast",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-seguro-sql-multilinha-parametrizado",
+      "origem": "claude-ast",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-seguro-sql-via-funcao-ajudante-parametrizado",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-seguro-ssrf-allowlist",
+      "origem": "claude-ast",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-seguro-ssrf-url-fixa",
+      "origem": "claude-ast",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-seguro-xss-jquery-texto",
+      "origem": "claude-ast",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast-vuln-authz-fastapi-delete",
+      "origem": "claude-ast",
+      "veredito": "TP",
+      "esperado": "falta de autorização",
+      "achadas": [
+        "falta de autorização"
+      ]
+    },
+    {
+      "id": "ast-vuln-authz-flask-put",
+      "origem": "claude-ast",
+      "veredito": "TP",
+      "esperado": "falta de autorização",
+      "achadas": [
+        "falta de autorização"
+      ]
+    },
+    {
+      "id": "ast-vuln-path-fastapi-param",
+      "origem": "claude-ast",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "ast-vuln-path-rmtree",
+      "origem": "claude-ast",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "ast-vuln-path-variavel",
+      "origem": "claude-ast",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "ast-vuln-path-via-funcao-ajudante",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "ast-vuln-segredo-url",
+      "origem": "claude-ast",
+      "veredito": "TP",
+      "esperado": "segredo no código",
+      "achadas": [
+        "segredo no código"
+      ]
+    },
+    {
+      "id": "ast-vuln-sql-multilinha-concat",
+      "origem": "claude-ast",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "ast-vuln-sql-multilinha-format",
+      "origem": "claude-ast",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "ast-vuln-sql-via-funcao-ajudante",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "ast-vuln-ssrf-variavel",
+      "origem": "claude-ast",
+      "veredito": "TP",
+      "esperado": "SSRF",
+      "achadas": [
+        "SSRF"
+      ]
+    },
+    {
+      "id": "ast-vuln-xss-jquery-html",
+      "origem": "claude-ast",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "ast2-seguro-authz-verificar-token",
+      "origem": "claude-ast2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast2-seguro-biblioteca-request",
+      "origem": "claude-ast2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast2-seguro-cli-input",
+      "origem": "claude-ast2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast2-seguro-path-allowlist",
+      "origem": "claude-ast2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "ast2-vuln-authz-patch",
+      "origem": "claude-ast2",
+      "veredito": "TP",
+      "esperado": "falta de autorização",
+      "achadas": [
+        "falta de autorização"
+      ]
+    },
+    {
+      "id": "ast2-vuln-deser-joblib",
+      "origem": "claude-ast2",
+      "veredito": "TP",
+      "esperado": "desserialização insegura",
+      "achadas": [
+        "desserialização insegura"
+      ]
+    },
+    {
+      "id": "ast2-vuln-path-django",
+      "origem": "claude-ast2",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "ast2-vuln-path-fstring",
+      "origem": "claude-ast2",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "ast2-vuln-path-pathlib",
+      "origem": "claude-ast2",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "ast2-vuln-sql-mod-multilinha",
+      "origem": "claude-ast2",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "ast2-vuln-ssrf-kwarg",
+      "origem": "claude-ast2",
+      "veredito": "TP",
+      "esperado": "SSRF",
+      "achadas": [
+        "SSRF"
+      ]
+    },
+    {
+      "id": "bind-seguro-addeventlistener",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "bind-seguro-config-host",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "bind-seguro-express-localhost",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "bind-seguro-flask-localhost",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "bind-vuln-config-host",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "exposição de rede",
+      "achadas": [
+        "exposição de rede"
+      ]
+    },
+    {
+      "id": "bind-vuln-express-todas-interfaces",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "exposição de rede",
+      "achadas": [
+        "exposição de rede"
+      ]
+    },
+    {
+      "id": "bind-vuln-flask-todas-interfaces",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "exposição de rede",
+      "achadas": [
+        "exposição de rede"
+      ]
+    },
+    {
+      "id": "bind-vuln-socket-raw",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "exposição de rede",
+      "achadas": [
+        "exposição de rede"
+      ]
+    },
+    {
+      "id": "cripto-seguro-aes-gcm",
+      "origem": "claude-cripto",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto-seguro-bcrypt",
+      "origem": "claude-cripto",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto-seguro-comentario-md5",
+      "origem": "claude-cripto",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto-seguro-random-avatar",
+      "origem": "claude-cripto",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto-seguro-secrets-token",
+      "origem": "claude-cripto",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto-seguro-sha256-integridade-js",
+      "origem": "claude-cripto",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto-vuln-aes-ecb",
+      "origem": "claude-cripto",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "cripto-vuln-des",
+      "origem": "claude-cripto",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "cripto-vuln-math-random-token",
+      "origem": "claude-cripto",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "cripto-vuln-md5-senha",
+      "origem": "claude-cripto",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "cripto-vuln-sha1-senha-js",
+      "origem": "claude-cripto",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "cripto-vuln-token-random",
+      "origem": "claude-cripto",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "cripto2-seguro-aes-ctr",
+      "origem": "claude-cripto2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto2-seguro-math-random-key-react",
+      "origem": "claude-cripto2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto2-seguro-nome-arquivo-aleatorio",
+      "origem": "claude-cripto2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto2-seguro-random-ficha-de-jogo",
+      "origem": "claude-cripto2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto2-seguro-randombytes-token",
+      "origem": "claude-cripto2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto2-seguro-systemrandom-token",
+      "origem": "claude-cripto2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "cripto2-vuln-choices-senha-temporaria",
+      "origem": "claude-cripto2",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "cripto2-vuln-des-node",
+      "origem": "claude-cripto2",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "cripto2-vuln-ecb-cryptography",
+      "origem": "claude-cripto2",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "cripto2-vuln-ecb-node",
+      "origem": "claude-cripto2",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "cripto2-vuln-getrandbits-sessao",
+      "origem": "claude-cripto2",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "cripto2-vuln-math-random-reset-js",
+      "origem": "claude-cripto2",
+      "veredito": "TP",
+      "esperado": "criptografia fraca",
+      "achadas": [
+        "criptografia fraca"
+      ]
+    },
+    {
+      "id": "dificil-seguro-innerhtml-constante",
+      "origem": "claude-dificil",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "dificil-seguro-literal-eval",
+      "origem": "claude-dificil",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "dificil-seguro-md5-cache",
+      "origem": "claude-dificil",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "dificil-seguro-shell-constante",
+      "origem": "claude-dificil",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "dificil-seguro-sql-constante",
+      "origem": "claude-dificil",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "dificil-vuln-path-startswith",
+      "origem": "claude-dificil",
+      "veredito": "FN",
+      "esperado": "path traversal",
+      "achadas": []
+    },
+    {
+      "id": "dificil-vuln-segredo-url",
+      "origem": "claude-dificil",
+      "veredito": "TP",
+      "esperado": "segredo no código",
+      "achadas": [
+        "segredo no código"
+      ]
+    },
+    {
+      "id": "dificil-vuln-sql-identificador",
+      "origem": "claude-dificil",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "dificil-vuln-xss-insertadjacent",
+      "origem": "claude-dificil",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "dificil-vuln-yaml-loader",
+      "origem": "claude-dificil",
+      "veredito": "TP",
+      "esperado": "desserialização insegura",
+      "achadas": [
+        "desserialização insegura"
+      ]
+    },
+    {
+      "id": "js-seguro-authz-express-middleware",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-authz-express-router-use",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-authz-next-sessao",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-authz-server-action-supabase",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-cmd-execfile",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-nao-e-web",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-path-basename",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-path-constante",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-path-lista-permitidos",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-path-numero",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-path-regex",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-sql-parametrizado",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-sql-prisma-tagged",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-sql-tagged-template",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-ssrf-host-fixo",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-ssrf-template-host-fixo",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-supabase-or-fixo",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-xss-escapado",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-seguro-xss-json",
+      "origem": "claude-js",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js-vuln-authz-express-delete",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "falta de autorização",
+      "achadas": [
+        "falta de autorização"
+      ]
+    },
+    {
+      "id": "js-vuln-authz-next-route-delete",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "falta de autorização",
+      "achadas": [
+        "falta de autorização"
+      ]
+    },
+    {
+      "id": "js-vuln-authz-server-action",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "falta de autorização",
+      "achadas": [
+        "falta de autorização"
+      ]
+    },
+    {
+      "id": "js-vuln-cmd-exec-template",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "injeção de comando",
+      "achadas": [
+        "injeção de comando"
+      ]
+    },
+    {
+      "id": "js-vuln-path-express-resolve",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "js-vuln-path-express-sendfile",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "js-vuln-path-next-route",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "js-vuln-path-server-action",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "js-vuln-sql-supabase-or",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "js-vuln-sql-template-linha",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "js-vuln-sql-template-multilinha",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "js-vuln-ssrf-axios",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "SSRF",
+      "achadas": [
+        "SSRF"
+      ]
+    },
+    {
+      "id": "js-vuln-ssrf-next-fetch",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "SSRF",
+      "achadas": [
+        "SSRF"
+      ]
+    },
+    {
+      "id": "js-vuln-xss-express-send",
+      "origem": "claude-js",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "js2-seguro-action-currentuser",
+      "origem": "claude-js2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js2-seguro-action-leitura-publica",
+      "origem": "claude-js2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js2-seguro-authz-passport",
+      "origem": "claude-js2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js2-seguro-nao-e-web-util",
+      "origem": "claude-js2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js2-seguro-path-basename-inline",
+      "origem": "claude-js2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js2-seguro-sql-constante-no-template",
+      "origem": "claude-js2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js2-seguro-sql-objeto-config",
+      "origem": "claude-js2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js2-seguro-ssrf-allowlist-set",
+      "origem": "claude-js2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js2-seguro-xss-numero",
+      "origem": "claude-js2",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js2-vuln-authz-action-pt",
+      "origem": "claude-js2",
+      "veredito": "TP",
+      "esperado": "falta de autorização",
+      "achadas": [
+        "falta de autorização"
+      ]
+    },
+    {
+      "id": "js2-vuln-authz-router-patch",
+      "origem": "claude-js2",
+      "veredito": "TP",
+      "esperado": "falta de autorização",
+      "achadas": [
+        "falta de autorização"
+      ]
+    },
+    {
+      "id": "js2-vuln-cmd-execsync",
+      "origem": "claude-js2",
+      "veredito": "TP",
+      "esperado": "injeção de comando",
+      "achadas": [
+        "injeção de comando"
+      ]
+    },
+    {
+      "id": "js2-vuln-path-action-formdata",
+      "origem": "claude-js2",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "js2-vuln-path-next-page",
+      "origem": "claude-js2",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "js2-vuln-sql-concat-multilinha",
+      "origem": "claude-js2",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "js2-vuln-ssrf-https-get",
+      "origem": "claude-js2",
+      "veredito": "TP",
+      "esperado": "SSRF",
+      "achadas": [
+        "SSRF"
+      ]
+    },
+    {
+      "id": "js2-vuln-xss-send-concat",
+      "origem": "claude-js2",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "js3-seguro-action-assert",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js3-seguro-action-ensure",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js3-seguro-action-requireadmin",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js3-seguro-action-requireorg",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "js3-vuln-guarda-request-nao-e-require",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "falta de autorização",
+      "achadas": [
+        "falta de autorização"
+      ]
+    },
+    {
+      "id": "js3-vuln-guarda-required-nao-e-require",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "falta de autorização",
+      "achadas": [
+        "falta de autorização"
+      ]
+    },
+    {
+      "id": "lib-seguro-def-eval",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "lib-seguro-docstring-eval",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "lib-seguro-metodo-markup",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "lib-seguro-model-eval",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "lib-seguro-os-system-fixo",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "lib-seguro-repr-fstring",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "lib-vuln-guarda-eval-variavel",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "injeção de comando",
+      "achadas": [
+        "injeção de comando"
+      ]
+    },
+    {
+      "id": "lib-vuln-guarda-fstring-html",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "lib-vuln-guarda-os-system-concat",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "injeção de comando",
+      "achadas": [
+        "injeção de comando"
+      ]
+    },
+    {
+      "id": "real-seguro-campo-json-snake-case",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "real-seguro-react-script-constante",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "real-seguro-react-style-multilinha",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "real-seguro-sed-grupo-captura",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "real-seguro-sql-tag-multilinha",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "real-seguro-style-const-maiuscula",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "real-seguro-token-key-namespaced",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "real-seguro-toml-env",
+      "origem": "claude-real",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "real-vuln-sql-sem-tag-perto-de-template",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "real-vuln-style-var-minuscula",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "real-vuln-url-senha-real",
+      "origem": "claude-real",
+      "veredito": "TP",
+      "esperado": "segredo no código",
+      "achadas": [
+        "segredo no código"
+      ]
+    },
+    {
+      "id": "seguro-01",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-02",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-03",
+      "origem": "claude",
+      "veredito": "FP",
+      "esperado": null,
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "seguro-04",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-05",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-06",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-07",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-08",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-09",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "seguro-10",
+      "origem": "claude",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "val-seguro-innerhtml-literal",
+      "origem": "claude-validacao",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "val-seguro-senha-placeholder-ptbr",
+      "origem": "claude-validacao",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "val-seguro-sha1-nao-seguranca",
+      "origem": "claude-validacao",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "val-seguro-shell-make",
+      "origem": "claude-validacao",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "val-seguro-sql-constante-maiuscula",
+      "origem": "claude-validacao",
+      "veredito": "TN",
+      "esperado": null,
+      "achadas": []
+    },
+    {
+      "id": "val-vuln-innerhtml-concatenado",
+      "origem": "claude-validacao",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "val-vuln-react-bio-multilinha",
+      "origem": "claude-validacao",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "val-vuln-react-template-interpolado",
+      "origem": "claude-validacao",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "val-vuln-shell-concatenado",
+      "origem": "claude-validacao",
+      "veredito": "TP",
+      "esperado": "injeção de comando",
+      "achadas": [
+        "injeção de comando"
+      ]
+    },
+    {
+      "id": "val-vuln-sql-str-id",
+      "origem": "claude-validacao",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "vuln-authz-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "falta de autorização",
+      "achadas": [
+        "falta de autorização"
+      ]
+    },
+    {
+      "id": "vuln-authz-02",
+      "origem": "claude",
+      "veredito": "FN",
+      "esperado": "falta de autorização",
+      "achadas": []
+    },
+    {
+      "id": "vuln-cmd-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "injeção de comando",
+      "achadas": [
+        "injeção de comando"
+      ]
+    },
+    {
+      "id": "vuln-cmd-02",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "injeção de comando",
+      "achadas": [
+        "injeção de comando"
+      ]
+    },
+    {
+      "id": "vuln-deser-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "desserialização insegura",
+      "achadas": [
+        "desserialização insegura"
+      ]
+    },
+    {
+      "id": "vuln-deser-02",
+      "origem": "claude",
+      "veredito": "FN",
+      "esperado": "desserialização insegura",
+      "achadas": []
+    },
+    {
+      "id": "vuln-path-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "vuln-path-02",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "path traversal",
+      "achadas": [
+        "path traversal"
+      ]
+    },
+    {
+      "id": "vuln-segredo-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "segredo no código",
+      "achadas": [
+        "segredo no código"
+      ]
+    },
+    {
+      "id": "vuln-segredo-02",
+      "origem": "claude",
+      "veredito": "FN",
+      "esperado": "segredo no código",
+      "achadas": []
+    },
+    {
+      "id": "vuln-segredo-03",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "segredo no código",
+      "achadas": [
+        "segredo no código"
+      ]
+    },
+    {
+      "id": "vuln-sql-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "vuln-sql-02",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "vuln-sql-03",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "vuln-sql-04",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "SQL injection",
+      "achadas": [
+        "SQL injection"
+      ]
+    },
+    {
+      "id": "vuln-ssrf-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "SSRF",
+      "achadas": [
+        "SSRF"
+      ]
+    },
+    {
+      "id": "vuln-ssrf-02",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "SSRF",
+      "achadas": [
+        "SSRF"
+      ]
+    },
+    {
+      "id": "vuln-xss-01",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "vuln-xss-02",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    },
+    {
+      "id": "vuln-xss-03",
+      "origem": "claude",
+      "veredito": "TP",
+      "esperado": "XSS",
+      "achadas": [
+        "XSS"
+      ]
+    }
+  ]
+}

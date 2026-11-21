@@ -87,10 +87,16 @@ def analisar(
     achados: list[Finding] = []
     for trecho in trechos:
         resultado = _resultado_ast(trecho)
-        ativas = [r for r in regras if resultado is None or r.id not in COBERTAS_PELA_AST]
+        linhas = trecho.linhas_adicionadas
+        texto_do_trecho = "\n".join(l.texto for l in linhas)
+        ativas = [
+            r
+            for r in regras
+            if (resultado is None or r.id not in COBERTAS_PELA_AST)
+            and (r.gatilho_arquivo is None or r.gatilho_arquivo in texto_do_trecho)
+        ]
         texto_solto = resultado.linhas_de_texto if resultado else set()
         adicionadas = {l.numero for l in trecho.linhas_adicionadas}
-        linhas = trecho.linhas_adicionadas
         em_template_sql = _linhas_em_template_sql(linhas)
         ignoradas = {l.numero for l in linhas if IGNORAR_LINHA.search(l.texto)}
         do_trecho: list[Finding] = []
